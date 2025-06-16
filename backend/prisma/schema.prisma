@@ -1,15 +1,103 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("DATABASE_URL")  // Подставьте URL новой Neon-базы
+}
+
+model User {
+  id                         Int                    @id @default(autoincrement())
+  userName                   String                 @unique
+  email                      String                 @unique
+  password                   String?
+  googleId                   String?                @unique
+  avatarUrl                  String?
+  createdAt                  DateTime               @default(now())
+  messages                  Message[]              @relation("AuthorToMessages")
+  messageReactions          MessageReaction[]      
+  comments                  Comment[]              
+  commentReactions          CommentReaction[]      
+  sentPrivateMessages       PrivateMessage[]       @relation("Sender")
+  receivedPrivateMessages   PrivateMessage[]       @relation("Receiver")
+  chatsAsParticipant1       PrivateChat[]          @relation("Participant1")
+  chatsAsParticipant2       PrivateChat[]          @relation("Participant2")
+  presence                  UserPresence?          @relation(fields: [presenceId], references: [id])
+  presenceId                Int?                   @unique
+  @@index([email, userName])
+}
+
+model UserPresence {
+  id          Int      @id @default(autoincrement())
+  isOnline    Boolean  @default(false)
+  lastSeenAt  DateTime @default(now())
+  user        User?
+}
+
+model Message {
+  id              Int                 @id @default(autoincrement())
+  text            String
+  createdAt       DateTime            @default(now())
+  author          User                @relation("AuthorToMessages", fields: [authorId], references: [id])
+  authorId        Int
+  reactions      MessageReaction[]
+  comments       Comment[]           
+  @@index([authorId, createdAt])
+}
+
+model MessageReaction {
+  id        Int     @id @default(autoincrement())
+  userId    Int
+  messageId Int
+  reaction  String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  @@unique([userId, messageId])
+}
+
+model Comment {
+  id          Int               @id @default(autoincrement())
+  text        String
+  createdAt   DateTime          @default(now())
+  author      User              @relation(fields: [authorId], references: [id])
+  authorId    Int
+  message     Message           @relation(fields: [messageId], references: [id])
+  messageId   Int
+  reactions  CommentReaction[] 
+  @@index([authorId, messageId, createdAt])
+}
+
+model CommentReaction {
+  id        Int     @id @default(autoincrement())
+  userId    Int
+  commentId Int
+  reaction  String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment   Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  @@unique([userId, commentId])
+}
+
+model PrivateChat {
+  id              Int              @id @default(autoincrement())
+  participant1    User             @relation("Participant1", fields: [participant1Id], references: [id])
+  participant1Id  Int
+  participant2    User             @relation("Participant2", fields: [participant2Id], references: [id])
+  participant2Id  Int
+  messages       PrivateMessage[] 
+  createdAt      DateTime         @default(now())
+  @@unique([participant1Id, participant2Id])
+}
+
+model PrivateMessage {
+  id          Int          @id @default(autoincrement())
+  text        String       @db.Text
+  createdAt   DateTime     @default(now())
+  chat        PrivateChat  @relation(fields: [chatId], references: [id])
+  chatId      Int
+  sender      User         @relation("Sender", fields: [senderId], references: [id])
+  senderId    Int
+  receiver    User         @relation("Receiver", fields: [receiverId], references: [id])
+  receiverId  Int
+  @@index([chatId, createdAt])
 }
