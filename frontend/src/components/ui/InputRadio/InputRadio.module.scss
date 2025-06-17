@@ -1,0 +1,147 @@
+@import '@/scss/common/colors';
+
+.fildset-radio {
+  .form-check {
+    position: relative;
+  }
+
+  input[type="radio"]:checked,
+  input[type="radio"]:not(:checked) {
+    position: fixed !important;
+    left: -9999px !important;
+    height: 0px;
+    width: 0px;
+  }
+
+  input[type="radio"]:checked+label,
+  input[type="radio"]:not(:checked)+label {
+    display: inline-block;
+    position: relative;
+    cursor: pointer;
+    opacity: 1;
+    line-height: 19px;
+    padding: 0 0 0 26px;
+    transition: all 0.2s;
+
+    &:hover {
+      color: rgba(0, 128, 0, 0.774)
+    }
+  }
+
+  input[type="radio"]:checked+label>svg,
+  input[type="radio"]:not(:checked)+label>svg {
+    display: inline-block !important;
+    width: 14px;
+    transform: translate(6px, 6px);
+    height: 14px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transition: all 0.2s;
+  }
+
+  input[type="radio"]:checked+label>svg {
+    opacity: 1;
+  }
+
+  input[type="radio"]:not(:checked)+label>svg {
+    opacity: 0;
+  }
+
+  input[type="radio"]:checked+label:after,
+  input[type="radio"]:checked+label::before,
+  input[type="radio"]:not(:checked)+label:after,
+  input[type="radio"]:not(:checked)+label::before {
+    display: block;
+    transition: all 0.2s;
+    content: "";
+    position: absolute;
+    left: 0px;
+    top: 0px;
+  }
+
+  input[type="radio"]:not(:checked)+label::before {
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    border: solid 2.4px #bababa;
+    background: transparent;
+  }
+
+  input[type="radio"]:checked+label::before {
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    background: transparent;
+    border: solid 2px green;
+  }
+
+  input[type="radio"]:checked+label::after,
+  input[type="radio"]:not(:checked)+label::after {
+    width: 14px;
+    height: 14px;
+    border-radius: 100%;
+    top: 0;
+    left: 0;
+    transform: translate(3px, 3px);
+    border: solid 2px green;
+    background-color: green;
+  }
+
+  input[type="radio"]:checked+label::after {
+    opacity: 1;
+  }
+
+  input[type="radio"]:not(:checked)+label::after {
+    opacity: 0;
+  }
+
+  &--tiers {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    input[type="radio"]:checked+label {
+      color: rgba(0, 128, 0, 0.774);
+      transition: all 0.2s;
+      padding: 0 0 0 0;
+    }
+
+    input[type="radio"]:not(:checked)+label {
+      color: green;
+      transition: all 0.2s;
+      padding: 0 0 0 0;
+    }
+
+    input[type="radio"]:checked+label:after,
+    input[type="radio"]:checked+label::before,
+    input[type="radio"]:not(:checked)+label:after,
+    input[type="radio"]:not(:checked)+label::before {
+      display: none;
+    }
+
+    span {
+      font-size: 15px;
+    }
+
+    display: flex;
+    align-items: center;
+    column-gap: 5px;
+  }
+
+  &--sex {
+    input[type="radio"]:not(:checked)+label::before {
+      border-radius: 5px;
+    }
+
+    input[type="radio"]:checked+label::before,
+    input[type="radio"]:not(:checked)+label::before {
+      border-radius: 5px;
+    }
+
+    input[type="radio"]:checked+label:after,
+    input[type="radio"]:not(:checked)+label:after {
+      display: none;
+    }
+  }
+}

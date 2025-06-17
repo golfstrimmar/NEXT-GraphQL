@@ -1,0 +1,16 @@
+.modalmessage-inner {
+  background-color: whitesmoke;
+  width: 50vw;
+  max-width: 400px;
+  text-align: center;
+  border-radius: 5px;
+  padding: 20px;
+}
+
+.modalmessage-message {
+  color: #000080;
+  /* $deep-blue */
+  font-style: italic;
+  padding: 20px 0;
+  margin: 0;
+}

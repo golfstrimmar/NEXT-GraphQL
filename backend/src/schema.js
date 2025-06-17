@@ -1,5 +1,8 @@
 import { gql } from "graphql-tag";
 import prisma from "./lib/prisma.js";
+import { PubSub } from "graphql-subscriptions";
+
+const pubsub = new PubSub();
 
 export const typeDefs = gql`
   type User {
@@ -19,6 +22,11 @@ export const typeDefs = gql`
     receivedPrivateMessages: [PrivateMessage!]!
     chatsAsParticipant1: [PrivateChat!]!
     chatsAsParticipant2: [PrivateChat!]!
+  }
+
+  type Subscription {
+    userCreated: User!
+    messageCreated: Message!
   }
 
   type UserPresence {
@@ -202,13 +210,14 @@ export const resolvers = {
       _,
       { email, userName, password, googleId, avatarUrl }
     ) => {
-      return await prisma.user.create({
+      const user = await prisma.user.create({
         data: {
           email,
           userName,
           password,
           googleId,
           avatarUrl,
+          createdAt: new Date(),
           presence: {
             create: {
               isOnline: false,
@@ -217,16 +226,25 @@ export const resolvers = {
         },
         include: { presence: true },
       });
-    },
 
+      // Публикуем событие о создании пользователя
+      console.log("====Publishing userCreated ====", user);
+
+      await pubsub.publish("userCreated", { userCreated: user });
+
+      return user;
+    },
     createMessage: async (_, { text, authorId }) => {
-      return await prisma.message.create({
+      const message = await prisma.message.create({
         data: {
           text,
           authorId: parseInt(authorId),
         },
         include: { author: true },
       });
+
+      pubsub.publish("MESSAGE_CREATED", { messageCreated: message });
+      return message;
     },
 
     createMessageReaction: async (_, { userId, messageId, reaction }) => {
@@ -268,7 +286,14 @@ export const resolvers = {
       });
     },
   },
-
+  Subscription: {
+    userCreated: {
+      subscribe: () => pubsub.asyncIterator(["USER_CREATED"]),
+    },
+    messageCreated: {
+      subscribe: () => pubsub.asyncIterator(["MESSAGE_CREATED"]),
+    },
+  },
   User: {
     isOnline: (parent) => parent.presence?.isOnline || false,
   },
