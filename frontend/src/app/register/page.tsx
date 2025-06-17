@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Input from "@/components/ui/Input/Input";
 import Button from "@/components/ui/Button/Button";
+import Image from "next/image";
 
 const CREATE_USER = gql`
   mutation CreateUser(
@@ -40,7 +41,7 @@ export default function RegisterPage() {
     onCompleted: (data) => {
       // Сохраняем пользователя и редиректим
       // localStorage.setItem("currentUser", JSON.stringify(data.createUser));
-      router.push("/");
+      router.push("/login");
     },
     onError: (err) => {
       setError(
@@ -76,11 +77,17 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col gap-2 items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex flex-col gap-4 items-center justify-center bg-gray-50">
       <Link
         href="/"
-        className="text-blue-400 hover:text-blue-800 transition-colors duration-300"
+        className=" hover:scale-102 transition-all duration-200 flex items-center gap-2"
       >
+        <Image
+          src="/assets/svg/left-arrow.svg"
+          alt="arrow"
+          width={20}
+          height={10}
+        />
         Home
       </Link>
 

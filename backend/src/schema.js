@@ -1,10 +1,23 @@
 import { gql } from "graphql-tag";
 import prisma from "./lib/prisma.js";
 import { PubSub } from "graphql-subscriptions";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 
 const pubsub = new PubSub();
+const JWT_SECRET = process.env.JWT_SECRET || "your-strong-secret-key-here";
+
+// Генерация и проверка токенов
+const generateToken = (userId) =>
+  jwt.sign({ userId }, JWT_SECRET, { expiresIn: "30d" });
+const verifyToken = (token) => jwt.verify(token, JWT_SECRET);
 
 export const typeDefs = gql`
+  type AuthPayload {
+    token: String!
+    user: User!
+  }
+
   type User {
     id: ID!
     userName: String!
@@ -13,7 +26,6 @@ export const typeDefs = gql`
     googleId: String
     avatarUrl: String
     createdAt: String!
-    isOnline: Boolean!
     messages: [Message!]!
     messageReactions: [MessageReaction!]!
     comments: [Comment!]!
@@ -27,13 +39,6 @@ export const typeDefs = gql`
   type Subscription {
     userCreated: User!
     messageCreated: Message!
-  }
-
-  type UserPresence {
-    id: ID!
-    isOnline: Boolean!
-    lastSeenAt: String!
-    user: User!
   }
 
   type Message {
@@ -85,6 +90,11 @@ export const typeDefs = gql`
     createdAt: String!
   }
 
+  type AuthPayload {
+    token: String!
+    user: User!
+  }
+
   type Query {
     users: [User!]!
     user(id: ID!): User
@@ -103,6 +113,15 @@ export const typeDefs = gql`
       avatarUrl: String
     ): User!
 
+    loginUser(email: String!, password: String!): AuthPayload!
+
+    registerUser(
+      userName: String!
+      email: String!
+      password: String!
+      avatarUrl: String
+    ): AuthPayload!
+
     createMessage(text: String!, authorId: ID!): Message!
 
     createMessageReaction(
@@ -117,8 +136,6 @@ export const typeDefs = gql`
       receiverId: ID!
       text: String!
     ): PrivateMessage!
-
-    toggleUserOnline(userId: ID!, isOnline: Boolean!): UserPresence!
   }
 `;
 
@@ -127,7 +144,6 @@ export const resolvers = {
     users: async () => {
       return await prisma.user.findMany({
         include: {
-          presence: true,
           messages: true,
           messageReactions: { include: { user: true, message: true } },
           comments: { include: { author: true, message: true } },
@@ -143,7 +159,6 @@ export const resolvers = {
       return await prisma.user.findUnique({
         where: { id: parseInt(id) },
         include: {
-          presence: true,
           messages: true,
           messageReactions: true,
           comments: true,
@@ -206,35 +221,77 @@ export const resolvers = {
   },
 
   Mutation: {
-    createUser: async (
-      _,
-      { email, userName, password, googleId, avatarUrl }
-    ) => {
+    // createUser: async (
+    //   _,
+    //   { email, userName, password, googleId, avatarUrl }
+    // ) => {
+    //   const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
+    //   const user = await prisma.user.create({
+    //     data: {
+    //       email,
+    //       userName,
+    //       password: hashedPassword,
+    //       googleId,
+    //       avatarUrl,
+    //       createdAt: new Date(),
+    //     },
+    //   });
+    //   pubsub.publish("USER_CREATED", { userCreated: user });
+    //   return user;
+    // },
+    registerUser: async (_, { userName, email, password, avatarUrl }) => {
+      const existingUser = await prisma.user.findUnique({ where: { email } });
+      if (existingUser) throw new Error("Email already in use");
+
+      // Хеширование пароля
+      const hashedPassword = await bcrypt.hash(password, 10);
+
       const user = await prisma.user.create({
         data: {
-          email,
           userName,
-          password,
-          googleId,
+          email,
+          password: hashedPassword,
           avatarUrl,
-          createdAt: new Date(),
-          presence: {
-            create: {
-              isOnline: false,
-            },
-          },
+          presence: { create: { isOnline: true } },
         },
         include: { presence: true },
       });
 
-      // Публикуем событие о создании пользователя
-      console.log("====Publishing userCreated ====", user);
+      pubsub.publish("USER_CREATED", { userCreated: user });
 
-      await pubsub.publish("userCreated", { userCreated: user });
-
-      return user;
+      return {
+        token: generateToken(user.id),
+        user,
+      };
     },
-    createMessage: async (_, { text, authorId }) => {
+    loginUser: async (_, { email, password }) => {
+      console.log("<====email, password====>", email, password);
+      const user = await prisma.user.findUnique({
+        where: { email },
+        include: { presence: true },
+      });
+
+      if (!user) throw new Error("User not found");
+      if (!user.password) throw new Error("Account uses social login");
+
+      // Проверка пароля с bcrypt
+      const valid = await bcrypt.compare(password, user.password);
+      if (!valid) throw new Error("Invalid password");
+
+      // Обновляем статус онлайн
+      await prisma.userPresence.update({
+        where: { userId: user.id },
+        data: { isOnline: true },
+      });
+
+      return {
+        token: generateToken(user.id),
+        user,
+      };
+    },
+
+    createMessage: async (_, { text, authorId }, { user }) => {
+      if (!user) throw new Error("Unauthorized");
       const message = await prisma.message.create({
         data: {
           text,
@@ -242,12 +299,16 @@ export const resolvers = {
         },
         include: { author: true },
       });
-
       pubsub.publish("MESSAGE_CREATED", { messageCreated: message });
       return message;
     },
 
-    createMessageReaction: async (_, { userId, messageId, reaction }) => {
+    createMessageReaction: async (
+      _,
+      { userId, messageId, reaction },
+      { user }
+    ) => {
+      if (!user) throw new Error("Unauthorized");
       return await prisma.messageReaction.create({
         data: {
           reaction,
@@ -258,7 +319,12 @@ export const resolvers = {
       });
     },
 
-    createPrivateMessage: async (_, { chatId, senderId, receiverId, text }) => {
+    createPrivateMessage: async (
+      _,
+      { chatId, senderId, receiverId, text },
+      { user }
+    ) => {
+      if (!user) throw new Error("Unauthorized");
       return await prisma.privateMessage.create({
         data: {
           text,
@@ -273,19 +339,8 @@ export const resolvers = {
         },
       });
     },
-
-    toggleUserOnline: async (_, { userId, isOnline }) => {
-      return await prisma.userPresence.upsert({
-        where: { userId: parseInt(userId) },
-        create: {
-          isOnline,
-          user: { connect: { id: parseInt(userId) } },
-        },
-        update: { isOnline },
-        include: { user: true },
-      });
-    },
   },
+
   Subscription: {
     userCreated: {
       subscribe: () => pubsub.asyncIterator(["USER_CREATED"]),
@@ -294,8 +349,56 @@ export const resolvers = {
       subscribe: () => pubsub.asyncIterator(["MESSAGE_CREATED"]),
     },
   },
+
   User: {
-    isOnline: (parent) => parent.presence?.isOnline || false,
+    messages: (parent) => {
+      return prisma.message.findMany({
+        where: { authorId: parent.id },
+        include: { author: true },
+      });
+    },
+    messageReactions: (parent) => {
+      return prisma.messageReaction.findMany({
+        where: { userId: parent.id },
+        include: { user: true, message: true },
+      });
+    },
+    comments: (parent) => {
+      return prisma.comment.findMany({
+        where: { userId: parent.id },
+        include: { author: true, message: true },
+      });
+    },
+    commentReactions: (parent) => {
+      return prisma.commentReaction.findMany({
+        where: { userId: parent.id },
+        include: { user: true, comment: true },
+      });
+    },
+    sentPrivateMessages: (parent) => {
+      return prisma.privateMessage.findMany({
+        where: { senderId: parent.id },
+        include: { sender: true, receiver: true, chat: true },
+      });
+    },
+    receivedPrivateMessages: (parent) => {
+      return prisma.privateMessage.findMany({
+        where: { receiverId: parent.id },
+        include: { sender: true, receiver: true, chat: true },
+      });
+    },
+    chatsAsParticipant1: (parent) => {
+      return prisma.privateChat.findMany({
+        where: { participant1Id: parent.id },
+        include: { participant1: true, participant2: true, messages: true },
+      });
+    },
+    chatsAsParticipant2: (parent) => {
+      return prisma.privateChat.findMany({
+        where: { participant2Id: parent.id },
+        include: { participant1: true, participant2: true, messages: true },
+      });
+    },
   },
 
   Message: {
@@ -333,4 +436,5 @@ export const resolvers = {
       });
     },
   },
+  // Контекст для Apollo Server (добавьте в создание сервера)
 };

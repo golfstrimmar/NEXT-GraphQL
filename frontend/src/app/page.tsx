@@ -159,13 +159,6 @@ export default function ChatPage() {
   return (
     <div className="min-h-screen p-8 pb-20 gap-16 sm:p-20">
       <main className="flex flex-col gap-8 w-full max-w-2xl">
-        <Link
-          href="/register"
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          Register New User
-        </Link>
-
         <ModalMessage message={successMessage} open={isModalOpen} />
 
         {/* Форма отправки сообщения */}
