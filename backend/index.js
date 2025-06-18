@@ -20,8 +20,10 @@ async function startServer() {
     listen: { port: 4000 },
     context: createContext,
     cors: {
-      origin: ["http://localhost:3000"],
+      origin: "*",
       credentials: true,
+      methods: ["GET", "POST", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization"],
     },
     server: (httpServer) => {
       const wsServer = new WebSocketServer({

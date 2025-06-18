@@ -1,0 +1,95 @@
+@import '@/scss/common/colors';
+
+.clock-uhr {}
+
+.timeUhr {
+  position: relative;
+
+  &.disabled {
+    opacity: 0.5;
+  }
+}
+
+.time-display {
+
+  width: auto;
+  padding: 0.5rem;
+
+  cursor: pointer;
+  font-size: 1rem;
+
+  &-hour {
+    color: $blue6;
+    font-weight: bold;
+  }
+
+  &-minute {
+    color: $blue6;
+    font-weight: bold;
+  }
+}
+
+.clock-face-display {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  span {
+    margin: -2px 0 0 0;
+    display: inline-block;
+    font-weight: bold;
+    color: $blue6;
+  }
+}
+
+.clock-picker {
+  padding: 60px 0;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  display: flex;
+  gap: 100px;
+  min-width: 650px;
+
+  @media (max-width: 767px) {
+    flex-direction: column;
+    gap: 80px;
+  }
+}
+
+.clock-face,
+.minutes-face {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  margin: 0 auto;
+}
+
+.hour,
+.minute {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  text-align: center;
+  line-height: 30px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 100%;
+
+  &:hover {
+    background: $blue6a;
+    color: whitesmoke;
+  }
+
+  &.selected {
+    background-color: $blue6;
+    color: whitesmoke;
+    border-radius: 50%;
+  }
+}

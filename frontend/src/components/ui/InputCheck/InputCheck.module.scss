@@ -1,0 +1,75 @@
+@import '@/scss/common/colors';
+
+.fildset-checkbox {
+  .form-check {
+    position: relative;
+  }
+
+  input[type="checkbox"]:checked,
+  input[type="checkbox"]:not(:checked) {
+    position: fixed !important;
+    left: -9999px !important;
+    height: 0px;
+    width: 0px;
+  }
+
+  input[type="checkbox"]:checked+label,
+  input[type="checkbox"]:not(:checked)+label {
+    display: inline-block;
+    position: relative;
+    padding: 0 0 0 30px;
+    cursor: pointer;
+    transition: all .3s;
+
+    &:hover {
+      color: rgb(29, 128, 1, 25%);
+    }
+  }
+
+  input[type="checkbox"]:not(:checked)+label::before,
+  input[type="checkbox"]:checked+label::before {
+    content: "";
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    background-color: transparent;
+    transition: all .3s;
+  }
+
+  input[type="checkbox"]:not(:checked)+label::before {
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    border: solid 2px #bababa;
+  }
+
+  input[type="checkbox"]:checked+label::before {
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    border: solid 2px $success;
+  }
+
+  input[type="checkbox"]:checked+label::after,
+  input[type="checkbox"]:not(:checked)+label::after {
+    content: "";
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 100%;
+    top: 0;
+    left: 0;
+    transform: translate(5px, 5px);
+    border: solid 2px $success;
+    background-color: $success;
+    transition: all .3s;
+  }
+
+  input[type="checkbox"]:checked+label::after {
+    opacity: 1;
+  }
+
+  input[type="checkbox"]:not(:checked)+label::after {
+    opacity: 0;
+  }
+}

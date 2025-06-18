@@ -1,0 +1,17 @@
+.rippleButton {
+  position: relative;
+  overflow: hidden;
+}
+
+.rippleEffect {
+  transform: scale(0);
+  animation: ripple 1s linear;
+  pointer-events: none;
+}
+
+@keyframes ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}

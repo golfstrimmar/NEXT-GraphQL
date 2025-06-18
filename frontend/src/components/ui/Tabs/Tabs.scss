@@ -1,0 +1,62 @@
+@import '@/scss/common/colors';
+
+
+.next-hidden {
+  display: grid;
+  grid-template-rows: 0fr;
+  overflow: hidden;
+  transition: all 0.3s ease-in-out;
+
+  .next-hidden__wrap {
+    min-height: 0;
+
+
+  }
+}
+
+
+.run {
+  // animation-name: run;
+  // animation-duration: .3s;
+  // animation-timing-function: ease-in-out;
+  // animation-iteration-count: 1;
+  // animation-direction: normal;
+  // animation-fill-mode: forwards;
+  // animation-play-state: running;
+  background-color: #CBD5E1;
+  border-radius: 4px;
+
+  &+.next-hidden {
+    grid-template-rows: 1fr;
+
+    .select-list {
+      transition: all 0.3s ease-in-out;
+      // border: 1px solid #cbd5e100;
+      // border-color: transparent;
+      border-radius: 4px;
+    }
+
+  }
+}
+
+.select-custom.run {
+  &+.next-hidden .select-list {
+    border: 1px solid #CBD5E1;
+    border-color: #CBD5E1;
+  }
+}
+
+
+// @keyframes run {
+//   0% {
+//     transform: scale(1);
+//   }
+
+//   50% {
+//     transform: scale(1.1);
+//   }
+
+//   100% {
+//     transform: scale(1);
+//   }
+// }
