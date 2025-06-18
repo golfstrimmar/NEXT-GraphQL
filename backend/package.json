@@ -1,0 +1,31 @@
+{
+  "name": "backend",
+  "type": "module",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@apollo/server": "^4.12.2",
+    "@graphql-tools/schema": "^10.0.23",
+    "@prisma/client": "^6.10.0",
+    "bcrypt": "^6.0.0",
+    "dotenv": "^16.5.0",
+    "google-auth-library": "^10.1.0",
+    "graphql": "^16.11.0",
+    "graphql-tag": "^2.12.6",
+    "graphql-ws": "^6.0.5",
+    "jsonwebtoken": "^9.0.2",
+    "ws": "^8.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10",
+    "prisma": "^6.10.0"
+  }
+}
