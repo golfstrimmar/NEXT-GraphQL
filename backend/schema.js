@@ -4,7 +4,9 @@ export const typeDefs = gql`
   type User {
     id: Int!
     email: String!
-    name: String
+    name: String!
+    createdAt: String!
+    googleId: String
   }
 
   type AuthPayload {
@@ -14,15 +16,17 @@ export const typeDefs = gql`
 
   type Query {
     me: User
+    allUsers: [User!]!
   }
 
   type Mutation {
-    signup(email: String!, password: String!): AuthPayload
-    login(email: String!, password: String!): AuthPayload
-    googleLogin(token: String!): AuthPayload
+    signup(name: String!, email: String!, password: String!): AuthPayload!
+    login(email: String!, password: String!): AuthPayload!
+    googleLogin(token: String!): AuthPayload!
   }
 
   type Subscription {
     userUpdated(userId: Int!): User
+    usersUpdated: [User!]
   }
 `;

@@ -13,16 +13,37 @@ export const resolvers = {
       if (!user) throw new Error("Not authenticated");
       return user;
     },
+    allUsers: async () => {
+      const allUsers = await prisma.user.findMany();
+      const formattedUsers = allUsers.map((user) => ({
+        ...user,
+        createdAt: user.createdAt.toISOString(),
+      }));
+      // console.log("----- allUsers (allUsers):", formattedUsers);
+
+      return formattedUsers;
+    },
   },
   Mutation: {
-    signup: async (_, { email, password }, { pubsub }) => {
+    signup: async (_, { name, email, password }, { pubsub }) => {
+      console.log("<==== signup ====>", name, email, password);
       const hashedPassword = await hash(password, 10);
       const user = await prisma.user.create({
-        data: { email, password: hashedPassword },
+        data: { name, email, password: hashedPassword },
       });
       const token = sign({ userId: user.id }, process.env.JWT_SECRET);
-      pubsub.publish("USER_UPDATED", { userUpdated: user });
-      return { token, user };
+
+      const allUsers = await prisma.user.findMany();
+      const formattedUsers = allUsers.map((user) => ({
+        ...user,
+        createdAt: user.createdAt.toISOString(),
+      }));
+      console.log("Публикуем USERS_UPDATED (signup):", formattedUsers);
+      pubsub.publish("USERS_UPDATED", { usersUpdated: formattedUsers });
+      return {
+        token,
+        user: { ...user, createdAt: user.createdAt.toISOString() },
+      };
     },
     login: async (_, { email, password }, { pubsub }) => {
       const user = await prisma.user.findUnique({ where: { email } });
@@ -52,6 +73,16 @@ export const resolvers = {
     },
   },
   Subscription: {
+    usersUpdated: {
+      subscribe: (_, __, { pubsub }) => {
+        console.log("---Subscribing to USERS_UPDATED...");
+        return pubsub.asyncIterator(["USERS_UPDATED"]);
+      },
+      resolve: (payload) => {
+        console.log("---Received USERS_UPDATED:", payload.usersUpdated);
+        return payload.usersUpdated;
+      },
+    },
     userUpdated: {
       subscribe: (_, { userId }, { pubsub }) =>
         pubsub.asyncIterator(["USER_UPDATED"]),
