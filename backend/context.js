@@ -20,7 +20,6 @@ export async function createContext({ req, connection }) {
     } catch {}
   }
 
-  // Простая реализация pubsub
   const pubsub = {
     events: {},
     publish(event, data) {
