@@ -18,10 +18,28 @@ const wsLink =
           url:
             process.env.NEXT_PUBLIC_GRAPHQL_WS_URL ||
             "ws://localhost:4000/graphql",
-          shouldRetry: () => true,
+          connectionParams: () => {
+            console.log("Инициализация WebSocket-соединения");
+            return {};
+          },
+          on: {
+            connected: () => console.log("WebSocket подключен"),
+            error: (err) => console.error("WebSocket ошибка:", err),
+            closed: (event) => console.log("WebSocket закрыт:", event),
+            ping: () => console.log("WebSocket ping"),
+            pong: () => console.log("WebSocket pong"),
+          },
+          shouldRetry: (err) => {
+            console.log("WebSocket ретрай:", err);
+            return true;
+          },
           retryAttempts: 10,
-          retryWait: async () =>
-            new Promise((resolve) => setTimeout(resolve, 1000)),
+          retryWait: async (attempt) => {
+            console.log(`WebSocket ожидание ретрая #${attempt}`);
+            return new Promise((resolve) =>
+              setTimeout(resolve, 1000 * attempt)
+            );
+          },
         })
       )
     : null;

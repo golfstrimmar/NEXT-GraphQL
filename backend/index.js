@@ -19,15 +19,22 @@ async function startServer() {
     listen: { port: 4000 },
     context: createContext,
     cors: {
-      origin: ["http://localhost:3001"],
+      origin: "*",
       credentials: true,
       methods: ["GET", "POST", "OPTIONS"],
       allowedHeaders: ["Content-Type", "Authorization"],
     },
     server: (httpServer) => {
+      console.log("Инициализация WebSocket-сервера...");
       const wsServer = new WebSocketServer({
         server: httpServer,
         path: "/graphql",
+      });
+      wsServer.on("error", (err) => {
+        console.error("WebSocket Server Error:", err);
+      });
+      wsServer.on("listening", () => {
+        console.log("WebSocket-сервер слушает на ws://localhost:4000/graphql");
       });
       useServer(
         {
