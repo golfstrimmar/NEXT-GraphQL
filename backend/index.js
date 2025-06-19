@@ -1,139 +1,190 @@
+import express from "express";
+import cors from "cors";
 import { createServer } from "http";
 import { WebSocketServer } from "ws";
-import { useServer } from "graphql-ws/use/ws";
-import { ApolloServer } from "@apollo/server";
-import { expressMiddleware } from "@apollo/server/express4";
+import { SubscriptionServer } from "subscriptions-transport-ws";
 import { makeExecutableSchema } from "@graphql-tools/schema";
+import { execute, subscribe } from "graphql";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
-import cors from "cors";
-import express from "express";
-import bodyParser from "body-parser";
-import { PubSub } from "graphql-subscriptions";
-import { parse } from "graphql";
+import jwt from "jsonwebtoken";
+import { createYoga } from "graphql-yoga";
+
 const prisma = new PrismaClient();
-const pubsub = new PubSub();
 const SALT_ROUNDS = 10;
+const JWT_SECRET = process.env.JWT_SECRET || "secret";
 
-// Типы и резолверы — отлично
-
-const typeDefs = `#graphql
+const typeDefs = `
   type User {
-    id: Int!
-    name: String
+    id: ID!
     email: String!
+    name: String
+    isLoggedIn: Boolean!
     createdAt: String!
     updatedAt: String!
   }
 
   type Query {
     users: [User!]!
-    user(id: Int!): User
+    loggedInUsers: [User!]!
   }
 
   type Mutation {
     createUser(email: String!, name: String, password: String!): User!
-    deleteUser(id: Int!): Boolean!
+    loginUser(email: String!, password: String!): String! 
+    logoutUser(userId: ID!): Boolean!
+
   }
 
   type Subscription {
     userCreated: User!
+    userLoggedIn: User!
+    userLoggedOut: User!
   }
 `;
+const listeners = [];
+const loginListeners = [];
+const logoutListeners = [];
 
-const resolvers = {
-  Query: {
-    users: () => prisma.user.findMany(),
-    user: (_, { id }) => prisma.user.findUnique({ where: { id } }),
-  },
-  Mutation: {
-    createUser: async (_, { email, name, password }) => {
-      console.log("<===== createUser =====>", email, name, password);
-      const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-      const user = await prisma.user.create({
-        data: { email, name, password: hashedPassword },
-      });
-      console.log("<====user created====>", user);
-      // Публикуем нового пользователя
-      pubsub.publish("USER_CREATED", { userCreated: user });
-      return user;
+const schema = makeExecutableSchema({
+  typeDefs,
+  resolvers: {
+    Query: {
+      users: async () => prisma.user.findMany(),
+      loggedInUsers: async () =>
+        prisma.user.findMany({ where: { isLoggedIn: true } }),
     },
-    deleteUser: async (_, { id }) => {
-      await prisma.user.delete({ where: { id } });
-      return true;
-    },
-  },
-  Subscription: {
-    userCreated: {
-      subscribe: (_, __, { pubsub }) => {
-        console.log("Подписка вызвана, pubsub:", !!pubsub);
-        return pubsub.asyncIterator(["USER_CREATED"]);
+    Mutation: {
+      createUser: async (_, { email, name, password }) => {
+        console.log("<===== createUser =====>", email, name);
+        const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+        const user = await prisma.user.create({
+          data: { email, name, password: hashedPassword, isLoggedIn: false },
+        });
+        console.log("<====user created====>", user);
+        listeners.forEach((fn) => fn(user));
+        return user;
+      },
+      loginUser: async (_, { email, password }) => {
+        console.log("<===== loginUser =====>", email);
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (!user) {
+          throw new Error("Пользователь не найден");
+        }
+        const isValid = await bcrypt.compare(password, user.password);
+        if (!isValid) {
+          throw new Error("Неверный пароль");
+        }
+        // Обновляем статус логина
+        const updatedUser = await prisma.user.update({
+          where: { email },
+          data: { isLoggedIn: true },
+        });
+        // Генерируем JWT токен
+        const token = jwt.sign(
+          { userId: user.id, email: user.email },
+          JWT_SECRET,
+          { expiresIn: "1h" }
+        );
+        console.log("<====user logged in====>", updatedUser);
+        loginListeners.forEach((fn) => fn(updatedUser));
+        return token;
+      },
+      logoutUser: async (_, { userId }) => {
+        console.log("<===== logoutUser =====>", Number(userId));
+        console.log("<=====typeof logoutUser =====>", typeof Number(userId));
+
+        const user = await prisma.user.findUnique({
+          where: { id: Number(userId) },
+        });
+        console.log("<====user logout====>", user);
+        if (!user || !user.isLoggedIn) {
+          throw new Error("User not found or already logged out");
+        }
+
+        const updatedUser = await prisma.user.update({
+          where: { id: Number(userId) },
+          data: { isLoggedIn: false },
+        });
+
+        console.log("<====user logged out====>", updatedUser);
+        logoutListeners.forEach((fn) => fn(updatedUser));
+        return true;
       },
     },
+    Subscription: {
+      userCreated: {
+        subscribe: async function* () {
+          while (true) {
+            const user = await new Promise((resolve) =>
+              listeners.push(resolve)
+            );
+            yield { userCreated: user };
+          }
+        },
+      },
+      userLoggedIn: {
+        subscribe: async function* () {
+          while (true) {
+            const user = await new Promise((resolve) =>
+              loginListeners.push(resolve)
+            );
+            yield { userLoggedIn: user };
+          }
+        },
+      },
+      userLoggedOut: {
+        subscribe: async function* () {
+          while (true) {
+            const user = await new Promise((resolve) =>
+              logoutListeners.push(resolve)
+            );
+            yield { userLoggedOut: user };
+          }
+        },
+      },
+    },
+    User: {
+      createdAt: (user) => user.createdAt.toISOString(),
+      updatedAt: (user) => user.updatedAt.toISOString(),
+    },
   },
-  User: {
-    createdAt: (user) => user.createdAt.toISOString(),
-    updatedAt: (user) => user.updatedAt.toISOString(),
-  },
-};
-
-// Создаем схему
-const schema = makeExecutableSchema({ typeDefs, resolvers });
-
-// Экспресс + HTTP сервер
-const app = express();
-const httpServer = createServer(app);
-
-// WebSocket сервер для подписок
-const wsServer = new WebSocketServer({
-  server: httpServer,
-  path: "/graphql",
 });
 
-useServer(
+const yoga = createYoga({
+  schema,
+  graphqlEndpoint: "/graphql",
+  graphiql: true,
+});
+
+const app = express();
+app.use(cors({ origin: "http://localhost:3001" }));
+app.use("/graphql", yoga);
+
+const httpServer = createServer(app);
+const wsServer = new WebSocketServer({ server: httpServer, path: "/graphql" });
+
+SubscriptionServer.create(
   {
     schema,
-    onSubscribe: (ctx, msg) => {
-      const payload = msg.payload;
-
-      if (!payload || !payload.query) {
-        throw new Error("Missing subscription query in payload.");
-      }
-
-      return {
-        schema,
-        operationName: payload.operationName,
-        document: parse(payload.query),
-        variableValues: payload.variables,
-        contextValue: { prisma, pubsub },
-      };
-    },
-    // Опционально, можно логировать подключения:
-    onConnect: (ctx) => {
-      console.log("Клиент подключился к WebSocket");
-    },
-    onDisconnect(ctx, code, reason) {
-      console.log(`WebSocket отключен: ${code} - ${reason}`);
+    execute,
+    subscribe,
+    onConnect: () =>
+      console.log(
+        `🌐 WebSocket соединение установлено: ${new Date().toLocaleString()}`
+      ),
+    onDisconnect: () => console.log("🔌 Клиент отключился от WebSocket"),
+    onOperation: (msg, params) => {
+      // console.log(
+      //   "onOperation вызван, сообщение:",
+      //   JSON.stringify(msg, null, 2)
+      // );
+      return params;
     },
   },
   wsServer
 );
 
-// Apollo Server для HTTP запросов
-const server = new ApolloServer({ schema });
-await server.start();
-
-app.use(
-  "/graphql",
-  cors(),
-  bodyParser.json(),
-  expressMiddleware(server, {
-    context: async () => ({ prisma, pubsub }),
-  })
+httpServer.listen(4000, () =>
+  console.log("🚀🚀🚀 Server ready at http://localhost:4000 🚀🚀🚀")
 );
-
-// Запуск сервера
-const PORT = 4000;
-httpServer.listen(PORT, () => {
-  console.log(`🚀 HTTP + WebSocket сервер на http://localhost:${PORT}/graphql`);
-});

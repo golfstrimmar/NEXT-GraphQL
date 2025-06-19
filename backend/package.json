@@ -22,7 +22,9 @@
     "graphql-subscriptions": "^3.0.0",
     "graphql-tag": "^2.12.6",
     "graphql-ws": "^6.0.5",
+    "graphql-yoga": "^5.13.5",
     "jsonwebtoken": "^9.0.2",
+    "subscriptions-transport-ws": "^0.11.0",
     "ws": "^8.18.2"
   },
   "devDependencies": {

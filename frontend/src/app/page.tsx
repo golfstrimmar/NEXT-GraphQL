@@ -1,20 +1,23 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import Image from "next/image";
-import { useQuery, useSubscription, gql } from "@apollo/client";
+import { gql, useSubscription, useMutation, useQuery } from "@apollo/client";
+import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { setUser } from "@/app/redux/slices/authSlice";
 
 const GET_USERS = gql`
-  query GetUsers {
+  query {
     users {
       id
       email
       name
+      isLoggedIn
       createdAt
     }
   }
 `;
+
 const USER_CREATED_SUBSCRIPTION = gql`
-  subscription OnUserCreated {
+  subscription {
     userCreated {
       id
       email
@@ -23,63 +26,110 @@ const USER_CREATED_SUBSCRIPTION = gql`
     }
   }
 `;
-export default function UsersList() {
-  const { loading, error, data } = useQuery(GET_USERS);
-  const { data: subData } = useSubscription(USER_CREATED_SUBSCRIPTION);
+
+const USER_LOGGED_IN_SUBSCRIPTION = gql`
+  subscription {
+    userLoggedIn {
+      id
+      email
+      name
+      createdAt
+    }
+  }
+`;
+
+const USER_LOGGED_OUT_SUBSCRIPTION = gql`
+  subscription {
+    userLoggedOut {
+      id
+      email
+      name
+      isLoggedIn
+      createdAt
+    }
+  }
+`;
+
+export default function Users() {
+  const dispatch = useDispatch();
+  const { data: queryData, loading: queryLoading } = useQuery(GET_USERS);
+  const { data: subData, error: subError } = useSubscription(
+    USER_CREATED_SUBSCRIPTION
+  );
+  const { data: loggedInSubData } = useSubscription(
+    USER_LOGGED_IN_SUBSCRIPTION
+  );
+  const { data: loggedOutSubData } = useSubscription(
+    USER_LOGGED_OUT_SUBSCRIPTION
+  );
+
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    if (subData) {
-      console.log("🔥 Новый пользователь по подписке:", subData);
-    }
-  }, [subData]);
-
-  useEffect(() => {
-    if (data) {
-      console.log("<==== data====>", data.users);
-    }
-  }, [data]);
-
-  useEffect(() => {
-    if (data?.users) {
-      setUsers(data.users);
-    }
-  }, [data]);
+    if (queryData?.users) setUsers(queryData.users);
+  }, [queryData]);
 
   useEffect(() => {
     if (subData?.userCreated) {
-      const newUser = subData.userCreated;
+      console.log("<====userCreated====>", subData?.userCreated);
       setUsers((prev) => {
+        const newUser = subData.userCreated;
         const exists = prev.some((u) => u.id === newUser.id);
-        return exists ? prev : [newUser, ...prev];
+        return exists ? prev : [...prev, newUser];
       });
     }
   }, [subData]);
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error.message}</p>;
+  useEffect(() => {
+    if (loggedInSubData?.userLoggedIn) {
+      console.log("<====userLoggedIn====>", loggedInSubData?.userLoggedIn);
+      localStorage.setItem(
+        "user",
+        JSON.stringify(loggedInSubData.userLoggedIn)
+      );
+      // localStorage.setItem("token", data.token);
+      dispatch(setUser(loggedInSubData.userLoggedIn));
+
+      setUsers((prev) => {
+        const newUser = loggedInSubData.userLoggedIn;
+        return prev.map((user) =>
+          user.id === newUser.id ? { ...user, isLoggedIn: true } : user
+        );
+      });
+    }
+  }, [loggedInSubData]);
+
+  useEffect(() => {
+    if (loggedOutSubData?.userLoggedOut) {
+      console.log("<====userLoggedOut====>", loggedOutSubData?.userLoggedOut);
+      setUsers((prev) => {
+        const updatedUser = loggedOutSubData.userLoggedOut;
+        return prev.map((user) =>
+          user.id === updatedUser.id ? { ...user, isLoggedIn: false } : user
+        );
+      });
+    }
+  }, [loggedOutSubData]);
 
   return (
-    <div className="space-y-4 mt-4">
-      <h2 className="text-xl font-bold">Users</h2>
-      <ul className="flex flex-col gap-2 p-2 ">
-        {users &&
-          users.map((user) => (
-            <li key={user.id} className="p-2 border border-slate-300">
-              <div className="flex items-center space-x-4">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    {user.name || "No name"}
-                  </p>
-                  <p className="text-sm text-gray-500 truncate">{user.email}</p>
-                </div>
-                <div className="text-xs text-gray-500">
-                  {new Date(user.createdAt).toLocaleDateString()}
-                </div>
-              </div>
-            </li>
-          ))}
-      </ul>
+    <div className="mt-[100px] p-4">
+      <h1 className="text-2xl font-bold mb-4">Users</h1>
+      <div className="space-y-2">
+        {users.length === 0 && !queryLoading && <p>No users</p>}
+        {users.map((user) => (
+          <div key={user.id} className="p-2 border rounded">
+            {user.isLoggedIn ? (
+              <p className="text-green-500">Online</p>
+            ) : (
+              <p className="text-gray-400 text-sm">Offline</p>
+            )}
+            <strong>ID: {user.id}</strong>
+            <p>Email: {user.email}</p>
+            <p>Name: {user.name || "No name"}</p>
+            <p>Created: {new Date(user.createdAt).toLocaleString()}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

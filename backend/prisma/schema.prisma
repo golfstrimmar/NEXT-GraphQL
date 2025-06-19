@@ -13,6 +13,7 @@ model User {
   password  String?  // для локальной авторизации
   googleId  String?  // для Google OAuth
   name      String?
+  isLoggedIn Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
