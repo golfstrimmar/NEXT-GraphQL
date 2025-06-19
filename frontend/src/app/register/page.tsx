@@ -41,10 +41,10 @@ export default function Register() {
     e.preventDefault();
     if (!name || !email || !password) {
       setSuccessMessage("Please fill in all fields.");
-      setOpenModalMessage(true);
-      setIsModalVisible(true);
+      // setOpenModalMessage(true);
+      // setIsModalVisible(true);
       setTimeout(() => {
-        setOpenModalMessage(false);
+        // setOpenModalMessage(false);
         setSuccessMessage("");
         return;
       }, 2000);
@@ -56,12 +56,12 @@ export default function Register() {
       const { token, user } = response.data.signup;
       // dispatch(addUser({ user: JSON.stringify(user) }));
       setSuccessMessage("Registration successful!");
-      setOpenModalMessage(true);
-      setIsModalVisible(true);
+      // setOpenModalMessage(true);
+      // setIsModalVisible(true);
       setTimeout(() => {
-        setOpenModalMessage(false);
+        // setOpenModalMessage(false);
         setSuccessMessage("");
-        router.push("/");
+        // router.push("/");
         return;
       }, 2000);
       setEmail("");
@@ -69,10 +69,10 @@ export default function Register() {
     } catch (err) {
       console.error(err);
       setSuccessMessage(err);
-      setOpenModalMessage(true);
-      setIsModalVisible(true);
+      // setOpenModalMessage(true);
+      // setIsModalVisible(true);
       setTimeout(() => {
-        setOpenModalMessage(false);
+        // setOpenModalMessage(false);
         setSuccessMessage("");
         return;
       }, 2000);
@@ -86,7 +86,7 @@ export default function Register() {
         className="bg-white p-6 rounded shadow-md w-full max-w-sm"
       >
         <h2 className="text-2xl font-bold mb-4 text-center">Register</h2>
-        {isModalVisible && (
+        {successMessage && (
           <ModalMessage message={successMessage} open={openModalMessage} />
         )}
         <div className="mb-4">
