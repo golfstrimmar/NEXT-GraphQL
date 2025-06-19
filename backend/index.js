@@ -1,25 +1,27 @@
+import { createServer } from "http";
+import { WebSocketServer } from "ws";
+import { useServer } from "graphql-ws/use/ws";
 import { ApolloServer } from "@apollo/server";
-import { startStandaloneServer } from "@apollo/server/standalone";
+import { expressMiddleware } from "@apollo/server/express4";
+import { makeExecutableSchema } from "@graphql-tools/schema";
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcrypt";
+import cors from "cors";
+import express from "express";
+import bodyParser from "body-parser";
+import { PubSub } from "graphql-subscriptions";
+import { parse } from "graphql";
+const prisma = new PrismaClient();
+const pubsub = new PubSub();
+const SALT_ROUNDS = 10;
 
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL,
-    },
-  },
-});
-
-// Счетчики подключений
-let httpConnectionCount = 0;
-let activeConnections = 0;
+// Типы и резолверы — отлично
 
 const typeDefs = `#graphql
   type User {
     id: Int!
     name: String
     email: String!
-    password: String!
     createdAt: String!
     updatedAt: String!
   }
@@ -27,63 +29,46 @@ const typeDefs = `#graphql
   type Query {
     users: [User!]!
     user(id: Int!): User
-    stats: ServerStats!
   }
 
   type Mutation {
-    createUser(email: String!, name: String): User!
+    createUser(email: String!, name: String, password: String!): User!
     deleteUser(id: Int!): Boolean!
   }
 
-  type ServerStats {
-    httpConnections: Int!
-    activeConnections: Int!
-    startupTime: String!
+  type Subscription {
+    userCreated: User!
   }
 `;
 
-const serverStartTime = new Date();
-
 const resolvers = {
   Query: {
-    users: () => {
-      console.log(
-        `[Query] Запрос списка пользователей (Active: ${activeConnections})`
-      );
-      const startTime = Date.now();
-      return prisma.user
-        .findMany()
-        .then((users) => {
-          console.log(
-            `[Query] Получено ${users.length} пользователей за ${
-              Date.now() - startTime
-            }ms`
-          );
-          return users;
-        })
-        .catch((error) => {
-          console.error("[Query] Ошибка при получении пользователей:", error);
-          throw error;
-        });
-    },
+    users: () => prisma.user.findMany(),
     user: (_, { id }) => prisma.user.findUnique({ where: { id } }),
-    stats: () => ({
-      httpConnections: httpConnectionCount,
-      activeConnections: activeConnections,
-      startupTime: serverStartTime.toISOString(),
-    }),
   },
   Mutation: {
-    createUser: async (_, { email, name }) => {
-      console.log(`[Mutation] Создание пользователя: ${email}`);
-      return prisma.user.create({
-        data: { email, name },
+    createUser: async (_, { email, name, password }) => {
+      console.log("<===== createUser =====>", email, name, password);
+      const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+      const user = await prisma.user.create({
+        data: { email, name, password: hashedPassword },
       });
+      console.log("<====user created====>", user);
+      // Публикуем нового пользователя
+      pubsub.publish("USER_CREATED", { userCreated: user });
+      return user;
     },
     deleteUser: async (_, { id }) => {
-      console.log(`[Mutation] Удаление пользователя ID: ${id}`);
       await prisma.user.delete({ where: { id } });
       return true;
+    },
+  },
+  Subscription: {
+    userCreated: {
+      subscribe: (_, __, { pubsub }) => {
+        console.log("Подписка вызвана, pubsub:", !!pubsub);
+        return pubsub.asyncIterator(["USER_CREATED"]);
+      },
     },
   },
   User: {
@@ -92,46 +77,63 @@ const resolvers = {
   },
 };
 
-const server = new ApolloServer({
-  typeDefs,
-  resolvers,
+// Создаем схему
+const schema = makeExecutableSchema({ typeDefs, resolvers });
+
+// Экспресс + HTTP сервер
+const app = express();
+const httpServer = createServer(app);
+
+// WebSocket сервер для подписок
+const wsServer = new WebSocketServer({
+  server: httpServer,
+  path: "/graphql",
 });
 
-const { url } = await startStandaloneServer(server, {
-  listen: { port: 4000 },
-  cors: {
-    origin: ["*"],
-    credentials: true,
-    allowedHeaders: ["Content-Type"],
-    methods: ["GET", "POST", "OPTIONS"],
+useServer(
+  {
+    schema,
+    onSubscribe: (ctx, msg) => {
+      const payload = msg.payload;
+
+      if (!payload || !payload.query) {
+        throw new Error("Missing subscription query in payload.");
+      }
+
+      return {
+        schema,
+        operationName: payload.operationName,
+        document: parse(payload.query),
+        variableValues: payload.variables,
+        contextValue: { prisma, pubsub },
+      };
+    },
+    // Опционально, можно логировать подключения:
+    onConnect: (ctx) => {
+      console.log("Клиент подключился к WebSocket");
+    },
+    onDisconnect(ctx, code, reason) {
+      console.log(`WebSocket отключен: ${code} - ${reason}`);
+    },
   },
-  context: async ({ req }) => {
-    httpConnectionCount++;
-    activeConnections++;
-    const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
-    console.log(
-      `[HTTP] New connection (All: ${httpConnectionCount}, Active: ${activeConnections}) `
-    );
+  wsServer
+);
 
-    console.log("❓ Incoming request from:", req.headers.origin);
+// Apollo Server для HTTP запросов
+const server = new ApolloServer({ schema });
+await server.start();
 
-    req.socket.on("close", () => {
-      activeConnections--;
-      console.log(
-        `[HTTP] Connection closed ( All: ${httpConnectionCount}, Active: ${activeConnections})`
-      );
-    });
+app.use(
+  "/graphql",
+  cors(),
+  bodyParser.json(),
+  expressMiddleware(server, {
+    context: async () => ({ prisma, pubsub }),
+  })
+);
 
-    return { prisma };
-  },
+// Запуск сервера
+const PORT = 4000;
+httpServer.listen(PORT, () => {
+  console.log(`🚀 HTTP + WebSocket сервер на http://localhost:${PORT}/graphql`);
 });
-
-console.log(`🚀 Server ready at ${url}`);
-console.log(`⏳ Сервер запущен в ${serverStartTime.toLocaleTimeString()}`);
-
-// Логируем статистику каждую минуту
-setInterval(() => {
-  console.log(
-    `📊 Статистика: Всего HTTP: ${httpConnectionCount}, Активные: ${activeConnections}`
-  );
-}, 60000);

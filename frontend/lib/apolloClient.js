@@ -1,9 +1,31 @@
-import { ApolloClient, InMemoryCache, HttpLink } from "@apollo/client";
+import { ApolloClient, InMemoryCache, split, HttpLink } from "@apollo/client";
+import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
+import { createClient } from "graphql-ws";
+import { getMainDefinition } from "@apollo/client/utilities";
+
+const wsLink = new GraphQLWsLink(
+  createClient({
+    url: "ws://localhost:4000/graphql",
+  })
+);
+
+const httpLink = new HttpLink({
+  uri: "http://localhost:4000/graphql",
+});
+
+const splitLink = split(
+  ({ query }) => {
+    const def = getMainDefinition(query);
+    return (
+      def.kind === "OperationDefinition" && def.operation === "subscription"
+    );
+  },
+  wsLink,
+  httpLink
+);
 
 const client = new ApolloClient({
-  link: new HttpLink({
-    uri: process.env.NEXT_PUBLIC_GRAPHQL_URL || "http://localhost:4000/graphql",
-  }),
+  link: splitLink,
   cache: new InMemoryCache(),
 });
 

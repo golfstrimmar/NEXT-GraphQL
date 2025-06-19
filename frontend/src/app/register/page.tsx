@@ -1,100 +1,81 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useMutation, gql } from "@apollo/client";
-// import { useSelector, useDispatch } from "react-redux";
-// import { addUser } from "@/app/redux/slices/authSlice";
 
+import { useState } from "react";
+import { gql, useMutation } from "@apollo/client";
 import dynamic from "next/dynamic";
+
 const ModalMessage = dynamic(
   () => import("@/components/ui/ModalMessage/ModalMessage"),
-  {
-    ssr: false,
-  }
+  { ssr: false }
 );
 
 const SIGNUP_MUTATION = gql`
   mutation Signup($name: String!, $email: String!, $password: String!) {
-    signup(name: $name, email: $email, password: $password) {
-      token
-      user {
-        id
-        email
-        name
-      }
+    createUser(name: $name, email: $email, password: $password) {
+      id
+      name
+      email
     }
   }
 `;
 
 export default function Register() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [successMessage, setSuccessMessage] = useState<string>("");
-  const [openModalMessage, setOpenModalMessage] = useState<boolean>(false);
-  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState(""); // Только для формы, не передаётся на сервер
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
 
-  const [signup, { data, loading, error }] = useMutation(SIGNUP_MUTATION);
-  const router = useRouter();
-  // const dispatch = useDispatch();
-  const handleSubmit = async (e) => {
+  const [signup, { loading }] = useMutation(SIGNUP_MUTATION);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!name || !email || !password) {
-      setSuccessMessage("Please fill in all fields.");
-      // setOpenModalMessage(true);
-      // setIsModalVisible(true);
-      setTimeout(() => {
-        // setOpenModalMessage(false);
-        setSuccessMessage("");
-        return;
-      }, 2000);
+      showModal("Please fill in all fields.");
       return;
     }
+
     try {
-      console.log("<====name, email, password====>", name, email, password);
-      const response = await signup({ variables: { name, email, password } });
-      const { token, user } = response.data.signup;
-      // dispatch(addUser({ user: JSON.stringify(user) }));
-      setSuccessMessage("Registration successful!");
-      // setOpenModalMessage(true);
-      // setIsModalVisible(true);
-      setTimeout(() => {
-        // setOpenModalMessage(false);
-        setSuccessMessage("");
-        // router.push("/");
-        return;
-      }, 2000);
-      setEmail("");
-      setPassword("");
-    } catch (err) {
-      console.error(err);
-      setSuccessMessage(err);
-      // setOpenModalMessage(true);
-      // setIsModalVisible(true);
-      setTimeout(() => {
-        // setOpenModalMessage(false);
-        setSuccessMessage("");
-        return;
-      }, 2000);
+      const { data } = await signup({
+        variables: { name, email, password },
+      });
+
+      if (data?.createUser) {
+        showModal("Registration successful!");
+        setName("");
+        setEmail("");
+        setPassword("");
+      }
+    } catch (err: any) {
+      console.error("GraphQL Error:", err);
+      const message =
+        err?.graphQLErrors?.[0]?.message || "Something went wrong!";
+      showModal(message);
     }
+  };
+
+  const showModal = (message: string) => {
+    setModalMessage(message);
+    setModalOpen(true);
+    setTimeout(() => {
+      setModalOpen(false);
+      setModalMessage("");
+    }, 2500);
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      {modalOpen && <ModalMessage message={modalMessage} open={modalOpen} />}
       <form
         onSubmit={handleSubmit}
         className="bg-white p-6 rounded shadow-md w-full max-w-sm"
       >
         <h2 className="text-2xl font-bold mb-4 text-center">Register</h2>
-        {successMessage && (
-          <ModalMessage message={successMessage} open={openModalMessage} />
-        )}
+
         <div className="mb-4">
-          <label className="block text-gray-700 mb-2" htmlFor="email">
-            Name
-          </label>
+          <label className="block text-gray-700 mb-2">Name</label>
           <input
-            id="name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -102,12 +83,10 @@ export default function Register() {
             required
           />
         </div>
+
         <div className="mb-4">
-          <label className="block text-gray-700 mb-2" htmlFor="email">
-            Email
-          </label>
+          <label className="block text-gray-700 mb-2">Email</label>
           <input
-            id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -115,12 +94,10 @@ export default function Register() {
             required
           />
         </div>
+
         <div className="mb-4">
-          <label className="block text-gray-700 mb-2" htmlFor="password">
-            Password
-          </label>
+          <label className="block text-gray-700 mb-2">Password</label>
           <input
-            id="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -128,6 +105,7 @@ export default function Register() {
             required
           />
         </div>
+
         <button
           type="submit"
           disabled={loading}
