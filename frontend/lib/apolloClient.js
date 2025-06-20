@@ -9,7 +9,7 @@ import { WebSocketLink } from "@apollo/client/link/ws";
 import { getMainDefinition } from "@apollo/client/utilities";
 
 const httpLink = new HttpLink({
-  uri: "http://localhost:4000/graphql",
+  uri: process.env.NEXT_PUBLIC_GRAPHQL_URL || "http://localhost:4000/graphql",
 });
 
 const authLink = new ApolloLink((operation, forward) => {
@@ -26,7 +26,9 @@ const authLink = new ApolloLink((operation, forward) => {
 export const wsLink =
   typeof window !== "undefined"
     ? new WebSocketLink({
-        uri: "ws://localhost:4000/graphql",
+        uri:
+          process.env.NEXT_PUBLIC_GRAPHQL_WS_URL ||
+          "ws://localhost:4000/graphql",
         options: {
           reconnect: true,
           connectionParams: () => {

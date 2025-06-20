@@ -215,6 +215,9 @@ SubscriptionServer.create(
   wsServer
 );
 
+next-graphql-production.up.railway.app
+
+
 httpServer.listen(4000, () =>
   console.log("🚀🚀🚀 Server ready at http://localhost:4000 🚀🚀🚀")
 );
