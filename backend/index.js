@@ -185,7 +185,11 @@ const yoga = createYoga({
 });
 
 const app = express();
-app.use(cors({ origin: "http://localhost:3001" }));
+app.use(
+  cors({
+    origin: ["https://chat-next-graph.vercel.app", "http://localhost:3001"],
+  })
+);
 app.use("/graphql", yoga);
 
 const httpServer = createServer(app);

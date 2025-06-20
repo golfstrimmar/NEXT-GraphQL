@@ -163,7 +163,7 @@ export default function Users() {
 
   return (
     <div className="mt-[100px] p-4">
-      <h1 className="text-2xl font-bold mb-4">Users</h1>
+      <h1 className="text-2xl font-bold mb-4">Users:</h1>
       {isLoading && (
         <div className="relative w-10 h-10">
           <div className="absolute inset-0 rounded-full border-4 border-gray-300 animate-spin"></div>
