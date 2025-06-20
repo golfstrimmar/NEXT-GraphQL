@@ -45,8 +45,11 @@ export default function Login() {
   const dispatch = useDispatch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
-  const [modalOpen, setModalOpen] = useState(false);
+
+  const [successMessage, setSuccessMessage] = useState<string>("");
+  const [openModalMessage, setOpenModalMessage] = useState<boolean>(false);
+  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+
   const [loginUser, { loading: loginLoading }] = useMutation(LOGIN_USER);
   const [googleLogin, { loading: googleLoading }] = useMutation(GOOGLE_LOGIN);
   const [isLoading, setIsLoading] = useState(false);
@@ -100,7 +103,9 @@ export default function Login() {
 
       const loggedInUser = data.googleLogin;
       dispatch(setUser(loggedInUser));
+
       showModal("Google login successful!");
+
       resetApolloClient();
       setTimeout(() => router.push("/"), 2000);
     } catch (err) {
@@ -124,17 +129,19 @@ export default function Login() {
 
   const showModal = (message: string) => {
     setSuccessMessage(message);
-    setModalOpen(true);
+    setOpenModalMessage(true);
+    setIsModalVisible(true);
     setTimeout(() => {
-      setModalOpen(false);
+      setOpenModalMessage(false);
       setSuccessMessage("");
+      return;
     }, 2000);
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-200">
-      {modalOpen && (
-        <ModalMessage isOpen={modalOpen} message={successMessage} />
+      {isModalVisible && (
+        <ModalMessage message={successMessage} open={openModalMessage} />
       )}
       <form
         onSubmit={handleSubmit}
@@ -165,23 +172,23 @@ export default function Login() {
         </div>
 
         <div className="mb-4">
-          <button
+          {/* <button
             type="button"
             disabled={isLoading || googleLoading}
             className="w-full bg-white border border-gray-300 text-gray-700 p-2 rounded hover:bg-gray-50 disabled:bg-gray-200 flex items-center justify-center"
-          >
-            {googleLoading || isLoading ? (
-              <span>Loading...</span>
-            ) : (
-              <GoogleLogin
-                onSuccess={handleGoogleLoginSuccess}
-                onError={handleGoogleLoginFailure}
-                text="signin_with"
-                shape="rectangular"
-                logo_alignment="left"
-              />
-            )}
-          </button>
+          > */}
+          {googleLoading || isLoading ? (
+            <span>Loading...</span>
+          ) : (
+            <GoogleLogin
+              onSuccess={handleGoogleLoginSuccess}
+              onError={handleGoogleLoginFailure}
+              text="signin_with"
+              shape="rectangular"
+              logo_alignment="left"
+            />
+          )}
+          {/* </button> */}
         </div>
 
         <button
