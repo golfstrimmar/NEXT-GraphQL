@@ -9,10 +9,15 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { createYoga } from "graphql-yoga";
+import { OAuth2Client } from "google-auth-library";
 
 const prisma = new PrismaClient();
 const SALT_ROUNDS = 10;
 const JWT_SECRET = process.env.JWT_SECRET || "secret";
+const GOOGLE_CLIENT_ID =
+  process.env.GOOGLE_CLIENT_ID ||
+  "your-google-client-id.apps.googleusercontent.com";
+const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 const typeDefs = `
   type AuthPayload {
@@ -41,6 +46,7 @@ const typeDefs = `
   type Mutation {
     createUser(email: String!, name: String, password: String!): User!
     loginUser(email: String!, password: String!): AuthPayload!
+    googleLogin(idToken: String!): AuthPayload!
     logoutUser: Boolean!
   }
 
@@ -94,9 +100,7 @@ const schema = makeExecutableSchema({
           { expiresIn: "1h" }
         );
         console.log("<====user logged in====>", updatedUser);
-        loginListeners.forEach((fn) => {
-          fn(updatedUser);
-        });
+        loginListeners.forEach((fn) => fn(updatedUser));
         return {
           id: String(updatedUser.id),
           email: updatedUser.email,
@@ -106,22 +110,77 @@ const schema = makeExecutableSchema({
           createdAt: updatedUser.createdAt.toISOString(),
         };
       },
+      googleLogin: async (_, { idToken }) => {
+        console.log("<===== googleLogin =====>");
+        try {
+          const ticket = await googleClient.verifyIdToken({
+            idToken,
+            audience: GOOGLE_CLIENT_ID,
+          });
+          const payload = ticket.getPayload();
+          if (!payload) {
+            throw new Error("Invalid Google token");
+          }
+
+          const { email, name } = payload;
+          if (!email) {
+            throw new Error("Email not provided by Google");
+          }
+
+          let user = await prisma.user.findUnique({ where: { email } });
+          if (!user) {
+            user = await prisma.user.create({
+              data: {
+                email,
+                name,
+                password: "", // Пустой пароль, так как используется Google
+                isLoggedIn: true,
+              },
+            });
+            console.log("<====user created via Google====>", user);
+            listeners.forEach((fn) => fn(user));
+          } else {
+            user = await prisma.user.update({
+              where: { email },
+              data: { isLoggedIn: true, name: name || user.name },
+            });
+          }
+
+          const token = jwt.sign(
+            { userId: user.id, email: user.email },
+            JWT_SECRET,
+            { expiresIn: "1h" }
+          );
+          console.log("<====user logged in via Google====>", user);
+          loginListeners.forEach((fn) => fn(user));
+          return {
+            id: String(user.id),
+            email: user.email,
+            name: user.name,
+            token,
+            isLoggedIn: user.isLoggedIn,
+            createdAt: user.createdAt.toISOString(),
+          };
+        } catch (err) {
+          console.error("Google login error:", err);
+          throw new Error("Failed to authenticate with Google");
+        }
+      },
       logoutUser: async (_, __, { token }) => {
+        console.log("Authorization header:", token);
         if (!token) {
-          throw new Error("Токен не предоставлен");
+          throw new Error("Token not provided");
         }
         let decoded;
         try {
           decoded = jwt.verify(token, JWT_SECRET);
         } catch (err) {
-          throw new Error("Недействительный токен");
+          throw new Error("Invalid token");
         }
         const userId = Number(decoded.userId);
-        const user = await prisma.user.findUnique({
-          where: { id: userId },
-        });
+        const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user || !user.isLoggedIn) {
-          throw new Error("Пользователь не найден или уже вышел");
+          throw new Error("User not found or already logged out");
         }
         const updatedUser = await prisma.user.update({
           where: { id: userId },
@@ -187,7 +246,10 @@ const yoga = createYoga({
 const app = express();
 app.use(
   cors({
-    origin: ["https://chat-next-graph.vercel.app", "http://localhost:3001"],
+    origin: [
+      "http://localhost:3001",
+      process.env.FRONTEND_URL || "https://chat-next-graph.vercel.app",
+    ],
   })
 );
 app.use("/graphql", yoga);
@@ -202,11 +264,11 @@ SubscriptionServer.create(
     subscribe,
     onConnect: (connectionParams) => {
       console.log(
-        `🌐 WebSocket соединение установлено: ${new Date().toLocaleString()}`
+        `🌐 WebSocket connection established: ${new Date().toLocaleString()}`
       );
       return { token: connectionParams.authorization?.replace("Bearer ", "") };
     },
-    onDisconnect: () => console.log("🔌 Клиент отключился от WebSocket"),
+    onDisconnect: () => console.log("🔌 Client disconnected from WebSocket"),
     onOperation: (msg, params, ws) => {
       return {
         ...params,
@@ -219,6 +281,7 @@ SubscriptionServer.create(
   wsServer
 );
 
-httpServer.listen(4000, () =>
-  console.log("🚀🚀🚀 Server ready at http://localhost:4000 🚀🚀🚀")
+const PORT = process.env.PORT || 4000;
+httpServer.listen(PORT, () =>
+  console.log(`🚀🚀🚀 Server ready at http://localhost:${PORT} 🚀🚀🚀`)
 );
