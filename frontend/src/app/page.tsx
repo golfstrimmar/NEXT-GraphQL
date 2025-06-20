@@ -1,5 +1,5 @@
 "use client";
-
+import { useState } from "react";
 import { gql, useSubscription, useQuery } from "@apollo/client";
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
@@ -54,6 +54,7 @@ const USER_LOGGED_OUT_SUBSCRIPTION = gql`
 
 export default function Users() {
   const dispatch = useDispatch();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const users = useSelector(
     (state: { auth: { users: any[] } }) => state.auth.users
   );
@@ -75,6 +76,7 @@ export default function Users() {
   );
 
   useEffect(() => {
+    setIsLoading(true);
     if (queryData?.users) {
       dispatch(
         setUsers(
@@ -84,6 +86,7 @@ export default function Users() {
           }))
         )
       );
+      setIsLoading(false);
     }
   }, [queryData, dispatch]);
 
@@ -161,6 +164,12 @@ export default function Users() {
   return (
     <div className="mt-[100px] p-4">
       <h1 className="text-2xl font-bold mb-4">Users</h1>
+      {isLoading && (
+        <div className="relative w-10 h-10">
+          <div className="absolute inset-0 rounded-full border-4 border-gray-300 animate-spin"></div>
+          <div className="absolute inset-1 rounded-full border-4 border-blue-500 border-t-transparent animate-spin-slower"></div>
+        </div>
+      )}
       <div className="space-y-2">
         {users.length === 0 && !queryLoading && <p>No users</p>}
         {users.map((user) => (
