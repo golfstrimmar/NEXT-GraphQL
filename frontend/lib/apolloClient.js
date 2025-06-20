@@ -1,47 +1,47 @@
-import { ApolloClient, InMemoryCache, HttpLink } from "@apollo/client";
-import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
+import {
+  ApolloClient,
+  InMemoryCache,
+  HttpLink,
+  ApolloLink,
+  split,
+} from "@apollo/client";
+import { WebSocketLink } from "@apollo/client/link/ws";
 import { getMainDefinition } from "@apollo/client/utilities";
-import { split } from "@apollo/client";
-import { createClient } from "graphql-ws";
 
 const httpLink = new HttpLink({
-  uri: process.env.NEXT_PUBLIC_GRAPHQL_URL || "http://localhost:4000/graphql",
-  headers: {
-    "Content-Type": "application/json",
-  },
+  uri: "http://localhost:4000/graphql",
 });
 
-const wsLink =
+const authLink = new ApolloLink((operation, forward) => {
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  operation.setContext({
+    headers: {
+      authorization: token ? `Bearer ${token}` : "",
+    },
+  });
+  return forward(operation);
+});
+
+export const wsLink =
   typeof window !== "undefined"
-    ? new GraphQLWsLink(
-        createClient({
-          url:
-            process.env.NEXT_PUBLIC_GRAPHQL_WS_URL ||
-            "ws://localhost:4000/graphql",
+    ? new WebSocketLink({
+        uri: "ws://localhost:4000/graphql",
+        options: {
+          reconnect: true,
           connectionParams: () => {
-            console.log("Инициализация WebSocket-соединения");
-            return {};
+            const token = localStorage.getItem("token");
+            return token ? { Authorization: `Bearer ${token}` } : {};
           },
-          on: {
-            connected: () => console.log("WebSocket подключен"),
-            error: (err) => console.error("WebSocket ошибка:", err),
-            closed: (event) => console.log("WebSocket закрыт:", event),
-            ping: () => console.log("WebSocket ping"),
-            pong: () => console.log("WebSocket pong"),
+          connectionCallback: (error) => {
+            if (error) {
+              console.error("WebSocket error:", JSON.stringify(error, null, 2));
+            } else {
+              console.log("✅ WebSocket connected");
+            }
           },
-          shouldRetry: (err) => {
-            console.log("WebSocket ретрай:", err);
-            return true;
-          },
-          retryAttempts: 10,
-          retryWait: async (attempt) => {
-            console.log(`WebSocket ожидание ретрая #${attempt}`);
-            return new Promise((resolve) =>
-              setTimeout(resolve, 1000 * attempt)
-            );
-          },
-        })
-      )
+        },
+      })
     : null;
 
 const splitLink =
@@ -55,13 +55,14 @@ const splitLink =
           );
         },
         wsLink,
-        httpLink
+        authLink.concat(httpLink)
       )
-    : httpLink;
+    : authLink.concat(httpLink);
 
 const client = new ApolloClient({
   link: splitLink,
   cache: new InMemoryCache(),
+  ssrMode: typeof window === "undefined",
 });
 
 export default client;

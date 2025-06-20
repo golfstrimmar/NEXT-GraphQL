@@ -1,96 +1,191 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import Image from "next/image";
-import { useQuery, useSubscription } from "@apollo/client";
-import { gql } from "@apollo/client";
+import { useState } from "react";
+import { gql, useSubscription, useQuery } from "@apollo/client";
+import { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { setUsers, addUser } from "@/app/redux/slices/authSlice";
 
 const GET_USERS = gql`
-  query GetUsers {
-    allUsers {
+  query {
+    users {
       id
       email
       name
-      googleId
+      isLoggedIn
       createdAt
     }
   }
 `;
 
-const USERS_UPDATED_SUBSCRIPTION = gql`
-  subscription UsersUpdated {
-    usersUpdated {
+const USER_CREATED_SUBSCRIPTION = gql`
+  subscription {
+    userCreated {
       id
       email
       name
-      googleId
       createdAt
     }
   }
 `;
 
-export default function Home() {
-  const { data, loading, error } = useQuery(GET_USERS);
-
-  const { data: subscriptionData, error: subscriptionError } = useSubscription(
-    USERS_UPDATED_SUBSCRIPTION,
-    {
-      onSubscriptionData: ({ client, subscriptionData }) => {
-        if (subscriptionData?.data?.usersUpdated) {
-          console.log("Данные подписки:", subscriptionData.data.usersUpdated);
-          client.writeQuery(
-            { query: GET_USERS },
-            {
-              allUsers: subscriptionData.data.usersUpdated,
-            }
-          );
-        } else {
-          console.warn("Некорректные данные подписки:", subscriptionData);
-        }
-      },
-      onError: (err) => console.error("Ошибка подписки:", err),
+const USER_LOGGED_IN_SUBSCRIPTION = gql`
+  subscription {
+    userLoggedIn {
+      id
+      email
+      name
+      isLoggedIn
+      createdAt
     }
+  }
+`;
+
+const USER_LOGGED_OUT_SUBSCRIPTION = gql`
+  subscription {
+    userLoggedOut {
+      id
+      email
+      name
+      isLoggedIn
+      createdAt
+    }
+  }
+`;
+
+export default function Users() {
+  const dispatch = useDispatch();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const users = useSelector(
+    (state: { auth: { users: any[] } }) => state.auth.users
+  );
+  const {
+    data: queryData,
+    loading: queryLoading,
+    error: queryError,
+  } = useQuery(GET_USERS);
+  const { data: subData, error: subError } = useSubscription(
+    USER_CREATED_SUBSCRIPTION
   );
 
-  return (
-    <div className="font-[family-name:var(--font-geist-sans)] min-h-screen bg-gray-100">
-      <main className="container mx-auto p-4">
-        <h1 className="text-3xl font-bold mb-6 text-center">Users:</h1>
-        {loading && <p className="text-center">Loading...</p>}
-        {error && (
-          <p className="text-center text-red-500">Error: {error.message}</p>
-        )}
-        {data && data.allUsers && (
-          <ul className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            {data.allUsers.map((user) => (
-              <li
-                key={user.id}
-                className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow"
-              >
-                <p className="text-sm text-gray-500">ID: {user.id}</p>
-                {user.name && <p className="text-gray-600">{user.name}</p>}
-                <p className="text-gray-600">E-mail: {user.email}</p>
-                {user.googleId && (
-                  <p className="text-sm text-gray-500">
-                    Google ID: {user.googleId}
-                  </p>
-                )}
+  const { data: loggedInSubData } = useSubscription(
+    USER_LOGGED_IN_SUBSCRIPTION
+  );
 
-                <p className="text-sm text-gray-500">
-                  Created At:{" "}
-                  {new Date(user.createdAt).toLocaleDateString("de-DE", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                  })}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
-        {!loading && data && data.allUsers.length === 0 && (
-          <p className="text-center text-gray-500"> Users not found</p>
-        )}
-      </main>
+  const { data: loggedOutSubData } = useSubscription(
+    USER_LOGGED_OUT_SUBSCRIPTION
+  );
+
+  useEffect(() => {
+    setIsLoading(true);
+    if (queryData?.users) {
+      dispatch(
+        setUsers(
+          queryData.users.map((user: any) => ({
+            ...user,
+            id: Number(user.id),
+          }))
+        )
+      );
+      setIsLoading(false);
+    }
+  }, [queryData, dispatch]);
+
+  useEffect(() => {
+    console.log("<====user Created ====>", subData?.userCreated);
+    if (subData?.userCreated) {
+      console.log("<====user Created ====>", subData?.userCreated);
+      dispatch(
+        addUser({
+          ...subData.userCreated,
+          id: Number(subData.userCreated.id),
+        })
+      );
+    }
+  }, [subData, dispatch]);
+
+  useEffect(() => {
+    if (loggedInSubData?.userLoggedIn) {
+      const userLogined = loggedInSubData?.userLoggedIn;
+      console.log("<====user Logged In====>", userLogined);
+      dispatch(
+        setUsers(
+          users.map((user) =>
+            user.id === Number(userLogined.id)
+              ? {
+                  ...userLogined,
+                }
+              : user
+          )
+        )
+      );
+    }
+  }, [loggedInSubData, dispatch]);
+
+  useEffect(() => {
+    if (loggedOutSubData) {
+      console.log("<====loggedOutSubData====>", loggedOutSubData);
+    }
+    if (loggedOutSubData?.userLoggedOut) {
+      console.log("<====user Logged Out====>", loggedOutSubData?.userLoggedOut);
+      const updatedUser = {
+        ...loggedOutSubData.userLoggedOut,
+        id: Number(loggedOutSubData.userLoggedOut.id),
+      };
+      dispatch((dispatch, getState) => {
+        const currentUsers = getState().auth.users;
+        if (
+          !currentUsers.some(
+            (user) =>
+              user.id === updatedUser.id &&
+              user.isLoggedIn === updatedUser.isLoggedIn
+          )
+        ) {
+          dispatch(
+            setUsers(
+              currentUsers.map((user) =>
+                user.id === updatedUser.id ? updatedUser : user
+              )
+            )
+          );
+        }
+      });
+    }
+  }, [loggedOutSubData, dispatch]);
+
+  useEffect(() => {
+    if (queryError) {
+      console.error("Error fetching users:", queryError);
+    }
+    if (subError) {
+      console.error("Subscription error:", subError);
+    }
+  }, [queryError, subError]);
+
+  return (
+    <div className="mt-[100px] p-4">
+      <h1 className="text-2xl font-bold mb-4">Users</h1>
+      {isLoading && (
+        <div className="relative w-10 h-10">
+          <div className="absolute inset-0 rounded-full border-4 border-gray-300 animate-spin"></div>
+          <div className="absolute inset-1 rounded-full border-4 border-blue-500 border-t-transparent animate-spin-slower"></div>
+        </div>
+      )}
+      <div className="space-y-2">
+        {users.length === 0 && !queryLoading && <p>No users</p>}
+        {users.map((user) => (
+          <div key={user.id} className="p-2 border rounded">
+            {user.isLoggedIn ? (
+              <p className="text-green-500">Online</p>
+            ) : (
+              <p className="text-gray-400 text-sm">Offline</p>
+            )}
+            <strong>ID: {user.id}</strong>
+            <p>Email: {user.email}</p>
+            <p>Name: {user.name || "No name"}</p>
+            <p>Created: {new Date(user.createdAt).toLocaleString()}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
