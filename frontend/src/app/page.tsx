@@ -1,8 +1,9 @@
 "use client";
-import { gql, useSubscription, useMutation, useQuery } from "@apollo/client";
-import { useState, useEffect } from "react";
+
+import { gql, useSubscription, useQuery } from "@apollo/client";
+import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { setUser } from "@/app/redux/slices/authSlice";
+import { setUsers, addUser } from "@/app/redux/slices/authSlice";
 
 const GET_USERS = gql`
   query {
@@ -33,6 +34,7 @@ const USER_LOGGED_IN_SUBSCRIPTION = gql`
       id
       email
       name
+      isLoggedIn
       createdAt
     }
   }
@@ -52,64 +54,109 @@ const USER_LOGGED_OUT_SUBSCRIPTION = gql`
 
 export default function Users() {
   const dispatch = useDispatch();
-  const { data: queryData, loading: queryLoading } = useQuery(GET_USERS);
+  const users = useSelector(
+    (state: { auth: { users: any[] } }) => state.auth.users
+  );
+  const {
+    data: queryData,
+    loading: queryLoading,
+    error: queryError,
+  } = useQuery(GET_USERS);
   const { data: subData, error: subError } = useSubscription(
     USER_CREATED_SUBSCRIPTION
   );
+
   const { data: loggedInSubData } = useSubscription(
     USER_LOGGED_IN_SUBSCRIPTION
   );
+
   const { data: loggedOutSubData } = useSubscription(
     USER_LOGGED_OUT_SUBSCRIPTION
   );
 
-  const [users, setUsers] = useState([]);
-
   useEffect(() => {
-    if (queryData?.users) setUsers(queryData.users);
-  }, [queryData]);
-
-  useEffect(() => {
-    if (subData?.userCreated) {
-      console.log("<====userCreated====>", subData?.userCreated);
-      setUsers((prev) => {
-        const newUser = subData.userCreated;
-        const exists = prev.some((u) => u.id === newUser.id);
-        return exists ? prev : [...prev, newUser];
-      });
+    if (queryData?.users) {
+      dispatch(
+        setUsers(
+          queryData.users.map((user: any) => ({
+            ...user,
+            id: Number(user.id),
+          }))
+        )
+      );
     }
-  }, [subData]);
+  }, [queryData, dispatch]);
+
+  useEffect(() => {
+    console.log("<====user Created ====>", subData?.userCreated);
+    if (subData?.userCreated) {
+      console.log("<====user Created ====>", subData?.userCreated);
+      dispatch(
+        addUser({
+          ...subData.userCreated,
+          id: Number(subData.userCreated.id),
+        })
+      );
+    }
+  }, [subData, dispatch]);
 
   useEffect(() => {
     if (loggedInSubData?.userLoggedIn) {
-      console.log("<====userLoggedIn====>", loggedInSubData?.userLoggedIn);
-      localStorage.setItem(
-        "user",
-        JSON.stringify(loggedInSubData.userLoggedIn)
+      const userLogined = loggedInSubData?.userLoggedIn;
+      console.log("<====user Logged In====>", userLogined);
+      dispatch(
+        setUsers(
+          users.map((user) =>
+            user.id === Number(userLogined.id)
+              ? {
+                  ...userLogined,
+                }
+              : user
+          )
+        )
       );
-      // localStorage.setItem("token", data.token);
-      dispatch(setUser(loggedInSubData.userLoggedIn));
-
-      setUsers((prev) => {
-        const newUser = loggedInSubData.userLoggedIn;
-        return prev.map((user) =>
-          user.id === newUser.id ? { ...user, isLoggedIn: true } : user
-        );
-      });
     }
-  }, [loggedInSubData]);
+  }, [loggedInSubData, dispatch]);
 
   useEffect(() => {
+    if (loggedOutSubData) {
+      console.log("<====loggedOutSubData====>", loggedOutSubData);
+    }
     if (loggedOutSubData?.userLoggedOut) {
-      console.log("<====userLoggedOut====>", loggedOutSubData?.userLoggedOut);
-      setUsers((prev) => {
-        const updatedUser = loggedOutSubData.userLoggedOut;
-        return prev.map((user) =>
-          user.id === updatedUser.id ? { ...user, isLoggedIn: false } : user
-        );
+      console.log("<====user Logged Out====>", loggedOutSubData?.userLoggedOut);
+      const updatedUser = {
+        ...loggedOutSubData.userLoggedOut,
+        id: Number(loggedOutSubData.userLoggedOut.id),
+      };
+      dispatch((dispatch, getState) => {
+        const currentUsers = getState().auth.users;
+        if (
+          !currentUsers.some(
+            (user) =>
+              user.id === updatedUser.id &&
+              user.isLoggedIn === updatedUser.isLoggedIn
+          )
+        ) {
+          dispatch(
+            setUsers(
+              currentUsers.map((user) =>
+                user.id === updatedUser.id ? updatedUser : user
+              )
+            )
+          );
+        }
       });
     }
-  }, [loggedOutSubData]);
+  }, [loggedOutSubData, dispatch]);
+
+  useEffect(() => {
+    if (queryError) {
+      console.error("Error fetching users:", queryError);
+    }
+    if (subError) {
+      console.error("Subscription error:", subError);
+    }
+  }, [queryError, subError]);
 
   return (
     <div className="mt-[100px] p-4">

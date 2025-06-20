@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { gql, useMutation } from "@apollo/client";
 import { useRouter } from "next/navigation";
-
+import { useDispatch } from "react-redux";
+import { setUser } from "@/app/redux/slices/authSlice";
 import dynamic from "next/dynamic";
-
+import client, { wsLink } from "../../../lib/apolloClient";
 const ModalMessage = dynamic(
   () => import("@/components/ui/ModalMessage/ModalMessage"),
   { ssr: false }
@@ -13,50 +14,81 @@ const ModalMessage = dynamic(
 
 const LOGIN_USER = gql`
   mutation ($email: String!, $password: String!) {
-    loginUser(email: $email, password: $password)
+    loginUser(email: $email, password: $password) {
+      id
+      email
+      name
+      token
+      isLoggedIn
+      createdAt
+    }
   }
 `;
 
 export default function Login() {
   const router = useRouter();
-  
+  const dispatch = useDispatch();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [loginUser] = useMutation(LOGIN_USER);
-  const [loading, setLoading] = useState<boolean>(false);
-
+  const [loading, setloading] = useState<boolean>(false);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setloading(true);
     if (!email || !password) {
+      setloading(false);
       showModal("Please fill in all fields.");
       return;
     }
+
     try {
-      await loginUser({ variables: { email, password } });
+      const { data } = await loginUser({ variables: { email, password } });
+
+      if (!data || !data.loginUser) {
+        showModal("Invalid login. User not found or incorrect password.");
+        setloading(false);
+        return;
+      }
+
+      const loggedInUser = data.loginUser;
+      dispatch(setUser(loggedInUser));
+
       setEmail("");
       setPassword("");
-      setLoading(false);
-
       showModal("Login successful!");
-      router.push("/");
+
+      client.resetStore();
+
+      if (wsLink && wsLink.subscriptionClient) {
+        wsLink.subscriptionClient.close(false, false);
+      }
+
+      setTimeout(() => {
+        router.push("/");
+      }, 2000);
     } catch (err) {
       console.error("Mutation error:", err);
-      showModal("Login failed. Please check your credentials.");
-      setLoading(false);
+      setloading(false);
+      showModal(
+        "User not found. For registration, please go to the registration page."
+      );
+      setTimeout(() => {
+        router.push("/register");
+      }, 2000);
     }
   };
 
   const showModal = (message: string) => {
     setSuccessMessage(message);
     setModalOpen(true);
-    setLoading(false);
+    setloading(false);
     setTimeout(() => {
       setModalOpen(false);
       setSuccessMessage("");
-    }, 2500);
+    }, 2000);
   };
 
   return (
@@ -95,7 +127,7 @@ export default function Login() {
           disabled={loading}
           className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
         >
-          {loading ? "Logging in..." : "Login"}
+          {loading ? "Loading..." : "Login"}
         </button>
       </form>
     </div>

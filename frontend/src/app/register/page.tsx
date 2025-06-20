@@ -4,6 +4,7 @@ import { useState } from "react";
 import { gql, useMutation } from "@apollo/client";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import client, { wsLink } from "../../../lib/apolloClient";
 
 const ModalMessage = dynamic(
   () => import("@/components/ui/ModalMessage/ModalMessage"),
@@ -30,7 +31,6 @@ export default function Register() {
   const [modalOpen, setModalOpen] = useState(false);
   const [createUser] = useMutation(CREATE_USER);
   const [loading, setloading] = useState<boolean>(false);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setloading(true);
@@ -45,6 +45,12 @@ export default function Register() {
       setPassword("");
       setloading(false);
       showModal("Registration successful!");
+
+      client.resetStore();
+      if (wsLink && wsLink.subscriptionClient) {
+        wsLink.subscriptionClient.close(false, false);
+      }
+
       router.push("/login");
     } catch (err) {
       console.error("Mutation error:", err);

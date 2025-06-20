@@ -15,6 +15,15 @@ const SALT_ROUNDS = 10;
 const JWT_SECRET = process.env.JWT_SECRET || "secret";
 
 const typeDefs = `
+  type AuthPayload {
+    id: ID!
+    email: String!
+    name: String
+    token: String!
+    isLoggedIn: Boolean!
+    createdAt: String!
+  }
+    
   type User {
     id: ID!
     email: String!
@@ -31,9 +40,8 @@ const typeDefs = `
 
   type Mutation {
     createUser(email: String!, name: String, password: String!): User!
-    loginUser(email: String!, password: String!): String! 
-    logoutUser(userId: ID!): Boolean!
-
+    loginUser(email: String!, password: String!): AuthPayload!
+    logoutUser: Boolean!
   }
 
   type Subscription {
@@ -42,6 +50,7 @@ const typeDefs = `
     userLoggedOut: User!
   }
 `;
+
 const listeners = [];
 const loginListeners = [];
 const logoutListeners = [];
@@ -69,44 +78,55 @@ const schema = makeExecutableSchema({
         console.log("<===== loginUser =====>", email);
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user) {
-          throw new Error("Пользователь не найден");
+          throw new Error("User not found");
         }
         const isValid = await bcrypt.compare(password, user.password);
         if (!isValid) {
-          throw new Error("Неверный пароль");
+          throw new Error("Invalid password");
         }
-        // Обновляем статус логина
         const updatedUser = await prisma.user.update({
           where: { email },
           data: { isLoggedIn: true },
         });
-        // Генерируем JWT токен
         const token = jwt.sign(
           { userId: user.id, email: user.email },
           JWT_SECRET,
           { expiresIn: "1h" }
         );
         console.log("<====user logged in====>", updatedUser);
-        loginListeners.forEach((fn) => fn(updatedUser));
-        return token;
-      },
-      logoutUser: async (_, { userId }) => {
-        console.log("<===== logoutUser =====>", Number(userId));
-        console.log("<=====typeof logoutUser =====>", typeof Number(userId));
-
-        const user = await prisma.user.findUnique({
-          where: { id: Number(userId) },
+        loginListeners.forEach((fn) => {
+          fn(updatedUser);
         });
-        console.log("<====user logout====>", user);
-        if (!user || !user.isLoggedIn) {
-          throw new Error("User not found or already logged out");
+        return {
+          id: String(updatedUser.id),
+          email: updatedUser.email,
+          name: updatedUser.name,
+          token,
+          isLoggedIn: updatedUser.isLoggedIn,
+          createdAt: updatedUser.createdAt.toISOString(),
+        };
+      },
+      logoutUser: async (_, __, { token }) => {
+        if (!token) {
+          throw new Error("Токен не предоставлен");
         }
-
+        let decoded;
+        try {
+          decoded = jwt.verify(token, JWT_SECRET);
+        } catch (err) {
+          throw new Error("Недействительный токен");
+        }
+        const userId = Number(decoded.userId);
+        const user = await prisma.user.findUnique({
+          where: { id: userId },
+        });
+        if (!user || !user.isLoggedIn) {
+          throw new Error("Пользователь не найден или уже вышел");
+        }
         const updatedUser = await prisma.user.update({
-          where: { id: Number(userId) },
+          where: { id: userId },
           data: { isLoggedIn: false },
         });
-
         console.log("<====user logged out====>", updatedUser);
         logoutListeners.forEach((fn) => fn(updatedUser));
         return true;
@@ -145,8 +165,12 @@ const schema = makeExecutableSchema({
       },
     },
     User: {
+      id: (user) => String(user.id),
       createdAt: (user) => user.createdAt.toISOString(),
       updatedAt: (user) => user.updatedAt.toISOString(),
+    },
+    AuthPayload: {
+      id: (payload) => String(payload.id),
     },
   },
 });
@@ -155,6 +179,9 @@ const yoga = createYoga({
   schema,
   graphqlEndpoint: "/graphql",
   graphiql: true,
+  context: ({ request }) => ({
+    token: request.headers.get("authorization")?.replace("Bearer ", ""),
+  }),
 });
 
 const app = express();
@@ -169,17 +196,20 @@ SubscriptionServer.create(
     schema,
     execute,
     subscribe,
-    onConnect: () =>
+    onConnect: (connectionParams) => {
       console.log(
         `🌐 WebSocket соединение установлено: ${new Date().toLocaleString()}`
-      ),
+      );
+      return { token: connectionParams.authorization?.replace("Bearer ", "") };
+    },
     onDisconnect: () => console.log("🔌 Клиент отключился от WebSocket"),
-    onOperation: (msg, params) => {
-      // console.log(
-      //   "onOperation вызван, сообщение:",
-      //   JSON.stringify(msg, null, 2)
-      // );
-      return params;
+    onOperation: (msg, params, ws) => {
+      return {
+        ...params,
+        context: {
+          token: ws.upgradeReq.headers.authorization?.replace("Bearer ", ""),
+        },
+      };
     },
   },
   wsServer

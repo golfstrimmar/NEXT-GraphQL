@@ -1,4 +1,10 @@
-import { ApolloClient, InMemoryCache, HttpLink, split } from "@apollo/client";
+import {
+  ApolloClient,
+  InMemoryCache,
+  HttpLink,
+  ApolloLink,
+  split,
+} from "@apollo/client";
 import { WebSocketLink } from "@apollo/client/link/ws";
 import { getMainDefinition } from "@apollo/client/utilities";
 
@@ -6,20 +12,33 @@ const httpLink = new HttpLink({
   uri: "http://localhost:4000/graphql",
 });
 
-const wsLink =
+const authLink = new ApolloLink((operation, forward) => {
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  operation.setContext({
+    headers: {
+      authorization: token ? `Bearer ${token}` : "",
+    },
+  });
+  return forward(operation);
+});
+
+export const wsLink =
   typeof window !== "undefined"
     ? new WebSocketLink({
         uri: "ws://localhost:4000/graphql",
         options: {
           reconnect: true,
           connectionParams: () => {
-            const token = localStorage.getItem("authToken");
+            const token = localStorage.getItem("token");
             return token ? { Authorization: `Bearer ${token}` } : {};
           },
           connectionCallback: (error) => {
-            if (error)
+            if (error) {
               console.error("WebSocket error:", JSON.stringify(error, null, 2));
-            else console.log("WebSocket connected");
+            } else {
+              console.log("✅ WebSocket connected");
+            }
           },
         },
       })
@@ -36,9 +55,9 @@ const splitLink =
           );
         },
         wsLink,
-        httpLink
+        authLink.concat(httpLink)
       )
-    : httpLink;
+    : authLink.concat(httpLink);
 
 const client = new ApolloClient({
   link: splitLink,

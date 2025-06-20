@@ -3,9 +3,20 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 // Интерфейс пользователя
 interface User {
   id: number;
-  userName: string;
   email: string;
+  name: string | null;
   avatar?: string;
+  createdAt: string;
+  isLoggedIn?: boolean;
+}
+
+// Интерфейс для AuthPayload из мутации loginUser
+interface AuthPayload {
+  id: string;
+  email: string;
+  name: string | null;
+  token: string;
+  isLoggedIn: boolean;
   createdAt: string;
 }
 
@@ -17,10 +28,16 @@ interface AuthState {
   onlineUsers: number[];
 }
 
-// Начальное состояние без обращения к localStorage
+// Начальное состояние с загрузкой из localStorage
 const initialState: AuthState = {
-  user: null,
-  token: null,
+  user:
+    typeof window !== "undefined"
+      ? JSON.parse(localStorage.getItem("user") || "null")
+      : null,
+  token:
+    typeof window !== "undefined"
+      ? localStorage.getItem("token") || null
+      : null,
   users: [],
   onlineUsers: [],
 };
@@ -29,36 +46,44 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    setUser: (state, action: PayloadAction<{ user: User; token: string }>) => {
-      state.user = action.payload.user;
+    setUser: (state, action: PayloadAction<AuthPayload>) => {
+      state.user = {
+        id: Number(action.payload.id),
+        email: action.payload.email,
+        name: action.payload.name,
+        createdAt: action.payload.createdAt,
+        isLoggedIn: action.payload.isLoggedIn,
+      };
       state.token = action.payload.token;
-      // Проверяем доступность localStorage
       if (typeof window !== "undefined") {
-        localStorage.setItem("user", JSON.stringify(action.payload.user));
+        localStorage.setItem("user", JSON.stringify(state.user));
         localStorage.setItem("token", action.payload.token);
       }
     },
     clearUser: (state) => {
       state.user = null;
       state.token = null;
-      // Проверяем доступность localStorage
       if (typeof window !== "undefined") {
         localStorage.removeItem("user");
         localStorage.removeItem("token");
       }
     },
     setUsers: (state, action: PayloadAction<User[]>) => {
+      console.log("<===action.payload=====>", action.payload);
       state.users = action.payload;
     },
     setOnlineUsers: (state, action: PayloadAction<number[]>) => {
       state.onlineUsers = action.payload;
     },
-
     addUser: (state, action: PayloadAction<User>) => {
-      state.users.push(action.payload);
+      const exists = state.users.some((user) => user.id === action.payload.id);
+      if (!exists) {
+        state.users.push(action.payload);
+      }
     },
   },
 });
 
-export const { setUser, clearUser, setUsers, addUser, setOnlineUsers } = authSlice.actions;
+export const { setUser, clearUser, setUsers, addUser, setOnlineUsers } =
+  authSlice.actions;
 export default authSlice.reducer;
