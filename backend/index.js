@@ -14,9 +14,7 @@ import { OAuth2Client } from "google-auth-library";
 const prisma = new PrismaClient();
 const SALT_ROUNDS = 10;
 const JWT_SECRET = process.env.JWT_SECRET || "secret";
-const GOOGLE_CLIENT_ID =
-  process.env.GOOGLE_CLIENT_ID ||
-  "your-google-client-id.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 const typeDefs = `
@@ -38,9 +36,28 @@ const typeDefs = `
     updatedAt: String!
   }
 
+ 
+  type Chat {
+    id: ID!
+    createdAt: String!
+    creator: User!
+    participant: User!
+    messages: [Message!]!
+  }
+
+  type Message {
+    id: ID!
+    content: String!
+    createdAt: String!
+    chat: Chat!
+    sender: User!
+  }
+
   type Query {
     users: [User!]!
     loggedInUsers: [User!]!
+    chats: [Chat!]!
+    chat(id: ID!): Chat
   }
 
   type Mutation {
@@ -48,18 +65,22 @@ const typeDefs = `
     loginUser(email: String!, password: String!): AuthPayload!
     googleLogin(idToken: String!): AuthPayload!
     logoutUser: Boolean!
+    createChat(participantId: ID!): Chat!
+    sendMessage(chatId: ID!, content: String!): Message!
   }
 
   type Subscription {
     userCreated: User!
     userLoggedIn: User!
     userLoggedOut: User!
+    messageSent(chatId: ID!): Message!
   }
 `;
 
 const listeners = [];
 const loginListeners = [];
 const logoutListeners = [];
+const messageListeners = new Map();
 
 const schema = makeExecutableSchema({
   typeDefs,
@@ -68,6 +89,31 @@ const schema = makeExecutableSchema({
       users: async () => prisma.user.findMany(),
       loggedInUsers: async () =>
         prisma.user.findMany({ where: { isLoggedIn: true } }),
+      chats: async (_, __, { token }) => {
+        if (!token) throw new Error("Authentication required");
+        const decoded = jwt.verify(token, JWT_SECRET);
+        const userId = Number(decoded.userId);
+        return prisma.chat.findMany({
+          where: {
+            OR: [{ creatorId: userId }, { participantId: userId }],
+          },
+          include: { creator: true, participant: true, messages: true },
+        });
+      },
+      chat: async (_, { id }, { token }) => {
+        if (!token) throw new Error("Authentication required");
+        const decoded = jwt.verify(token, JWT_SECRET);
+        const userId = Number(decoded.userId);
+        const chat = await prisma.chat.findFirst({
+          where: {
+            id: Number(id),
+            OR: [{ creatorId: userId }, { participantId: userId }],
+          },
+          include: { creator: true, participant: true, messages: true },
+        });
+        if (!chat) throw new Error("Chat not found or access denied");
+        return chat;
+      },
     },
     Mutation: {
       createUser: async (_, { email, name, password }) => {
@@ -190,6 +236,55 @@ const schema = makeExecutableSchema({
         logoutListeners.forEach((fn) => fn(updatedUser));
         return true;
       },
+      createChat: async (_, { participantId }, { token }) => {
+        if (!token) throw new Error("Authentication required");
+        const decoded = jwt.verify(token, JWT_SECRET);
+        const creatorId = Number(decoded.userId);
+        if (creatorId === Number(participantId))
+          throw new Error("Cannot create chat with yourself");
+        const existingChat = await prisma.chat.findFirst({
+          where: {
+            OR: [
+              { creatorId, participantId: Number(participantId) },
+              { creatorId: Number(participantId), participantId: creatorId },
+            ],
+          },
+        });
+        if (existingChat) throw new Error("Chat already exists");
+        const chat = await prisma.chat.create({
+          data: {
+            creatorId,
+            participantId: Number(participantId),
+          },
+          include: { creator: true, participant: true, messages: true },
+        });
+        console.log("<====chat created====>", chat);
+        return chat;
+      },
+      sendMessage: async (_, { chatId, content }, { token }) => {
+        if (!token) throw new Error("Authentication required");
+        const decoded = jwt.verify(token, JWT_SECRET);
+        const senderId = Number(decoded.userId);
+        const chat = await prisma.chat.findFirst({
+          where: {
+            id: Number(chatId),
+            OR: [{ creatorId: senderId }, { participantId: senderId }],
+          },
+        });
+        if (!chat) throw new Error("Chat not found or access denied");
+        const message = await prisma.message.create({
+          data: {
+            content,
+            chatId: Number(chatId),
+            senderId,
+          },
+          include: { chat: true, sender: true },
+        });
+        console.log("<====message sent====>", message);
+        const listenersForChat = messageListeners.get(Number(chatId)) || [];
+        listenersForChat.forEach((fn) => fn(message));
+        return message;
+      },
     },
     Subscription: {
       userCreated: {
@@ -222,11 +317,43 @@ const schema = makeExecutableSchema({
           }
         },
       },
+      messageSent: {
+        subscribe: async function* (_, { chatId }, { token }) {
+          if (!token) throw new Error("Authentication required");
+          const decoded = jwt.verify(token, JWT_SECRET);
+          const userId = Number(decoded.userId);
+          const chat = await prisma.chat.findFirst({
+            where: {
+              id: Number(chatId),
+              OR: [{ creatorId: userId }, { participantId: userId }],
+            },
+          });
+          if (!chat) throw new Error("Chat not found or access denied");
+          const listenersForChat = messageListeners.get(Number(chatId)) || [];
+          while (true) {
+            const message = await new Promise((resolve) =>
+              listenersForChat.push(resolve)
+            );
+            yield { messageSent: message };
+          }
+        },
+      },
     },
     User: {
       id: (user) => String(user.id),
       createdAt: (user) => user.createdAt.toISOString(),
       updatedAt: (user) => user.updatedAt.toISOString(),
+    },
+    Chat: {
+      id: (chat) => String(chat.id),
+      createdAt: (chat) => chat.createdAt.toISOString(),
+    },
+    Message: {
+      id: (message) => String(message.id),
+      createdAt: (message) => message.createdAt.toISOString(),
+    },
+    AuthPayload: {
+      id: (payload) => String(payload.id),
     },
     AuthPayload: {
       id: (payload) => String(payload.id),

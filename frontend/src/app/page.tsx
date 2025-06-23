@@ -4,6 +4,7 @@ import { gql, useSubscription, useQuery } from "@apollo/client";
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { setUsers, addUser } from "@/app/redux/slices/authSlice";
+import Chats from "@/components/Chats/Chats";
 
 const GET_USERS = gql`
   query {
@@ -186,6 +187,7 @@ export default function Users() {
           </div>
         ))}
       </div>
+      <Chats />
     </div>
   );
 }
