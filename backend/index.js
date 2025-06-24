@@ -90,15 +90,33 @@ const schema = makeExecutableSchema({
       loggedInUsers: async () =>
         prisma.user.findMany({ where: { isLoggedIn: true } }),
       chats: async (_, __, { token }) => {
-        if (!token) throw new Error("Authentication required");
-        const decoded = jwt.verify(token, JWT_SECRET);
-        const userId = Number(decoded.userId);
-        return prisma.chat.findMany({
-          where: {
-            OR: [{ creatorId: userId }, { participantId: userId }],
-          },
-          include: { creator: true, participant: true, messages: true },
-        });
+        if (!token) {
+          throw new GraphQLError("Authentication required", {
+            extensions: {
+              code: "UNAUTHENTICATED",
+              http: { status: 401 },
+            },
+          });
+        }
+
+        try {
+          const decoded = jwt.verify(token, JWT_SECRET);
+          const userId = Number(decoded.userId);
+
+          return prisma.chat.findMany({
+            where: {
+              OR: [{ creatorId: userId }, { participantId: userId }],
+            },
+            include: { creator: true, participant: true, messages: true },
+          });
+        } catch (err) {
+          throw new GraphQLError("Invalid token", {
+            extensions: {
+              code: "UNAUTHENTICATED",
+              http: { status: 401 },
+            },
+          });
+        }
       },
       chat: async (_, { id }, { token }) => {
         if (!token) throw new Error("Authentication required");
