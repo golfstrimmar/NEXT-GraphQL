@@ -74,6 +74,7 @@ const typeDefs = `
     userLoggedIn: User!
     userLoggedOut: User!
     messageSent(chatId: ID!): Message!
+    chatCreated: Chat!
   }
 `;
 
@@ -81,6 +82,7 @@ const listeners = [];
 const loginListeners = [];
 const logoutListeners = [];
 const messageListeners = new Map();
+const chatCreatedListeners = [];
 
 const schema = makeExecutableSchema({
   typeDefs,
@@ -90,33 +92,24 @@ const schema = makeExecutableSchema({
       loggedInUsers: async () =>
         prisma.user.findMany({ where: { isLoggedIn: true } }),
       chats: async (_, __, { token }) => {
-        if (!token) {
-          throw new GraphQLError("Authentication required", {
-            extensions: {
-              code: "UNAUTHENTICATED",
-              http: { status: 401 },
+        console.log("+++ Authorization +++");
+        if (!token) throw new Error("Authentication required");
+        const decoded = jwt.verify(token, JWT_SECRET);
+        const userId = Number(decoded.userId);
+        return prisma.chat.findMany({
+          where: {
+            OR: [{ creatorId: userId }, { participantId: userId }],
+          },
+          include: {
+            creator: true,
+            participant: true,
+            messages: {
+              include: {
+                sender: true,
+              },
             },
-          });
-        }
-
-        try {
-          const decoded = jwt.verify(token, JWT_SECRET);
-          const userId = Number(decoded.userId);
-
-          return prisma.chat.findMany({
-            where: {
-              OR: [{ creatorId: userId }, { participantId: userId }],
-            },
-            include: { creator: true, participant: true, messages: true },
-          });
-        } catch (err) {
-          throw new GraphQLError("Invalid token", {
-            extensions: {
-              code: "UNAUTHENTICATED",
-              http: { status: 401 },
-            },
-          });
-        }
+          },
+        });
       },
       chat: async (_, { id }, { token }) => {
         if (!token) throw new Error("Authentication required");
@@ -135,7 +128,6 @@ const schema = makeExecutableSchema({
     },
     Mutation: {
       createUser: async (_, { email, name, password }) => {
-        console.log("<===== createUser =====>", email, name);
         const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
         const user = await prisma.user.create({
           data: { email, name, password: hashedPassword, isLoggedIn: false },
@@ -145,7 +137,6 @@ const schema = makeExecutableSchema({
         return user;
       },
       loginUser: async (_, { email, password }) => {
-        console.log("<===== loginUser =====>", email);
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user) {
           throw new Error("User not found");
@@ -175,7 +166,6 @@ const schema = makeExecutableSchema({
         };
       },
       googleLogin: async (_, { idToken }) => {
-        console.log("<===== googleLogin =====>");
         try {
           const ticket = await googleClient.verifyIdToken({
             idToken,
@@ -231,7 +221,6 @@ const schema = makeExecutableSchema({
         }
       },
       logoutUser: async (_, __, { token }) => {
-        console.log("Authorization header:", token);
         if (!token) {
           throw new Error("Token not provided");
         }
@@ -277,19 +266,24 @@ const schema = makeExecutableSchema({
           include: { creator: true, participant: true, messages: true },
         });
         console.log("<====chat created====>", chat);
+
+        chatCreatedListeners.forEach((fn) => fn(chat));
         return chat;
       },
       sendMessage: async (_, { chatId, content }, { token }) => {
         if (!token) throw new Error("Authentication required");
         const decoded = jwt.verify(token, JWT_SECRET);
         const senderId = Number(decoded.userId);
+
         const chat = await prisma.chat.findFirst({
           where: {
             id: Number(chatId),
             OR: [{ creatorId: senderId }, { participantId: senderId }],
           },
         });
+
         if (!chat) throw new Error("Chat not found or access denied");
+
         const message = await prisma.message.create({
           data: {
             content,
@@ -298,9 +292,19 @@ const schema = makeExecutableSchema({
           },
           include: { chat: true, sender: true },
         });
-        console.log("<====message sent====>", message);
-        const listenersForChat = messageListeners.get(Number(chatId)) || [];
+
+        console.log("<====🔥 message sent====>", message);
+
+        const chatKey = String(chatId); //  ключ как строка
+
+        if (!messageListeners.has(chatKey)) {
+          messageListeners.set(chatKey, []);
+        }
+
+        const listenersForChat = messageListeners.get(chatKey);
+        console.log("📣 Notifying listeners:", listenersForChat.length);
         listenersForChat.forEach((fn) => fn(message));
+
         return message;
       },
     },
@@ -335,19 +339,52 @@ const schema = makeExecutableSchema({
           }
         },
       },
+
+      chatCreated: {
+        subscribe: async function* (_, __, { token }) {
+          console.log("📡 [Server] chatCreated subscription requested ++++");
+          if (!token) throw new Error("Authentication required");
+          const decoded = jwt.verify(token, JWT_SECRET);
+          const userId = Number(decoded.userId);
+          console.log(
+            "✅ [Server] chatCreated subscription established for userId:",
+            userId
+          );
+          while (true) {
+            const chat = await new Promise((resolve) =>
+              chatCreatedListeners.push(resolve)
+            );
+            if (chat.creatorId === userId || chat.participantId === userId) {
+              console.log("📥 [Server] Sending chat to subscriber:", chat.id);
+              yield { chatCreated: chat };
+            }
+          }
+        },
+      },
       messageSent: {
         subscribe: async function* (_, { chatId }, { token }) {
           if (!token) throw new Error("Authentication required");
           const decoded = jwt.verify(token, JWT_SECRET);
           const userId = Number(decoded.userId);
+
           const chat = await prisma.chat.findFirst({
             where: {
               id: Number(chatId),
               OR: [{ creatorId: userId }, { participantId: userId }],
             },
           });
+
           if (!chat) throw new Error("Chat not found or access denied");
-          const listenersForChat = messageListeners.get(Number(chatId)) || [];
+
+          const chatKey = String(chatId); // 🔥 ключ как строка
+
+          if (!messageListeners.has(chatKey)) {
+            messageListeners.set(chatKey, []);
+          }
+
+          const listenersForChat = messageListeners.get(chatKey);
+          console.log("🟢 SUBSCRIBE CALLED for chatId", chatId);
+
           while (true) {
             const message = await new Promise((resolve) =>
               listenersForChat.push(resolve)
@@ -407,18 +444,38 @@ SubscriptionServer.create(
     schema,
     execute,
     subscribe,
-    onConnect: (connectionParams) => {
-      console.log(
-        `🌐 WebSocket connection established: ${new Date().toLocaleString()}`
-      );
-      return { token: connectionParams.authorization?.replace("Bearer ", "") };
+    onConnect: (connectionParams, ws, context) => {
+      console.log("🌐 [Server] WebSocket connection :", {
+        params: connectionParams,
+      });
+      const token =
+        connectionParams.authorization?.replace("Bearer ", "") ||
+        connectionParams.Authorization?.replace("Bearer ", "");
+      if (!token) {
+        console.warn(
+          "⚠️ [Server] No token provided in WebSocket connection. Params:",
+          connectionParams
+        );
+        throw new Error("WebSocket Authentication required");
+      }
+      console.log("✅ [Server] WebSocket token received");
+      return { token };
     },
-    onDisconnect: () => console.log("🔌 Client disconnected from WebSocket"),
+    onDisconnect: () => {
+      console.log("🔌 [Server] Client disconnected from WebSocket:", {
+        timestamp: new Date().toLocaleString(),
+      });
+    },
     onOperation: (msg, params, ws) => {
+      console.log("📡 [Server] Subscription operation:", {
+        operation: msg.payload.operationName || "unnamed",
+        variables: msg.payload.variables,
+        timestamp: new Date().toLocaleString(),
+      });
       return {
         ...params,
         context: {
-          token: ws.upgradeReq.headers.authorization?.replace("Bearer ", ""),
+          token: params.context.token,
         },
       };
     },

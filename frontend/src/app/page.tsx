@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { setUsers, addUser } from "@/app/redux/slices/authSlice";
 import Chats from "@/components/Chats/Chats";
+import { p } from "framer-motion/m";
 
 const GET_USERS = gql`
   query {
@@ -56,6 +57,7 @@ const USER_LOGGED_OUT_SUBSCRIPTION = gql`
 export default function Users() {
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const user = useSelector((state: { auth: { user: any } }) => state.auth.user);
   const users = useSelector(
     (state: { auth: { users: any[] } }) => state.auth.users
   );
@@ -187,7 +189,13 @@ export default function Users() {
           </div>
         ))}
       </div>
-      <Chats />
+      {user ? (
+        <Chats />
+      ) : (
+        <p className="text-red-500 text-l mt-4">
+          For get chats you need to be logged in.
+        </p>
+      )}
     </div>
   );
 }
