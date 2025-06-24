@@ -108,47 +108,56 @@ export default function Chats() {
   const [messages, setMessages] = useState<any[]>([]);
 
   useEffect(() => {
-    if (data?.chats && selectedChatId) {
-      const selectedChat = data.chats.find(
-        (chat: any) => chat.id === selectedChatId
-      );
-      if (selectedChat) {
-        setMessages(selectedChat.messages);
-      }
+    if (data) {
+      console.log("<==== data====>", data);
     }
-  }, [data, selectedChatId]);
+    if (error) {
+      console.log("<==== error====>", error); // Полный объект ошибки
+    }
+  }, [data, error]);
 
-  useEffect(() => {
-    if (subscriptionData?.messageSent) {
-      setMessages((prev) => [...prev, subscriptionData.messageSent]);
-    }
-  }, [subscriptionData]);
+  // useEffect(() => {
+  //   if (data?.chats && selectedChatId) {
+  //     const selectedChat = data.chats.find(
+  //       (chat: any) => chat.id === selectedChatId
+  //     );
+  //     if (selectedChat) {
+  //       setMessages(selectedChat.messages);
+  //     }
+  //   }
+  // }, [data, selectedChatId]);
 
-  const handleCreateChat = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const { data } = await createChat({ variables: { participantId } });
-      setParticipantId("");
-      setSelectedChatId(Number(data.createChat.id));
-    } catch (err) {
-      console.error("Create chat error:", err);
-      alert("Failed to create chat");
-    }
-  };
+  // useEffect(() => {
+  //   if (subscriptionData?.messageSent) {
+  //     setMessages((prev) => [...prev, subscriptionData.messageSent]);
+  //   }
+  // }, [subscriptionData]);
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedChatId || !messageContent.trim()) return;
-    try {
-      await sendMessage({
-        variables: { chatId: selectedChatId, content: messageContent },
-      });
-      setMessageContent("");
-    } catch (err) {
-      console.error("Send message error:", err);
-      alert("Failed to send message");
-    }
-  };
+  // const handleCreateChat = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   try {
+  //     const { data } = await createChat({ variables: { participantId } });
+  //     setParticipantId("");
+  //     setSelectedChatId(Number(data.createChat.id));
+  //   } catch (err) {
+  //     console.error("Create chat error:", err);
+  //     alert("Failed to create chat");
+  //   }
+  // };
+
+  // const handleSendMessage = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (!selectedChatId || !messageContent.trim()) return;
+  //   try {
+  //     await sendMessage({
+  //       variables: { chatId: selectedChatId, content: messageContent },
+  //     });
+  //     setMessageContent("");
+  //   } catch (err) {
+  //     console.error("Send message error:", err);
+  //     alert("Failed to send message");
+  //   }
+  // };
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
@@ -157,7 +166,7 @@ export default function Chats() {
     <div className="flex h-screen p-4 mt-[100px]">
       <div className="w-1/3 border-r pr-4">
         <h1 className="text-2xl font-bold mb-4">Chats</h1>
-        <form onSubmit={handleCreateChat} className="mb-4">
+        {/* <form onSubmit={handleCreateChat} className="mb-4">
           <input
             type="text"
             placeholder="Participant ID"
@@ -236,6 +245,7 @@ export default function Chats() {
         ) : (
           <p>Select a chat to view messages</p>
         )}
+     */}{" "}
       </div>
     </div>
   );
