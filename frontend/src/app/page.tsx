@@ -5,7 +5,6 @@ import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { setUsers, addUser } from "@/app/redux/slices/authSlice";
 import Chats from "@/components/Chats/Chats";
-import { p } from "framer-motion/m";
 
 const GET_USERS = gql`
   query {
