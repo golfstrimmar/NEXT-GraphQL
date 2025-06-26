@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { del } from "framer-motion/m";
 
 // Интерфейс пользователя
 interface User {
@@ -81,9 +82,18 @@ const authSlice = createSlice({
         state.users.push(action.payload);
       }
     },
+    deleteUserFromRedux: (state, action: PayloadAction<number>) => {
+      state.users = state.users.filter((user) => user.id !== action.payload);
+    },
   },
 });
 
-export const { setUser, clearUser, setUsers, addUser, setOnlineUsers } =
-  authSlice.actions;
+export const {
+  setUser,
+  clearUser,
+  setUsers,
+  addUser,
+  setOnlineUsers,
+  deleteUserFromRedux,
+} = authSlice.actions;
 export default authSlice.reducer;

@@ -8,7 +8,7 @@ import client, { wsLink } from "../../../lib/apolloClient";
 import Input from "@/components/ui/Input/Input";
 import Button from "@/components/ui/Button/Button";
 const ModalMessage = dynamic(
-  () => import("@/components/ui/ModalMessage/ModalMessage"),
+  () => import("@/components/ModalMessage/ModalMessage"),
   { ssr: false }
 );
 
