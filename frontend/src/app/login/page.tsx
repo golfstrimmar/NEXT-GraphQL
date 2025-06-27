@@ -10,37 +10,13 @@ import client, { wsLink } from "../../../lib/apolloClient";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import Input from "@/components/ui/Input/Input";
 import Button from "@/components/ui/Button/Button";
+import { LOGIN_USER } from "@/apolo/mutations";
+import { GOOGLE_LOGIN } from "@/apolo/mutations";
 
 const ModalMessage = dynamic(
   () => import("@/components/ModalMessage/ModalMessage"),
   { ssr: false }
 );
-
-const LOGIN_USER = gql`
-  mutation ($email: String!, $password: String!) {
-    loginUser(email: $email, password: $password) {
-      id
-      email
-      name
-      token
-      isLoggedIn
-      createdAt
-    }
-  }
-`;
-
-const GOOGLE_LOGIN = gql`
-  mutation ($idToken: String!) {
-    googleLogin(idToken: $idToken) {
-      id
-      email
-      name
-      token
-      isLoggedIn
-      createdAt
-    }
-  }
-`;
 
 export default function Login() {
   const router = useRouter();

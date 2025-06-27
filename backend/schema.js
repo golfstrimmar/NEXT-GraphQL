@@ -1,32 +1,33 @@
-import { gql } from "graphql-tag";
-
-export const typeDefs = gql`
+const typeDefs = `
   type User {
-    id: Int!
+  id: Int!
+  email: String!
+  password: String
+  googleId: String
+  name: String
+  isLoggedIn: Boolean
+  createdAt: String
+  updatedAt: String
+}
+
+type Query {
+  users: [User]
+}
+
+type Mutation {
+  addUser(
     email: String!
-    name: String!
-    createdAt: String!
+    name: String
+    password: String
     googleId: String
-  }
+  ): User
+}
 
-  type AuthPayload {
-    token: String!
-    user: User!
-  }
+type Subscription {
+  userCreated: User
+}
 
-  type Query {
-    me: User
-    allUsers: [User!]!
-  }
 
-  type Mutation {
-    signup(name: String!, email: String!, password: String!): AuthPayload!
-    login(email: String!, password: String!): AuthPayload!
-    googleLogin(token: String!): AuthPayload!
-  }
-
-  type Subscription {
-    userUpdated(userId: Int!): User
-    usersUpdated: [User!]
-  }
 `;
+
+export default typeDefs;

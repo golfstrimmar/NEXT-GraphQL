@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { gql, useMutation } from "@apollo/client";
+import { useMutation } from "@apollo/client";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import client, { wsLink } from "../../../lib/apolloClient";
@@ -11,17 +11,7 @@ const ModalMessage = dynamic(
   () => import("@/components/ModalMessage/ModalMessage"),
   { ssr: false }
 );
-
-const CREATE_USER = gql`
-  mutation ($email: String!, $name: String, $password: String!) {
-    createUser(email: $email, name: $name, password: $password) {
-      id
-      email
-      name
-      createdAt
-    }
-  }
-`;
+import { ADD_USER } from "@/apolo/mutations";
 
 export default function Register() {
   const router = useRouter();
@@ -30,7 +20,7 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
-  const [createUser] = useMutation(CREATE_USER);
+  const [addUser] = useMutation(ADD_USER);
   const [loading, setloading] = useState<boolean>(false);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +30,7 @@ export default function Register() {
       return;
     }
     try {
-      await createUser({ variables: { email, name, password } });
+      await addUser({ variables: { email, name, password } });
       setEmail("");
       setName("");
       setPassword("");
@@ -51,8 +41,9 @@ export default function Register() {
       if (wsLink && wsLink.subscriptionClient) {
         wsLink.subscriptionClient.close(false, false);
       }
-
-      router.push("/login");
+      setTimeout(() => {
+        router.push("/");
+      }, 2000);
     } catch (err) {
       console.error("Mutation error:", err);
       showModal(message);
@@ -67,7 +58,7 @@ export default function Register() {
     setTimeout(() => {
       setModalOpen(false);
       setSuccessMessage("");
-    }, 2500);
+    }, 2000);
   };
 
   return (

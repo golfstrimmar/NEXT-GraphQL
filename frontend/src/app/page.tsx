@@ -4,78 +4,37 @@ import { gql, useSubscription, useQuery } from "@apollo/client";
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { setUsers, addUser } from "@/app/redux/slices/authSlice";
-import Chats from "@/components/Chats/Chats";
+// import Chats from "@/components/Chats/Chats";
 
-const GET_USERS = gql`
-  query {
-    users {
-      id
-      email
-      name
-      isLoggedIn
-      createdAt
-    }
-  }
-`;
-
-const USER_CREATED_SUBSCRIPTION = gql`
-  subscription {
-    userCreated {
-      id
-      email
-      name
-      createdAt
-    }
-  }
-`;
-
-const USER_LOGGED_IN_SUBSCRIPTION = gql`
-  subscription {
-    userLoggedIn {
-      id
-      email
-      name
-      isLoggedIn
-      createdAt
-    }
-  }
-`;
-
-const USER_LOGGED_OUT_SUBSCRIPTION = gql`
-  subscription {
-    userLoggedOut {
-      id
-      email
-      name
-      isLoggedIn
-      createdAt
-    }
-  }
-`;
+import { GET_USERS } from "@/apolo/queryes";
+import { USER_CREATED_SUBSCRIPTION } from "@/apolo/subscriptions";
 
 export default function Users() {
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const user = useSelector((state: { auth: { user: any } }) => state.auth.user);
+  // const user = useSelector((state: { auth: { user: any } }) => state.auth.user);
+
   const users = useSelector(
     (state: { auth: { users: any[] } }) => state.auth.users
   );
+
   const {
     data: queryData,
     loading: queryLoading,
     error: queryError,
   } = useQuery(GET_USERS);
+
   const { data: subData, error: subError } = useSubscription(
     USER_CREATED_SUBSCRIPTION
   );
 
-  const { data: loggedInSubData } = useSubscription(
-    USER_LOGGED_IN_SUBSCRIPTION
-  );
+  // const { data: loggedInSubData } = useSubscription(
+  //   USER_LOGGED_IN_SUBSCRIPTION
+  // );
 
-  const { data: loggedOutSubData } = useSubscription(
-    USER_LOGGED_OUT_SUBSCRIPTION
-  );
+  // const { data: loggedOutSubData } = useSubscription(
+  //   USER_LOGGED_OUT_SUBSCRIPTION
+  // );
 
   useEffect(() => {
     setIsLoading(true);
@@ -93,9 +52,7 @@ export default function Users() {
   }, [queryData, dispatch]);
 
   useEffect(() => {
-    console.log("<====user Created ====>", subData?.userCreated);
     if (subData?.userCreated) {
-      console.log("<====user Created ====>", subData?.userCreated);
       dispatch(
         addUser({
           ...subData.userCreated,
@@ -105,63 +62,63 @@ export default function Users() {
     }
   }, [subData, dispatch]);
 
-  useEffect(() => {
-    if (loggedInSubData?.userLoggedIn) {
-      const userLogined = loggedInSubData?.userLoggedIn;
-      console.log("<====user Logged In====>", userLogined);
-      dispatch(
-        setUsers(
-          users.map((user) =>
-            user.id === Number(userLogined.id)
-              ? {
-                  ...userLogined,
-                }
-              : user
-          )
-        )
-      );
-    }
-  }, [loggedInSubData, dispatch]);
+  // useEffect(() => {
+  //   if (loggedInSubData?.userLoggedIn) {
+  //     const userLogined = loggedInSubData?.userLoggedIn;
+  //     console.log("<====user Logged In====>", userLogined);
+  //     dispatch(
+  //       setUsers(
+  //         users.map((user) =>
+  //           user.id === Number(userLogined.id)
+  //             ? {
+  //                 ...userLogined,
+  //               }
+  //             : user
+  //         )
+  //       )
+  //     );
+  //   }
+  // }, [loggedInSubData, dispatch]);
 
-  useEffect(() => {
-    if (loggedOutSubData) {
-      console.log("<====loggedOutSubData====>", loggedOutSubData);
-    }
-    if (loggedOutSubData?.userLoggedOut) {
-      console.log("<====user Logged Out====>", loggedOutSubData?.userLoggedOut);
-      const updatedUser = {
-        ...loggedOutSubData.userLoggedOut,
-        id: Number(loggedOutSubData.userLoggedOut.id),
-      };
-      dispatch((dispatch, getState) => {
-        const currentUsers = getState().auth.users;
-        if (
-          !currentUsers.some(
-            (user) =>
-              user.id === updatedUser.id &&
-              user.isLoggedIn === updatedUser.isLoggedIn
-          )
-        ) {
-          dispatch(
-            setUsers(
-              currentUsers.map((user) =>
-                user.id === updatedUser.id ? updatedUser : user
-              )
-            )
-          );
-        }
-      });
-    }
-  }, [loggedOutSubData, dispatch]);
+  // useEffect(() => {
+  //   if (loggedOutSubData) {
+  //     console.log("<====loggedOutSubData====>", loggedOutSubData);
+  //   }
+  //   if (loggedOutSubData?.userLoggedOut) {
+  //     console.log("<====user Logged Out====>", loggedOutSubData?.userLoggedOut);
+  //     const updatedUser = {
+  //       ...loggedOutSubData.userLoggedOut,
+  //       id: Number(loggedOutSubData.userLoggedOut.id),
+  //     };
+  //     dispatch((dispatch, getState) => {
+  //       const currentUsers = getState().auth.users;
+  //       if (
+  //         !currentUsers.some(
+  //           (user) =>
+  //             user.id === updatedUser.id &&
+  //             user.isLoggedIn === updatedUser.isLoggedIn
+  //         )
+  //       ) {
+  //         dispatch(
+  //           setUsers(
+  //             currentUsers.map((user) =>
+  //               user.id === updatedUser.id ? updatedUser : user
+  //             )
+  //           )
+  //         );
+  //       }
+  //     });
+  //   }
+  // }, [loggedOutSubData, dispatch]);
 
-  useEffect(() => {
-    if (queryError) {
-      console.error("Error fetching users:", queryError);
-    }
-    if (subError) {
-      console.error("Subscription error:", subError);
-    }
-  }, [queryError, subError]);
+  // useEffect(() => {
+  //   if (queryError) {
+  //     console.error("Error fetching users:", queryError);
+  //   }
+  //   if (subError) {
+  //     console.error("Subscription error:", subError);
+  //   }
+  // }, [queryError, subError]);
 
   return (
     <div className="mt-[100px] p-4">
@@ -188,13 +145,13 @@ export default function Users() {
           </div>
         ))}
       </div>
-      {user ? (
+      {/* {user ? (
         <Chats />
       ) : (
         <p className="text-red-500 text-l mt-4">
           For get chats you need to be logged in.
         </p>
-      )}
+      )} */}
     </div>
   );
 }
