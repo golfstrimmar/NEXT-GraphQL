@@ -70,13 +70,14 @@ const authSlice = createSlice({
       }
     },
     setUsers: (state, action: PayloadAction<User[]>) => {
-      console.log("<===action.payload=====>", action.payload);
+      console.log("<=== Users from server =====>", action.payload);
       state.users = action.payload;
     },
     setOnlineUsers: (state, action: PayloadAction<number[]>) => {
       state.onlineUsers = action.payload;
     },
     addUser: (state, action: PayloadAction<User>) => {
+      console.log("<=== add user =====>", action.payload);
       const exists = state.users.some((user) => user.id === action.payload.id);
       if (!exists) {
         state.users.push(action.payload);

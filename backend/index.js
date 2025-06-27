@@ -10,6 +10,7 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import resolvers from "./resolvers.js";
 import typeDefs from "./schema.js";
+
 const PORT = 4000;
 
 let currentNumber = 0;
@@ -22,7 +23,23 @@ const wsServer = new WebSocketServer({
   server: httpServer,
   path: "/graphql",
 });
-const serverCleanup = useServer({ schema }, wsServer);
+
+const serverCleanup = useServer(
+  {
+    schema,
+    context: async (ctx) => {
+      console.log("📡 WebSocket connection +");
+      return {}; // Пустой контекст
+    },
+    onConnect: async (ctx) => {
+      console.log("📡📡📡 Client connected +");
+    },
+    onDisconnect: async (ctx, code, reason) => {
+      console.log(`⚠️ Client disconnected (${code}: ${reason})`);
+    },
+  },
+  wsServer
+);
 
 const server = new ApolloServer({
   schema,

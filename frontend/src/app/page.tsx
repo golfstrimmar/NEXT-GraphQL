@@ -53,6 +53,7 @@ export default function Users() {
 
   useEffect(() => {
     if (subData?.userCreated) {
+      console.log("<====userCreated subscription====>", subData.userCreated);
       dispatch(
         addUser({
           ...subData.userCreated,

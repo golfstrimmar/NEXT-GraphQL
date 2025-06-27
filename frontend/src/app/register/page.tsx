@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useMutation } from "@apollo/client";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import client, { wsLink } from "../../../lib/apolloClient";
+import { client } from "../../../lib/apolloClient";
 import Input from "@/components/ui/Input/Input";
 import Button from "@/components/ui/Button/Button";
 const ModalMessage = dynamic(
@@ -20,11 +20,10 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
-  const [addUser] = useMutation(ADD_USER);
-  const [loading, setloading] = useState<boolean>(false);
+  const [addUser, { loading }] = useMutation(ADD_USER);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setloading(true);
     if (!name || !email || !password) {
       showModal("Please fill in all fields.");
       return;
@@ -34,27 +33,20 @@ export default function Register() {
       setEmail("");
       setName("");
       setPassword("");
-      setloading(false);
       showModal("Registration successful!");
-
       client.resetStore();
-      if (wsLink && wsLink.subscriptionClient) {
-        wsLink.subscriptionClient.close(false, false);
-      }
       setTimeout(() => {
         router.push("/");
       }, 2000);
     } catch (err) {
       console.error("Mutation error:", err);
-      showModal(message);
-      setloading(false);
+      showModal("Registration failed.");
     }
   };
 
   const showModal = (message: string) => {
     setSuccessMessage(message);
     setModalOpen(true);
-    setloading(false);
     setTimeout(() => {
       setModalOpen(false);
       setSuccessMessage("");
@@ -96,7 +88,6 @@ export default function Register() {
             onChange={(e) => setPassword(e.target.value)}
           />
         </div>
-
         <Button
           children={loading ? "Registering..." : "Register"}
           buttonType="submit"

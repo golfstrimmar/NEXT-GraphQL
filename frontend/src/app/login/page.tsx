@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/app/redux/slices/authSlice";
 import dynamic from "next/dynamic";
-import client, { wsLink } from "../../../lib/apolloClient";
+import { client } from "../../../lib/apolloClient";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import Input from "@/components/ui/Input/Input";
 import Button from "@/components/ui/Button/Button";
@@ -52,7 +52,7 @@ export default function Login() {
       setEmail("");
       setPassword("");
       showModal("Login successful!");
-      resetApolloClient();
+      // resetApolloClient();
       setTimeout(() => router.push("/"), 2000);
     } catch (err) {
       console.error("Login error:", err);
@@ -84,7 +84,7 @@ export default function Login() {
 
       showModal("Google login successful!");
 
-      resetApolloClient();
+      // resetApolloClient();
       setTimeout(() => router.push("/"), 2000);
     } catch (err) {
       console.error("Google login error:", err);
@@ -98,12 +98,12 @@ export default function Login() {
     showModal("Google login failed. Please try again.");
   };
 
-  const resetApolloClient = () => {
-    client.resetStore();
-    if (wsLink && wsLink.subscriptionClient) {
-      wsLink.subscriptionClient.close(false, false);
-    }
-  };
+  // const resetApolloClient = () => {
+  //   client.resetStore();
+  //   if (wsLink && wsLink.subscriptionClient) {
+  //     wsLink.subscriptionClient.close(false, false);
+  //   }
+  // };
 
   const showModal = (message: string) => {
     setSuccessMessage(message);
