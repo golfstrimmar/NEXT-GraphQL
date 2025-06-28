@@ -6,16 +6,11 @@ import Burger from "../ui/Burger/Burger";
 import styles from "./Navbar.module.scss";
 import { useRouter, usePathname } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
-import { clearUser } from "@/app/redux/slices/authSlice";
-import { gql, useMutation } from "@apollo/client";
-import useHasMounted from "@/app/hooks/useHasMounted"; // добавили
-
-const LOGOUT_USER = gql`
-  mutation {
-    logoutUser
-  }
-`;
-
+import { clearUser, updateUserStatus } from "@/app/redux/slices/authSlice";
+import { gql, useMutation, useSubscription } from "@apollo/client";
+import useHasMounted from "@/app/hooks/useHasMounted";
+import { LOGOUT_USER } from "@/apolo/mutations";
+import { USER_LOGGEDOUT_SUBSCRIPTION } from "@/apolo/subscriptions";
 const Navbar: React.FC = () => {
   const hasMounted = useHasMounted();
   const router = useRouter();
@@ -28,11 +23,27 @@ const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [activeLink, setActiveLink] = useState<string>("");
   const [logoutUser, { loading }] = useMutation(LOGOUT_USER);
-
+  const { data: loggedOutSubData } = useSubscription(
+    USER_LOGGEDOUT_SUBSCRIPTION
+  );
   useEffect(() => {
     setActiveLink(pathname);
   }, [pathname, isOpen]);
+  useEffect(() => {
+    if (loggedOutSubData?.userLoggedOut) {
+      console.log(
+        "<==== userLoggedOut subscription ====>",
+        loggedOutSubData.userLoggedOut
+      );
 
+      dispatch(
+        updateUserStatus({
+          id: Number(loggedOutSubData.userLoggedOut.id),
+          status: false,
+        })
+      );
+    }
+  }, [loggedOutSubData, dispatch]);
   const handleLogout = async () => {
     try {
       await logoutUser();
@@ -40,7 +51,7 @@ const Navbar: React.FC = () => {
       router.push("/");
     } catch (err) {
       console.error("Logout error:", err);
-      alert("Failed to log out. Please try again.");
+      console.log("------Failed to log out. Please try again.-------");
     }
   };
 

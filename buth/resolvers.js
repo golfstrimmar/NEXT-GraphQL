@@ -31,7 +31,10 @@ export const resolvers = {
       const user = await prisma.user.create({
         data: { name, email, password: hashedPassword },
       });
-      const token = sign({ userId: user.id }, process.env.JWT_SECRET);
+      const token = sign(
+        { userId: user.id },
+        process.env.JWT_SECRET || "your_jwt_secret_here"
+      );
 
       const allUsers = await prisma.user.findMany();
       const formattedUsers = allUsers.map((user) => ({
@@ -50,7 +53,10 @@ export const resolvers = {
       if (!user || !(await compare(password, user.password))) {
         throw new Error("Invalid credentials");
       }
-      const token = sign({ userId: user.id }, process.env.JWT_SECRET);
+      const token = sign(
+        { userId: user.id },
+        process.env.JWT_SECRET || "your_jwt_secret_here"
+      );
       pubsub.publish("USER_UPDATED", { userUpdated: user });
       return { token, user };
     },
@@ -67,7 +73,10 @@ export const resolvers = {
           data: { googleId, email, name },
         });
       }
-      const jwtToken = sign({ userId: user.id }, process.env.JWT_SECRET);
+      const jwtToken = sign(
+        { userId: user.id },
+        process.env.JWT_SECRET || "your_jwt_secret_here"
+      );
       pubsub.publish("USER_UPDATED", { userUpdated: user });
       return { token: jwtToken, user };
     },

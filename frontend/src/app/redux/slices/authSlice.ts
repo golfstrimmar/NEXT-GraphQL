@@ -70,14 +70,14 @@ const authSlice = createSlice({
       }
     },
     setUsers: (state, action: PayloadAction<User[]>) => {
-      console.log("<=== Users from server =====>", action.payload);
+      console.log("<=== REDUX Users from server =====>", action.payload);
       state.users = action.payload;
     },
     setOnlineUsers: (state, action: PayloadAction<number[]>) => {
       state.onlineUsers = action.payload;
     },
     addUser: (state, action: PayloadAction<User>) => {
-      console.log("<=== add user =====>", action.payload);
+      console.log("<=== REDUX add user =====>", action.payload);
       const exists = state.users.some((user) => user.id === action.payload.id);
       if (!exists) {
         state.users.push(action.payload);
@@ -85,6 +85,20 @@ const authSlice = createSlice({
     },
     deleteUserFromRedux: (state, action: PayloadAction<number>) => {
       state.users = state.users.filter((user) => user.id !== action.payload);
+    },
+
+    updateUserStatus: (
+      state,
+      action: PayloadAction<{ id: number; status: boolean }>
+    ) => {
+      console.log("<=== REDUX update user status =====>", action.payload);
+
+      state.users = state.users.map((user) =>
+        user.id === action.payload.id
+          ? { ...user, isLoggedIn: action.payload.status }
+          : user
+      );
+      console.log("<====REDUX state.users====>", state.users);
     },
   },
 });
@@ -96,5 +110,6 @@ export const {
   addUser,
   setOnlineUsers,
   deleteUserFromRedux,
+  updateUserStatus,
 } = authSlice.actions;
 export default authSlice.reducer;

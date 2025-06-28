@@ -13,7 +13,7 @@ import { OAuth2Client } from "google-auth-library";
 
 const prisma = new PrismaClient();
 const SALT_ROUNDS = 10;
-const JWT_SECRET = process.env.JWT_SECRET || "secret";
+const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_here";
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 

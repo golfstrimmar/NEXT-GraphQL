@@ -17,12 +17,13 @@ import {
   USER_CREATED_SUBSCRIPTION,
   USER_DELETED_SUBSCRIPTION,
 } from "@/apolo/subscriptions";
+
 import Image from "next/image";
 
 export default function Users() {
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  // const user = useSelector((state: { auth: { user: any } }) => state.auth.user);
+  const user = useSelector((state: { auth: { user: any } }) => state.auth.user);
 
   const users = useSelector(
     (state: { auth: { users: any[] } }) => state.auth.users
@@ -43,18 +44,21 @@ export default function Users() {
     USER_DELETED_SUBSCRIPTION
   );
 
-  // const { data: loggedInSubData } = useSubscription(
-  //   USER_LOGGED_IN_SUBSCRIPTION
-  // );
-
   // const { data: loggedOutSubData } = useSubscription(
   //   USER_LOGGED_OUT_SUBSCRIPTION
   // );
+  // -------------------------
+
+  useEffect(() => {
+    if (users) {
+      console.log("<==== PAGE users====>", users);
+    }
+  }, [users]);
 
   useEffect(() => {
     setIsLoading(true);
     if (queryData?.users) {
-      console.log("<====Users from server====>", queryData.users);
+      console.log("<====PAGE Users from server====>", queryData.users);
       dispatch(
         setUsers(
           queryData.users.map((user: any) => ({
@@ -91,55 +95,6 @@ export default function Users() {
       dispatch(deleteUserFromRedux(subDataDelete.userDeleted.id));
     }
   }, [subDataDelete, dispatch]);
-
-  // useEffect(() => {
-  //   if (loggedInSubData?.userLoggedIn) {
-  //     const userLogined = loggedInSubData?.userLoggedIn;
-  //     console.log("<====user Logged In====>", userLogined);
-  //     dispatch(
-  //       setUsers(
-  //         users.map((user) =>
-  //           user.id === Number(userLogined.id)
-  //             ? {
-  //                 ...userLogined,
-  //               }
-  //             : user
-  //         )
-  //       )
-  //     );
-  //   }
-  // }, [loggedInSubData, dispatch]);
-
-  // useEffect(() => {
-  //   if (loggedOutSubData) {
-  //     console.log("<====loggedOutSubData====>", loggedOutSubData);
-  //   }
-  //   if (loggedOutSubData?.userLoggedOut) {
-  //     console.log("<====user Logged Out====>", loggedOutSubData?.userLoggedOut);
-  //     const updatedUser = {
-  //       ...loggedOutSubData.userLoggedOut,
-  //       id: Number(loggedOutSubData.userLoggedOut.id),
-  //     };
-  //     dispatch((dispatch, getState) => {
-  //       const currentUsers = getState().auth.users;
-  //       if (
-  //         !currentUsers.some(
-  //           (user) =>
-  //             user.id === updatedUser.id &&
-  //             user.isLoggedIn === updatedUser.isLoggedIn
-  //         )
-  //       ) {
-  //         dispatch(
-  //           setUsers(
-  //             currentUsers.map((user) =>
-  //               user.id === updatedUser.id ? updatedUser : user
-  //             )
-  //           )
-  //         );
-  //       }
-  //     });
-  //   }
-  // }, [loggedOutSubData, dispatch]);
 
   // useEffect(() => {
   //   if (queryError) {

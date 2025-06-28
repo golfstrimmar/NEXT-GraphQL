@@ -15,7 +15,10 @@ export async function createContext({ req, connection }) {
 
   if (token) {
     try {
-      const { userId } = verify(token, process.env.JWT_SECRET);
+      const { userId } = verify(
+        token,
+        process.env.JWT_SECRET || "your_jwt_secret_here"
+      );
       user = await prisma.user.findUnique({ where: { id: userId } });
     } catch (err) {
       console.error("Ошибка верификации токена:", err);

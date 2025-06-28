@@ -10,6 +10,29 @@ export const USER_CREATED_SUBSCRIPTION = gql`
     }
   }
 `;
+
+export const USER_LOGIN_SUBSCRIPTION = gql`
+  subscription {
+    userLogin {
+      id
+      email
+      name
+      isLoggedIn
+      createdAt
+    }
+  }
+`;
+
+export const USER_LOGGEDOUT_SUBSCRIPTION = gql`
+  subscription userLoggedOut {
+    userLoggedOut {
+      id
+      email
+      isLoggedIn
+    }
+  }
+`;
+
 export const USER_DELETED_SUBSCRIPTION = gql`
   subscription {
     userDeleted {
@@ -58,30 +81,6 @@ export const CHAT_CREATED_SUBSCRIPTION = gql`
           name
         }
       }
-    }
-  }
-`;
-
-export const USER_LOGGED_IN_SUBSCRIPTION = gql`
-  subscription {
-    userLoggedIn {
-      id
-      email
-      name
-      isLoggedIn
-      createdAt
-    }
-  }
-`;
-
-export const USER_LOGGED_OUT_SUBSCRIPTION = gql`
-  subscription {
-    userLoggedOut {
-      id
-      email
-      name
-      isLoggedIn
-      createdAt
     }
   }
 `;

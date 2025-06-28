@@ -1,7 +1,7 @@
 "use client";
 
 import { ApolloProvider } from "@apollo/client";
-import { client } from "../../lib/apolloClient";
+import { client } from "./apolloClient";
 import { Provider } from "react-redux";
 import { store } from "@/app/redux/store";
 import { GoogleOAuthProvider } from "@react-oauth/google";

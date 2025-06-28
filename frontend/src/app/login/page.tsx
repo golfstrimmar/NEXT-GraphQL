@@ -1,17 +1,18 @@
 "use client";
 
-import { useState } from "react";
-import { gql, useMutation } from "@apollo/client";
+import { useState, useEffect } from "react";
+import { useMutation, useSubscription } from "@apollo/client";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
-import { setUser } from "@/app/redux/slices/authSlice";
+import { setUser, updateUserStatus } from "@/app/redux/slices/authSlice";
 import dynamic from "next/dynamic";
-import { client } from "../../../lib/apolloClient";
+import { client } from "../../apolo/apolloClient";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import Input from "@/components/ui/Input/Input";
 import Button from "@/components/ui/Button/Button";
 import { LOGIN_USER } from "@/apolo/mutations";
 import { GOOGLE_LOGIN } from "@/apolo/mutations";
+import { USER_LOGIN_SUBSCRIPTION } from "@/apolo/subscriptions";
 
 const ModalMessage = dynamic(
   () => import("@/components/ModalMessage/ModalMessage"),
@@ -32,6 +33,23 @@ export default function Login() {
   const [googleLogin, { loading: googleLoading }] = useMutation(GOOGLE_LOGIN);
   const [isLoading, setIsLoading] = useState(false);
 
+  const { data: loggedInSubData, error: loggedInError } = useSubscription(
+    USER_LOGIN_SUBSCRIPTION
+  );
+
+  useEffect(() => {
+    if (loggedInSubData?.userLogin) {
+      const userLogined = loggedInSubData.userLogin;
+      console.log("<==== PAGE user Logged In====>", userLogined);
+      dispatch(
+        updateUserStatus({
+          id: Number(userLogined.id),
+          status: true,
+        })
+      );
+    }
+  }, [loggedInSubData, dispatch]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -47,12 +65,19 @@ export default function Login() {
         return;
       }
 
-      const loggedInUser = data.loginUser;
+      const loggedInUser = data?.loginUser;
+
+      console.log("<===LOGIN loggedInUser====>", loggedInUser);
+      dispatch(
+        updateUserStatus({
+          id: loggedInUser.id,
+          status: true,
+        })
+      );
       dispatch(setUser(loggedInUser));
       setEmail("");
       setPassword("");
       showModal("Login successful!");
-      // resetApolloClient();
       setTimeout(() => router.push("/"), 2000);
     } catch (err) {
       console.error("Login error:", err);
@@ -83,8 +108,6 @@ export default function Login() {
       dispatch(setUser(loggedInUser));
 
       showModal("Google login successful!");
-
-      // resetApolloClient();
       setTimeout(() => router.push("/"), 2000);
     } catch (err) {
       console.error("Google login error:", err);

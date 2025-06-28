@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useMutation } from "@apollo/client";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { client } from "../../../lib/apolloClient";
+import { client } from "../../apolo/apolloClient";
 import Input from "@/components/ui/Input/Input";
 import Button from "@/components/ui/Button/Button";
 const ModalMessage = dynamic(

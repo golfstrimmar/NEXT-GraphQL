@@ -8,6 +8,8 @@ import { WebSocketServer } from "ws";
 import { useServer } from "graphql-ws/use/ws";
 import bodyParser from "body-parser";
 import cors from "cors";
+import { verifyToken } from "./utils/verifyToken.js";
+
 import resolvers from "./resolvers.js";
 import typeDefs from "./schema.js";
 
@@ -28,13 +30,16 @@ const serverCleanup = useServer(
   {
     schema,
     context: async (ctx) => {
-      console.log("📡 WebSocket connection +");
-      return {};
+      const auth = ctx.connectionParams?.headers?.Authorization || "";
+      const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
+      const user = token ? verifyToken(token) : null;
+
+      return { user };
     },
-    onConnect: async (ctx) => {
-      console.log("📡📡📡 Client connected +");
+    onConnect: async () => {
+      console.log("📡 Client connected +");
     },
-    onDisconnect: async (ctx, code, reason) => {
+    onDisconnect: async (_, code, reason) => {
       console.log(`⚠️ Client disconnected (${code}: ${reason})`);
     },
   },
@@ -59,13 +64,31 @@ const server = new ApolloServer({
 });
 
 await server.start();
-app.use("/graphql", cors(), bodyParser.json(), expressMiddleware(server));
+app.use(
+  "/graphql",
+  cors(),
+  bodyParser.json(),
+  expressMiddleware(server, {
+    context: async ({ req }) => {
+      const auth = req.headers.authorization || "";
+      console.log("🛡️ Authorization header:", auth); // <-- Лог заголовка
+
+      const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
+      const decoded = token ? verifyToken(token) : null;
+
+      console.log("🧾 Decoded token payload:", decoded); // <-- Лог результата верификации
+
+      return {
+        user: decoded,
+        userId: decoded?.userId,
+      };
+    },
+  })
+);
 
 httpServer.listen(PORT, () => {
+  console.log(`🚀 Query endpoint ready at http://localhost:${PORT}/graphql `);
   console.log(
-    `🚀🚀🚀 Query endpoint ready at http://localhost:${PORT}/graphql 🚀🚀🚀`
-  );
-  console.log(
-    `🚀🚀🚀 Subscription endpoint ready at ws://localhost:${PORT}/graphql 🚀🚀🚀`
+    `🚀 Subscription endpoint ready at ws://localhost:${PORT}/graphql `
   );
 });

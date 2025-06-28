@@ -12,7 +12,7 @@ export const ADD_USER = gql`
 `;
 
 export const LOGIN_USER = gql`
-  mutation ($email: String!, $password: String!) {
+  mutation loginUser($email: String!, $password: String!) {
     loginUser(email: $email, password: $password) {
       id
       email
@@ -21,6 +21,12 @@ export const LOGIN_USER = gql`
       isLoggedIn
       createdAt
     }
+  }
+`;
+
+export const LOGOUT_USER = gql`
+  mutation logoutUser {
+    logoutUser
   }
 `;
 

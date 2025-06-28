@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import ApolloWrapper from "../components/ApolloWrapper";
+import ApolloWrapper from "../apolo/ApolloWrapper";
 import Navbar from "@/components/Navbar/Navbar";
 import "./globals.css";
 
