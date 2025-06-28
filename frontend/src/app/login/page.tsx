@@ -121,13 +121,6 @@ export default function Login() {
     showModal("Google login failed. Please try again.");
   };
 
-  // const resetApolloClient = () => {
-  //   client.resetStore();
-  //   if (wsLink && wsLink.subscriptionClient) {
-  //     wsLink.subscriptionClient.close(false, false);
-  //   }
-  // };
-
   const showModal = (message: string) => {
     setSuccessMessage(message);
     setOpenModalMessage(true);

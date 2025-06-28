@@ -31,6 +31,7 @@ type Mutation {
     googleId: String
   ): User
   loginUser(email: String!, password: String!): AuthPayload
+  googleLogin(idToken: String!): AuthPayload
   logoutUser: Boolean!
   deleteUser(id: Int!): User
 }

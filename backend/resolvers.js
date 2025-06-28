@@ -1,9 +1,20 @@
+// import { PrismaClient } from "@prisma/client";
+// import { PubSub } from "graphql-subscriptions";
+// import bcrypt from "bcrypt";
+// import jwt from "jsonwebtoken";
+
 import { PrismaClient } from "@prisma/client";
 import { PubSub } from "graphql-subscriptions";
 import bcrypt from "bcrypt";
+import { OAuth2Client } from "google-auth-library";
 import jwt from "jsonwebtoken";
 
 const prisma = new PrismaClient();
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+function generateJWT(payload) {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+}
+
 const pubsub = new PubSub();
 
 const USER_CREATED = "USER_CREATED";
@@ -75,6 +86,49 @@ const resolvers = {
         createdAt: user.createdAt,
         isLoggedIn: true,
         token,
+      };
+    },
+    googleLogin: async (_, { idToken }) => {
+      let payload;
+      try {
+        const ticket = await client.verifyIdToken({
+          idToken,
+          audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        payload = ticket.getPayload();
+      } catch (error) {
+        throw new Error("Invalid Google ID token");
+      }
+
+      const { sub: googleId, email, name } = payload;
+
+      let user = await prisma.user.findUnique({ where: { googleId } });
+
+      if (!user) {
+        user = await prisma.user.create({
+          data: {
+            googleId,
+            email,
+            name,
+          },
+        });
+      }
+
+      const token = generateJWT({ userId: user.id, email: user.email });
+
+      // Обновляем статус входа (опционально)
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { isLoggedIn: true },
+      });
+
+      return {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        token,
+        isLoggedIn: true,
+        createdAt: user.createdAt.toISOString(),
       };
     },
     logoutUser: async (_, __, { userId }) => {
