@@ -1,8 +1,3 @@
-// import { PrismaClient } from "@prisma/client";
-// import { PubSub } from "graphql-subscriptions";
-// import bcrypt from "bcrypt";
-// import jwt from "jsonwebtoken";
-
 import { PrismaClient } from "@prisma/client";
 import { PubSub } from "graphql-subscriptions";
 import bcrypt from "bcrypt";
@@ -10,7 +5,9 @@ import { OAuth2Client } from "google-auth-library";
 import jwt from "jsonwebtoken";
 
 const prisma = new PrismaClient();
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
+
 function generateJWT(payload) {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
 }
@@ -24,6 +21,8 @@ const USER_LOGGEDOUT = "USER_LOGGEDOUT";
 
 const SALT_ROUNDS = 10;
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_here";
+
+const loginListeners = [];
 
 const resolvers = {
   Query: {
@@ -65,7 +64,7 @@ const resolvers = {
       const token = jwt.sign(
         { userId: user.id, email: user.email },
         JWT_SECRET,
-        { expiresIn: "7d" }
+        { expiresIn: "1h" }
       );
 
       const updatedUser = await prisma.user.update({
@@ -89,48 +88,78 @@ const resolvers = {
       };
     },
     googleLogin: async (_, { idToken }) => {
-      let payload;
       try {
-        const ticket = await client.verifyIdToken({
+        const ticket = await googleClient.verifyIdToken({
           idToken,
-          audience: process.env.GOOGLE_CLIENT_ID,
+          audience: GOOGLE_CLIENT_ID,
         });
-        payload = ticket.getPayload();
-      } catch (error) {
-        throw new Error("Invalid Google ID token");
+    
+        const payload = ticket.getPayload();
+        if (!payload) {
+          throw new Error("Invalid Google token");
+        }
+    
+        const { email, name, sub: googleId } = payload;
+    
+        if (!email) {
+          throw new Error("Email not provided by Google");
+        }
+    
+        let user = await prisma.user.findUnique({ where: { email } });
+    
+        if (!user) {
+          // Создание нового пользователя с googleId
+          user = await prisma.user.create({
+            data: {
+              email,
+              name,
+              password: "", // Пустой пароль для Google-пользователя
+              googleId,
+              isLoggedIn: true,
+            },
+          });
+          pubsub.publish(USER_CREATED, { userCreated: user });
+          pubsub.publish(USER_LOGGEDIN, { userLogin: user });
+          console.log("<==== user created via Google ====>", user);
+        } else {
+          // Обновление существующего пользователя (включая googleId, если ранее не был установлен)
+          user = await prisma.user.update({
+            where: { email },
+            data: {
+              name: name || user.name,
+              isLoggedIn: true,
+              googleId: user.googleId || googleId, // не перезаписываем, если уже есть
+            },
+          });
+    
+          console.log("<==== user logged in via Google update ====>", user);
+        }
+    
+        const token = jwt.sign(
+          { userId: user.id, email: user.email },
+          JWT_SECRET,
+          {
+            expiresIn: "1h",
+          }
+        );
+    
+        pubsub.publish(USER_LOGGEDIN, { userLogin: user });
+    
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          createdAt: user.createdAt,
+          isLoggedIn: true,
+          token,
+        };
+    
+      } catch (err) {
+        console.error("Google login error:", err);
+        throw new Error("Failed to authenticate with Google");
       }
-
-      const { sub: googleId, email, name } = payload;
-
-      let user = await prisma.user.findUnique({ where: { googleId } });
-
-      if (!user) {
-        user = await prisma.user.create({
-          data: {
-            googleId,
-            email,
-            name,
-          },
-        });
-      }
-
-      const token = generateJWT({ userId: user.id, email: user.email });
-
-      // Обновляем статус входа (опционально)
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { isLoggedIn: true },
-      });
-
-      return {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        token,
-        isLoggedIn: true,
-        createdAt: user.createdAt.toISOString(),
-      };
     },
+    
     logoutUser: async (_, __, { userId }) => {
       if (!userId) throw new Error("Not authenticated");
 

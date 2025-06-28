@@ -71,12 +71,12 @@ app.use(
   expressMiddleware(server, {
     context: async ({ req }) => {
       const auth = req.headers.authorization || "";
-      console.log("🛡️ Authorization header:", auth); // <-- Лог заголовка
+      // console.log("🛡️ Authorization header:", auth); // <-- Лог заголовка
 
       const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
       const decoded = token ? verifyToken(token) : null;
 
-      console.log("🧾 Decoded token payload:", decoded); // <-- Лог результата верификации
+      // console.log("🧾 Decoded token payload:", decoded); // <-- Лог результата верификации
 
       return {
         user: decoded,

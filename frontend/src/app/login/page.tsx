@@ -1,19 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useMutation, useSubscription } from "@apollo/client";
+import { useState } from "react";
+import { useMutation } from "@apollo/client";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
-import { setUser, updateUserStatus } from "@/app/redux/slices/authSlice";
+import {
+  setUser,
+  updateUserStatus,
+  addUser,
+} from "@/app/redux/slices/authSlice";
 import dynamic from "next/dynamic";
-import { client } from "../../apolo/apolloClient";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import Input from "@/components/ui/Input/Input";
 import Button from "@/components/ui/Button/Button";
 import { LOGIN_USER } from "@/apolo/mutations";
 import { GOOGLE_LOGIN } from "@/apolo/mutations";
-import { USER_LOGIN_SUBSCRIPTION } from "@/apolo/subscriptions";
-
+import useSubLogin from "@/hooks/useSubLogin";
 const ModalMessage = dynamic(
   () => import("@/components/ModalMessage/ModalMessage"),
   { ssr: false }
@@ -22,6 +24,7 @@ const ModalMessage = dynamic(
 export default function Login() {
   const router = useRouter();
   const dispatch = useDispatch();
+  useSubLogin();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -32,23 +35,6 @@ export default function Login() {
   const [loginUser, { loading: loginLoading }] = useMutation(LOGIN_USER);
   const [googleLogin, { loading: googleLoading }] = useMutation(GOOGLE_LOGIN);
   const [isLoading, setIsLoading] = useState(false);
-
-  const { data: loggedInSubData, error: loggedInError } = useSubscription(
-    USER_LOGIN_SUBSCRIPTION
-  );
-
-  useEffect(() => {
-    if (loggedInSubData?.userLogin) {
-      const userLogined = loggedInSubData.userLogin;
-      console.log("<==== PAGE user Logged In====>", userLogined);
-      dispatch(
-        updateUserStatus({
-          id: Number(userLogined.id),
-          status: true,
-        })
-      );
-    }
-  }, [loggedInSubData, dispatch]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,6 +54,7 @@ export default function Login() {
       const loggedInUser = data?.loginUser;
 
       console.log("<===LOGIN loggedInUser====>", loggedInUser);
+
       dispatch(
         updateUserStatus({
           id: loggedInUser.id,
@@ -104,8 +91,14 @@ export default function Login() {
         return;
       }
 
-      const loggedInUser = data.googleLogin;
+      let loggedInUser = data.googleLogin;
+      loggedInUser = { ...loggedInUser, isLoggedIn: true };
+      console.log("<====LOGIN loggedInUser====>", loggedInUser);
+
       dispatch(setUser(loggedInUser));
+      // ----------------------------?????????????????????????????????????
+      dispatch(addUser(loggedInUser));
+      // ----------------------------?????????????????????????????????????
 
       showModal("Google login successful!");
       setTimeout(() => router.push("/"), 2000);

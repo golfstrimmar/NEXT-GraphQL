@@ -76,11 +76,14 @@ const authSlice = createSlice({
     setOnlineUsers: (state, action: PayloadAction<number[]>) => {
       state.onlineUsers = action.payload;
     },
-    addUser: (state, action: PayloadAction<User>) => {
-      console.log("<=== REDUX add user =====>", action.payload);
+    addUser: (state, action) => {
       const exists = state.users.some((user) => user.id === action.payload.id);
       if (!exists) {
         state.users.push(action.payload);
+      } else {
+        state.users = state.users.map((user) =>
+          user.id === action.payload.id ? { ...user, isLoggedIn: true } : user
+        );
       }
     },
     deleteUserFromRedux: (state, action: PayloadAction<number>) => {
