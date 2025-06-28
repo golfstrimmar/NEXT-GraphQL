@@ -10,8 +10,16 @@ export const USER_CREATED_SUBSCRIPTION = gql`
     }
   }
 `;
-
-
+export const USER_DELETED_SUBSCRIPTION = gql`
+  subscription {
+    userDeleted {
+      id
+      email
+      name
+      createdAt
+    }
+  }
+`;
 
 export const MESSAGE_SENT_SUBSCRIPTION = gql`
   subscription ($chatId: ID!) {
@@ -53,8 +61,6 @@ export const CHAT_CREATED_SUBSCRIPTION = gql`
     }
   }
 `;
-
-
 
 export const USER_LOGGED_IN_SUBSCRIPTION = gql`
   subscription {

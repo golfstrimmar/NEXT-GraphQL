@@ -4,6 +4,7 @@ import { PubSub } from "graphql-subscriptions";
 const prisma = new PrismaClient();
 const pubsub = new PubSub();
 const USER_CREATED = "USER_CREATED";
+const USER_DELETED = "USER_DELETED";
 
 const resolvers = {
   Query: {
@@ -25,7 +26,12 @@ const resolvers = {
 
       // 📢 публикуем нового пользователя
       pubsub.publish(USER_CREATED, { userCreated: user });
-
+      return user;
+    },
+    deleteUser: async (_, { id }) => {
+      console.log("<==== delete user ====>", id);
+      const user = await prisma.user.delete({ where: { id } });
+      pubsub.publish(USER_DELETED, { userDeleted: user });
       return user;
     },
   },
@@ -33,6 +39,9 @@ const resolvers = {
   Subscription: {
     userCreated: {
       subscribe: () => pubsub.asyncIterator(USER_CREATED),
+    },
+    userDeleted: {
+      subscribe: () => pubsub.asyncIterator(USER_DELETED),
     },
   },
 };

@@ -37,6 +37,13 @@ export const GOOGLE_LOGIN = gql`
   }
 `;
 
+export const DELETE_USER = gql`
+  mutation DeleteUser($id: Int!) {
+    deleteUser(id: $id) {
+      id
+    }
+  }
+`;
 export const CREATE_CHAT = gql`
   mutation ($participantId: ID!) {
     createChat(participantId: $participantId) {

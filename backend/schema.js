@@ -1,5 +1,5 @@
 const typeDefs = `
-  type User {
+type User {
   id: Int!
   email: String!
   password: String
@@ -21,10 +21,12 @@ type Mutation {
     password: String
     googleId: String
   ): User
+  deleteUser(id: Int!): User
 }
 
 type Subscription {
   userCreated: User
+  userDeleted: User
 }
 
 

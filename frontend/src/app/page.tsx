@@ -1,13 +1,23 @@
 "use client";
 import { useState } from "react";
-import { gql, useSubscription, useQuery } from "@apollo/client";
+import { gql, useMutation, useSubscription, useQuery } from "@apollo/client";
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { setUsers, addUser } from "@/app/redux/slices/authSlice";
+import {
+  setUsers,
+  addUser,
+  deleteUserFromRedux,
+} from "@/app/redux/slices/authSlice";
+import transformData from "@/app/hooks/useTransformData";
 // import Chats from "@/components/Chats/Chats";
 
 import { GET_USERS } from "@/apolo/queryes";
-import { USER_CREATED_SUBSCRIPTION } from "@/apolo/subscriptions";
+import { DELETE_USER } from "@/apolo/mutations";
+import {
+  USER_CREATED_SUBSCRIPTION,
+  USER_DELETED_SUBSCRIPTION,
+} from "@/apolo/subscriptions";
+import Image from "next/image";
 
 export default function Users() {
   const dispatch = useDispatch();
@@ -24,8 +34,13 @@ export default function Users() {
     error: queryError,
   } = useQuery(GET_USERS);
 
-  const { data: subData, error: subError } = useSubscription(
+  const [deleteUser] = useMutation(DELETE_USER);
+
+  const { data: subDataCreated, error: subErrorCreated } = useSubscription(
     USER_CREATED_SUBSCRIPTION
+  );
+  const { data: subDataDelete, error: subErrorDelete } = useSubscription(
+    USER_DELETED_SUBSCRIPTION
   );
 
   // const { data: loggedInSubData } = useSubscription(
@@ -39,6 +54,7 @@ export default function Users() {
   useEffect(() => {
     setIsLoading(true);
     if (queryData?.users) {
+      console.log("<====Users from server====>", queryData.users);
       dispatch(
         setUsers(
           queryData.users.map((user: any) => ({
@@ -52,16 +68,29 @@ export default function Users() {
   }, [queryData, dispatch]);
 
   useEffect(() => {
-    if (subData?.userCreated) {
-      console.log("<====userCreated subscription====>", subData.userCreated);
+    if (subDataCreated?.userCreated) {
+      console.log(
+        "<====userCreated subscription====>",
+        subDataCreated.userCreated
+      );
       dispatch(
         addUser({
-          ...subData.userCreated,
-          id: Number(subData.userCreated.id),
+          ...subDataCreated.userCreated,
+          id: Number(subDataCreated.userCreated.id),
         })
       );
     }
-  }, [subData, dispatch]);
+  }, [subDataCreated, dispatch]);
+
+  useEffect(() => {
+    if (subDataDelete?.userDeleted) {
+      console.log(
+        "<====userDeleted subscription====>",
+        subDataDelete.userDeleted
+      );
+      dispatch(deleteUserFromRedux(subDataDelete.userDeleted.id));
+    }
+  }, [subDataDelete, dispatch]);
 
   // useEffect(() => {
   //   if (loggedInSubData?.userLoggedIn) {
@@ -121,6 +150,22 @@ export default function Users() {
   //   }
   // }, [queryError, subError]);
 
+  // -------------------------
+  const handleDelete = async (id: number) => {
+    try {
+      const { data } = await deleteUser({ variables: { id } });
+
+      if (data?.deleteUser?.id) {
+        console.log("❌✅❌ Удалён пользователь:", data.deleteUser);
+        dispatch(deleteUserFromRedux(data.deleteUser.id));
+      }
+    } catch (error) {
+      console.error("❌ Ошибка при удалении пользователя:", error);
+    }
+  };
+
+  // -------------------------
+
   return (
     <div className="mt-[100px] p-4">
       <h1 className="text-2xl font-bold mb-4">Users:</h1>
@@ -140,9 +185,18 @@ export default function Users() {
               <p className="text-gray-400 text-sm">Offline</p>
             )}
             <strong>ID: {user.id}</strong>
-            <p>Email: {user.email}</p>
-            <p>Name: {user.name || "No name"}</p>
-            <p>Created: {new Date(user.createdAt).toLocaleString()}</p>
+            {user.email && <p>Email: {user.email}</p>}
+            {user.name && <p>Name: {user.name}</p>}
+            {user.createdAt && <p>Created: {transformData(user.createdAt)}</p>}
+            <button onClick={() => handleDelete(user.id)}>
+              <Image
+                src="/svg/cross.svg"
+                alt="delete"
+                width={20}
+                height={20}
+                className="cursor-pointer p-1 hover:border hover:border-red-500 hover:rounded-md   transition-all duration-200"
+              />
+            </button>
           </div>
         ))}
       </div>

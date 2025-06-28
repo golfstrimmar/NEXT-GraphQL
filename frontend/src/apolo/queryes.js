@@ -12,7 +12,6 @@ export const GET_USERS = gql`
   }
 `;
 
-
 export const GET_CHATS = gql`
   query {
     chats {

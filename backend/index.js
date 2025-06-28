@@ -29,7 +29,7 @@ const serverCleanup = useServer(
     schema,
     context: async (ctx) => {
       console.log("📡 WebSocket connection +");
-      return {}; // Пустой контекст
+      return {};
     },
     onConnect: async (ctx) => {
       console.log("📡📡📡 Client connected +");
