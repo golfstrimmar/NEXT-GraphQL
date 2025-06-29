@@ -2,10 +2,11 @@
 import React from "react";
 import Image from "next/image";
 import transformData from "@/app/hooks/useTransformData";
-import { useMutation, useApolloClient } from "@apollo/client";
+import { useMutation, useApolloClient, useQuery } from "@apollo/client";
 import { DELETE_USER, CREATE_CHAT } from "@/apolo/mutations";
-import { GET_USERS } from "@/apolo/queryes"; // обязательно!
+
 import { useStateContext } from "@/components/StateProvider";
+import { GET_USERS, GET_ALL_CHATS } from "@/apolo/queryes";
 type User = {
   id: number;
   name: string;
@@ -23,8 +24,8 @@ const UsersList = ({ users }: Props) => {
   const client = useApolloClient(); // получаем доступ к кэшу
   const [deleteUser] = useMutation(DELETE_USER);
   const [createChat] = useMutation(CREATE_CHAT);
-
-  const { user, setUser } = useStateContext();
+  const { data: allChatsData } = useQuery(GET_ALL_CHATS);
+  const { user } = useStateContext();
 
   const handleDelete = async (id: number) => {
     try {
@@ -60,22 +61,24 @@ const UsersList = ({ users }: Props) => {
       console.error("❌ Ошибка создания чата:", error);
     }
   };
+
   return (
     <div className="space-y-2 max-w-[500px]">
       {users.length === 0 && <p>No users</p>}
-      {users.map((user) => (
-        <div key={user.id} className="p-2 border rounded bg-gray-200 ">
+      {users.map((foo) => (
+        <div key={foo.id} className="p-2 border rounded bg-gray-200 ">
           <div className="flex items-center gap-2">
-            {user.name && (
+            {foo.name && (
               <h2
                 className={` font-bold text-[16px]   px-2 rounded-2xl ${
-                  user.isLoggedIn ? "bg-green-500 text-white" : "bg-gray-300"
+                  foo.isLoggedIn ? "bg-green-500 text-white" : "bg-gray-300"
                 }`}
               >
-                {user.name}
+                {foo.name}
               </h2>
             )}
-            {user.isLoggedIn ? (
+
+            {foo.isLoggedIn ? (
               <p className="text-green-500 bg-green-100 inline-block rounded-2xl px-2">
                 Online
               </p>
@@ -84,13 +87,23 @@ const UsersList = ({ users }: Props) => {
                 Offline
               </p>
             )}
-            <button
-              onClick={() => handleCreateChat(user.id)}
-              className="text-sm bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition"
-            >
-              Ceate chat with {user.name}
-            </button>
-            <button onClick={() => handleDelete(user.id)}>
+
+            {Number(foo.id) !== Number(user?.id) && // 👈 Не сам пользователь
+              allChatsData?.chats?.some(
+                (c: any) => Number(c.creator.id) === Number(foo.id)
+              ) === false && // 👈 Не является уже создателем
+              allChatsData?.chats?.some(
+                (c: any) => Number(c.participant.id) === Number(foo.id)
+              ) === false && // 👈 Не является участником
+              user && ( // 👈 Авторизация проверена
+                <button
+                  onClick={() => handleCreateChat(foo.id)}
+                  className="text-sm bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition"
+                >
+                  Create chat with {foo.name}
+                </button>
+              )}
+            <button onClick={() => handleDelete(foo.id)}>
               <Image
                 src="/svg/cross.svg"
                 alt="delete"
@@ -101,15 +114,15 @@ const UsersList = ({ users }: Props) => {
             </button>
           </div>
           <div className="flex flex-col p-4 rounded-2xl mt-3 bg-white ">
-            {user.email && <p>Email: {user.email}</p>}
-            {user.createdAt && (
+            {foo.email && <p>Email: {foo.email}</p>}
+            {foo.createdAt && (
               <p className="text-sm text-gray-500">
                 🕒
-                {transformData(user.createdAt)}
+                {transformData(foo.createdAt)}
               </p>
             )}
 
-            <p className="text-sm text-neutral-500">id: {user.id}</p>
+            <p className="text-sm text-neutral-500">id: {foo.id}</p>
           </div>
         </div>
       ))}
