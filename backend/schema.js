@@ -9,9 +9,18 @@ type User {
   createdAt: String
   updatedAt: String
 }
+type Chat {
+  id: Int!
+  createdAt: String
+  creator: User!
+  participant: User!
+}
+
+
 
 type Query {
   users: [User]
+  chats: [Chat!]!
 }
 
 type AuthPayload {
@@ -35,6 +44,7 @@ type Mutation {
   logoutUser: Boolean!
   setPassword(email: String!, newPassword: String!): User
   deleteUser(id: Int!): User
+  createChat(participantId: Int!): Chat!
 }
 
 type Subscription {
@@ -42,6 +52,7 @@ type Subscription {
   userLogin: User
   userLoggedOut: User!
   userDeleted: User
+  chatCreated: Chat
 }
 
 

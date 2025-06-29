@@ -12,29 +12,45 @@ export const GET_USERS = gql`
   }
 `;
 
-export const GET_CHATS = gql`
-  query {
+// export const GET_CHATS = gql`
+//   query {
+//     chats {
+//       id
+//       createdAt
+//       creator {
+//         id
+//         email
+//         name
+//       }
+//       participant {
+//         id
+//         email
+//         name
+//       }
+//       messages {
+//         id
+//         content
+//         createdAt
+//         sender {
+//           id
+//           name
+//         }
+//       }
+//     }
+//   }
+// `;
+export const GET_ALL_CHATS = gql`
+  query GetAllChats {
     chats {
       id
       createdAt
       creator {
         id
-        email
         name
       }
       participant {
         id
-        email
         name
-      }
-      messages {
-        id
-        content
-        createdAt
-        sender {
-          id
-          name
-        }
       }
     }
   }

@@ -1,20 +1,21 @@
 "use client";
 
 import { useSubscription, useQuery } from "@apollo/client";
-import { GET_USERS } from "@/apolo/queryes";
+import { GET_USERS, GET_ALL_CHATS } from "@/apolo/queryes";
 import {
   USER_CREATED_SUBSCRIPTION,
   USER_DELETED_SUBSCRIPTION,
   USER_LOGIN_SUBSCRIPTION,
   USER_LOGGEDOUT_SUBSCRIPTION,
+  CHAT_CREATED_SUBSCRIPTION,
 } from "@/apolo/subscriptions";
 import { useStateContext } from "@/components/StateProvider";
 import UsersList from "@/components/UsersList/UsersList";
-
+import transformData from "@/app/hooks/useTransformData";
 export default function Users() {
   const { data: queryData, loading } = useQuery(GET_USERS);
-  const {  setUser } = useStateContext();
-
+  const { setUser } = useStateContext();
+  const { data: allChatsData } = useQuery(GET_ALL_CHATS);
   // ⬇️ Подписка: добавление пользователя
   useSubscription(USER_CREATED_SUBSCRIPTION, {
     onData: ({ client, data }) => {
@@ -90,6 +91,21 @@ export default function Users() {
     },
   });
 
+  useSubscription(CHAT_CREATED_SUBSCRIPTION, {
+    onData: ({ client, data }) => {
+      const newChat = data?.data?.chatCreated;
+      if (!newChat) return;
+
+      client.cache.updateQuery({ query: GET_ALL_CHATS }, (oldData) => {
+        if (!oldData) return { chats: [newChat] };
+        const exists = oldData.chats.some((c: any) => c.id === newChat.id);
+        if (exists) return oldData;
+        return {
+          chats: [newChat, ...oldData.chats],
+        };
+      });
+    },
+  });
   return (
     <div className="mt-[100px] p-4">
       <h1 className="text-2xl font-bold mb-4">Users:</h1>
@@ -102,6 +118,22 @@ export default function Users() {
       ) : (
         <UsersList users={queryData?.users ?? []} />
       )}
+      <div className="mt-10">
+        <h2 className="text-xl font-bold mb-2">📢 All Chats:</h2>
+        {allChatsData?.chats?.length === 0 && <p>No chats found</p>}
+        {allChatsData?.chats?.map((chat: any) => (
+          <div key={chat.id} className="p-2 mb-2 border rounded bg-white">
+            <p>
+              🗣 <strong>{chat.creator.name}</strong> ↔{" "}
+              <strong>{chat.participant.name}</strong>
+            </p>
+            <p className="text-sm text-gray-500">
+              🕒
+              {transformData(chat.createdAt)}
+            </p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

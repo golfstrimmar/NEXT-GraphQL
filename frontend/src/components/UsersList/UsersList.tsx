@@ -3,8 +3,9 @@ import React from "react";
 import Image from "next/image";
 import transformData from "@/app/hooks/useTransformData";
 import { useMutation, useApolloClient } from "@apollo/client";
-import { DELETE_USER } from "@/apolo/mutations";
+import { DELETE_USER, CREATE_CHAT } from "@/apolo/mutations";
 import { GET_USERS } from "@/apolo/queryes"; // обязательно!
+import { useStateContext } from "@/components/StateProvider";
 type User = {
   id: number;
   name: string;
@@ -21,6 +22,10 @@ type Props = {
 const UsersList = ({ users }: Props) => {
   const client = useApolloClient(); // получаем доступ к кэшу
   const [deleteUser] = useMutation(DELETE_USER);
+  const [createChat] = useMutation(CREATE_CHAT);
+
+  const { user, setUser } = useStateContext();
+
   const handleDelete = async (id: number) => {
     try {
       const { data } = await deleteUser({
@@ -43,7 +48,18 @@ const UsersList = ({ users }: Props) => {
       console.error("❌ Ошибка при удалении пользователя:", error);
     }
   };
-
+  const handleCreateChat = async (participantId: number) => {
+    try {
+      const { data } = await createChat({
+        variables: { participantId },
+      });
+      console.log("💬 Чат создан:", data.createChat);
+      alert(`Чат создан с пользователем ID ${participantId}`);
+    } catch (error: any) {
+      alert(error.message);
+      console.error("❌ Ошибка создания чата:", error);
+    }
+  };
   return (
     <div className="space-y-2 max-w-[500px]">
       {users.length === 0 && <p>No users</p>}
@@ -68,6 +84,12 @@ const UsersList = ({ users }: Props) => {
                 Offline
               </p>
             )}
+            <button
+              onClick={() => handleCreateChat(user.id)}
+              className="text-sm bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition"
+            >
+              Ceate chat with {user.name}
+            </button>
             <button onClick={() => handleDelete(user.id)}>
               <Image
                 src="/svg/cross.svg"
@@ -80,7 +102,13 @@ const UsersList = ({ users }: Props) => {
           </div>
           <div className="flex flex-col p-4 rounded-2xl mt-3 bg-white ">
             {user.email && <p>Email: {user.email}</p>}
-            {user.createdAt && <p>Created: {transformData(user.createdAt)}</p>}
+            {user.createdAt && (
+              <p className="text-sm text-gray-500">
+                🕒
+                {transformData(user.createdAt)}
+              </p>
+            )}
+
             <p className="text-sm text-neutral-500">id: {user.id}</p>
           </div>
         </div>

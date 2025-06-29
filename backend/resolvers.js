@@ -18,6 +18,7 @@ const USER_CREATED = "USER_CREATED";
 const USER_DELETED = "USER_DELETED";
 const USER_LOGGEDIN = "USER_LOGGEDIN";
 const USER_LOGGEDOUT = "USER_LOGGEDOUT";
+const CHAT_CREATED = "CHAT_CREATED";
 
 const SALT_ROUNDS = 10;
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_here";
@@ -28,6 +29,17 @@ const resolvers = {
   Query: {
     users: async () => {
       return await prisma.user.findMany();
+    },
+    chats: async () => {
+      return await prisma.chat.findMany({
+        include: {
+          creator: true,
+          participant: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
     },
   },
 
@@ -192,6 +204,41 @@ const resolvers = {
       pubsub.publish(USER_DELETED, { userDeleted: user });
       return user;
     },
+    createChat: async (_, { participantId }, { userId }) => {
+      if (!userId) {
+        throw new Error("Not authenticated");
+      }
+
+      if (userId === participantId) {
+        throw new Error("Cannot create chat with yourself");
+      }
+
+      const existingChat = await prisma.chat.findFirst({
+        where: {
+          OR: [
+            { creatorId: userId, participantId },
+            { creatorId: participantId, participantId: userId },
+          ],
+        },
+      });
+
+      if (existingChat) {
+        throw new Error("Chat already exists");
+      }
+
+      const chat = await prisma.chat.create({
+        data: {
+          creatorId: userId,
+          participantId,
+        },
+        include: {
+          creator: true,
+          participant: true,
+        },
+      });
+      pubsub.publish(CHAT_CREATED, { chatCreated: chat });
+      return chat;
+    },
   },
 
   Subscription: {
@@ -206,6 +253,9 @@ const resolvers = {
     },
     userDeleted: {
       subscribe: () => pubsub.asyncIterator(USER_DELETED),
+    },
+    chatCreated: {
+      subscribe: () => pubsub.asyncIterator(CHAT_CREATED),
     },
   },
 };

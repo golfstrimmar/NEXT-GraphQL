@@ -58,33 +58,33 @@ export const DELETE_USER = gql`
     }
   }
 `;
-export const CREATE_CHAT = gql`
-  mutation ($participantId: ID!) {
-    createChat(participantId: $participantId) {
-      id
-      createdAt
-      creator {
-        id
-        email
-        name
-      }
-      participant {
-        id
-        email
-        name
-      }
-      messages {
-        id
-        content
-        createdAt
-        sender {
-          id
-          name
-        }
-      }
-    }
-  }
-`;
+// export const CREATE_CHAT = gql`
+//   mutation ($participantId: ID!) {
+//     createChat(participantId: $participantId) {
+//       id
+//       createdAt
+//       creator {
+//         id
+//         email
+//         name
+//       }
+//       participant {
+//         id
+//         email
+//         name
+//       }
+//       messages {
+//         id
+//         content
+//         createdAt
+//         sender {
+//           id
+//           name
+//         }
+//       }
+//     }
+//   }
+// `;
 
 export const SEND_MESSAGE = gql`
   mutation ($chatId: ID!, $content: String!) {
@@ -95,6 +95,23 @@ export const SEND_MESSAGE = gql`
       sender {
         id
         name
+      }
+    }
+  }
+`;
+
+export const CREATE_CHAT = gql`
+  mutation CreateChat($participantId: Int!) {
+    createChat(participantId: $participantId) {
+      id
+      createdAt
+      creator {
+        id
+        email
+      }
+      participant {
+        id
+        email
       }
     }
   }

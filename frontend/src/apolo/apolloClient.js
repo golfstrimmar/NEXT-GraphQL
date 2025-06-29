@@ -16,7 +16,7 @@ const GRAPHQL_URI = "http://localhost:4000/graphql";
 const WS_URI = "ws://localhost:4000/graphql";
 
 // 🛡️ Список операций, требующих токена
-const protectedOperations = ["logoutUser"];
+const protectedOperations = ["logoutUser", "CreateChat"];
 
 // ✅ HTTP link
 const httpLink = new HttpLink({ uri: GRAPHQL_URI });
