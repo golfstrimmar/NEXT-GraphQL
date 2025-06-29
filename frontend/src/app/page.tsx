@@ -13,7 +13,7 @@ import UsersList from "@/components/UsersList/UsersList";
 
 export default function Users() {
   const { data: queryData, loading } = useQuery(GET_USERS);
-  const { user, setUser } = useStateContext();
+  const {  setUser } = useStateContext();
 
   // ⬇️ Подписка: добавление пользователя
   useSubscription(USER_CREATED_SUBSCRIPTION, {
