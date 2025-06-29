@@ -1,5 +1,6 @@
 "use client";
-
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useSubscription, useQuery } from "@apollo/client";
 import { GET_USERS, GET_ALL_CHATS } from "@/apolo/queryes";
 import {
@@ -12,10 +13,24 @@ import {
 import { useStateContext } from "@/components/StateProvider";
 import UsersList from "@/components/UsersList/UsersList";
 import transformData from "@/app/hooks/useTransformData";
+import useIdleLogout from "@/hooks/useIdleLogout";
+import isTokenExpired from "@/utils/checkTokenExpiration";
+
 export default function Users() {
+  const router = useRouter();
   const { data: queryData, loading } = useQuery(GET_USERS);
   const { setUser } = useStateContext();
   const { data: allChatsData } = useQuery(GET_ALL_CHATS);
+  useIdleLogout();
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token && isTokenExpired(token)) {
+      setUser(null);
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+      router.push("/login");
+    }
+  }, []);
   // ⬇️ Подписка: добавление пользователя
   useSubscription(USER_CREATED_SUBSCRIPTION, {
     onData: ({ client, data }) => {
