@@ -31,10 +31,7 @@ interface AuthState {
 
 // Начальное состояние с загрузкой из localStorage
 const initialState: AuthState = {
-  user:
-    typeof window !== "undefined"
-      ? JSON.parse(localStorage.getItem("user") || "null")
-      : null,
+  user: typeof window !== "undefined" ? "null" : null,
   token:
     typeof window !== "undefined"
       ? localStorage.getItem("token") || null

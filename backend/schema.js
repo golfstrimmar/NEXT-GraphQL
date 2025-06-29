@@ -33,6 +33,7 @@ type Mutation {
   loginUser(email: String!, password: String!): AuthPayload
   googleLogin(idToken: String!): AuthPayload
   logoutUser: Boolean!
+  setPassword(email: String!, newPassword: String!): User
   deleteUser(id: Int!): User
 }
 

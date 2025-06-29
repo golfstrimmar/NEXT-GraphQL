@@ -24,6 +24,14 @@ export const LOGIN_USER = gql`
   }
 `;
 
+export const SET_PASSWORD = gql`
+  mutation SetPassword($email: String!, $newPassword: String!) {
+    setPassword(email: $email, newPassword: $newPassword) {
+      id
+      email
+    }
+  }
+`;
 export const LOGOUT_USER = gql`
   mutation logoutUser {
     logoutUser

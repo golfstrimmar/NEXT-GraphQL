@@ -54,7 +54,9 @@ const resolvers = {
     loginUser: async (_, { email, password }) => {
       const user = await prisma.user.findUnique({ where: { email } });
       if (!user) throw new Error("User not found");
-
+      if (!user.password) {
+        throw new Error("GoogleOnlyAccount"); // специальный код ошибки
+      }
       const isPasswordValid = await bcrypt.compare(
         password,
         user.password || ""
@@ -87,26 +89,38 @@ const resolvers = {
         token,
       };
     },
+    setPassword: async (_, { email, newPassword }) => {
+      const user = await prisma.user.findUnique({ where: { email } });
+      if (!user) throw new Error("User not found");
+      if (user.password) throw new Error("Password already set");
+
+      const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
+
+      return await prisma.user.update({
+        where: { email },
+        data: { password: hashedPassword },
+      });
+    },
     googleLogin: async (_, { idToken }) => {
       try {
         const ticket = await googleClient.verifyIdToken({
           idToken,
           audience: GOOGLE_CLIENT_ID,
         });
-    
+
         const payload = ticket.getPayload();
         if (!payload) {
           throw new Error("Invalid Google token");
         }
-    
+
         const { email, name, sub: googleId } = payload;
-    
+
         if (!email) {
           throw new Error("Email not provided by Google");
         }
-    
+
         let user = await prisma.user.findUnique({ where: { email } });
-    
+
         if (!user) {
           // Создание нового пользователя с googleId
           user = await prisma.user.create({
@@ -131,10 +145,10 @@ const resolvers = {
               googleId: user.googleId || googleId, // не перезаписываем, если уже есть
             },
           });
-    
+
           console.log("<==== user logged in via Google update ====>", user);
         }
-    
+
         const token = jwt.sign(
           { userId: user.id, email: user.email },
           JWT_SECRET,
@@ -142,9 +156,9 @@ const resolvers = {
             expiresIn: "1h",
           }
         );
-    
+
         pubsub.publish(USER_LOGGEDIN, { userLogin: user });
-    
+
         return {
           id: user.id,
           email: user.email,
@@ -153,13 +167,12 @@ const resolvers = {
           isLoggedIn: true,
           token,
         };
-    
       } catch (err) {
         console.error("Google login error:", err);
         throw new Error("Failed to authenticate with Google");
       }
     },
-    
+
     logoutUser: async (_, __, { userId }) => {
       if (!userId) throw new Error("Not authenticated");
 

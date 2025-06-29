@@ -5,49 +5,31 @@ import Link from "next/link";
 import Burger from "../ui/Burger/Burger";
 import styles from "./Navbar.module.scss";
 import { useRouter, usePathname } from "next/navigation";
-import { useSelector, useDispatch } from "react-redux";
-import { clearUser, updateUserStatus } from "@/app/redux/slices/authSlice";
-import { gql, useMutation, useSubscription } from "@apollo/client";
+import { useMutation } from "@apollo/client";
 import useHasMounted from "@/app/hooks/useHasMounted";
 import { LOGOUT_USER } from "@/apolo/mutations";
-import { USER_LOGGEDOUT_SUBSCRIPTION } from "@/apolo/subscriptions";
+import { useStateContext } from "@/components/StateProvider";
+import { User } from "@/types/user";
+
 const Navbar: React.FC = () => {
   const hasMounted = useHasMounted();
   const router = useRouter();
   const pathname = usePathname();
-  const dispatch = useDispatch();
-
-  const rawUser = useSelector((state: { auth: any }) => state.auth.user);
-  const user = hasMounted ? rawUser : null;
-
+  const { user, setUser } = useStateContext();
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [activeLink, setActiveLink] = useState<string>("");
   const [logoutUser, { loading }] = useMutation(LOGOUT_USER);
-  const { data: loggedOutSubData } = useSubscription(
-    USER_LOGGEDOUT_SUBSCRIPTION
-  );
+
   useEffect(() => {
     setActiveLink(pathname);
   }, [pathname, isOpen]);
-  useEffect(() => {
-    if (loggedOutSubData?.userLoggedOut) {
-      console.log(
-        "<==== userLoggedOut subscription ====>",
-        loggedOutSubData.userLoggedOut
-      );
 
-      dispatch(
-        updateUserStatus({
-          id: Number(loggedOutSubData.userLoggedOut.id),
-          status: false,
-        })
-      );
-    }
-  }, [loggedOutSubData, dispatch]);
   const handleLogout = async () => {
     try {
       await logoutUser();
-      dispatch(clearUser());
+      setUser(null);
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
       router.push("/");
     } catch (err) {
       console.error("Logout error:", err);
