@@ -59,12 +59,12 @@ export default function Login() {
     try {
       const { data } = await loginUser({ variables: { email, password } });
       const loggedInUser = data?.loginUser;
-      console.log("<===== LOGIN USER ====>", loggedInUser);
+
       if (!loggedInUser) {
         setIsLoading(false);
         return showModal("Invalid login");
       }
-
+      console.log("<=====🟢 MUTATION LOGIN USER  =====>", loggedInUser);
       // -------- localStorage
       const { token, ...userWithoutToken } = loggedInUser;
       const newUser = { ...userWithoutToken };

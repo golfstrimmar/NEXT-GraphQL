@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import transformData from "@/app/hooks/useTransformData";
 import { useMutation, useApolloClient, useQuery } from "@apollo/client";
@@ -7,6 +7,15 @@ import { DELETE_USER, CREATE_CHAT } from "@/apolo/mutations";
 
 import { useStateContext } from "@/components/StateProvider";
 import { GET_USERS, GET_ALL_CHATS } from "@/apolo/queryes";
+
+import dynamic from "next/dynamic";
+const ModalMessage = dynamic(
+  () => import("@/components/ModalMessage/ModalMessage"),
+  {
+    ssr: false,
+  }
+);
+
 type User = {
   id: number;
   name: string;
@@ -26,6 +35,20 @@ const UsersList = ({ users }: Props) => {
   const [createChat] = useMutation(CREATE_CHAT);
   const { data: allChatsData } = useQuery(GET_ALL_CHATS);
   const { user } = useStateContext();
+  const [successMessage, setSuccessMessage] = useState<string>("");
+  const [openModalMessage, setOpenModalMessage] = useState<boolean>(false);
+  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+
+  const showModal = (message: string) => {
+    setSuccessMessage(message);
+    setOpenModalMessage(true);
+    setIsModalVisible(true);
+    setTimeout(() => {
+      setOpenModalMessage(false);
+      setSuccessMessage("");
+      return;
+    }, 2000);
+  };
 
   const handleDelete = async (id: number) => {
     try {
@@ -35,7 +58,7 @@ const UsersList = ({ users }: Props) => {
 
       const deletedUser = data?.deleteUser;
       if (deletedUser?.id) {
-        console.log("❌✅❌ Удалён пользователь:", deletedUser);
+        console.log("❌❌❌ Mutation to delete user:", deletedUser);
         // Обновляем кэш вручную
         client.cache.updateQuery({ query: GET_USERS }, (oldData: any) => {
           if (!oldData) return { users: [] };
@@ -46,7 +69,7 @@ const UsersList = ({ users }: Props) => {
         });
       }
     } catch (error) {
-      console.error("❌ Ошибка при удалении пользователя:", error);
+      console.error("❌ Error deleting user:", error);
     }
   };
   const handleCreateChat = async (participantId: number) => {
@@ -54,16 +77,44 @@ const UsersList = ({ users }: Props) => {
       const { data } = await createChat({
         variables: { participantId },
       });
-      console.log("💬 Чат создан:", data.createChat);
-      alert(`Чат создан с пользователем ID ${participantId}`);
+      console.log("🟢  Mutation to createChat:", data.createChat);
+      client.resetStore();
+      showModal(`💬 Chat created successfully!`);
     } catch (error: any) {
-      alert(error.message);
-      console.error("❌ Ошибка создания чата:", error);
+      showModal(error.message);
+      console.error("❌ Error creating chat:", error);
     }
+  };
+
+  const renderCreateChatButton = (
+    userId: number,
+    currentUserId: number | undefined,
+    chats: any[],
+    handleCreateChat: (id: number) => void,
+    userName: string
+  ) => {
+    const hasChat = chats?.some(
+      (c) =>
+        Number(c.creator.id) === userId || Number(c.participant.id) === userId
+    );
+
+    if (userId === currentUserId || hasChat || !currentUserId) return null;
+
+    return (
+      <button
+        onClick={() => handleCreateChat(userId)}
+        className="text-sm bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition duration-300 ease-in-out cursor-pointer"
+      >
+        Create chat with {userName}
+      </button>
+    );
   };
 
   return (
     <div className="space-y-2 max-w-[500px]">
+      {isModalVisible && (
+        <ModalMessage message={successMessage} open={openModalMessage} />
+      )}
       {users.length === 0 && <p>No users</p>}
       {users.map((foo) => (
         <div key={foo.id} className="p-2 border rounded bg-gray-200 ">
@@ -77,7 +128,6 @@ const UsersList = ({ users }: Props) => {
                 {foo.name}
               </h2>
             )}
-
             {foo.isLoggedIn ? (
               <p className="text-green-500 bg-green-100 inline-block rounded-2xl px-2">
                 Online
@@ -87,22 +137,13 @@ const UsersList = ({ users }: Props) => {
                 Offline
               </p>
             )}
-
-            {Number(foo.id) !== Number(user?.id) && // 👈 Не сам пользователь
-              allChatsData?.chats?.some(
-                (c: any) => Number(c.creator.id) === Number(foo.id)
-              ) === false && // 👈 Не является уже создателем
-              allChatsData?.chats?.some(
-                (c: any) => Number(c.participant.id) === Number(foo.id)
-              ) === false && // 👈 Не является участником
-              user && ( // 👈 Авторизация проверена
-                <button
-                  onClick={() => handleCreateChat(foo.id)}
-                  className="text-sm bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition"
-                >
-                  Create chat with {foo.name}
-                </button>
-              )}
+            {renderCreateChatButton(
+              foo.id,
+              user?.id,
+              allChatsData?.allChats,
+              handleCreateChat,
+              foo.name
+            )}
             <button onClick={() => handleDelete(foo.id)}>
               <Image
                 src="/svg/cross.svg"

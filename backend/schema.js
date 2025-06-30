@@ -45,6 +45,7 @@ type Mutation {
   setPassword(email: String!, newPassword: String!): User
   deleteUser(id: Int!): User
   createChat(participantId: Int!): Chat!
+  deleteChat(id: Int!): Chat
 }
 
 type Subscription {
@@ -53,6 +54,7 @@ type Subscription {
   userLoggedOut: User!
   userDeleted: User
   chatCreated: Chat
+  chatDeleted: Chat
 }
 
 

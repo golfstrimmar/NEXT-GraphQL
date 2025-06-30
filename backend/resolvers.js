@@ -58,7 +58,7 @@ const resolvers = {
           googleId,
         },
       });
-
+      console.log("<====== ✅ New User created======>", user);
       pubsub.publish(USER_CREATED, { userCreated: user });
       return user;
     },
@@ -85,11 +85,7 @@ const resolvers = {
         where: { id: user.id },
         data: { isLoggedIn: true },
       });
-      pubsub.publish(USER_LOGGEDIN, {
-        userLogin: {
-          ...updatedUser,
-        },
-      });
+      console.log("🟢 To subscribe login :", updatedUser);
       pubsub.publish(USER_LOGGEDIN, { userLogin: updatedUser }); // 👈 название поля должно совпадать с typeDefs
 
       return {
@@ -158,7 +154,7 @@ const resolvers = {
             },
           });
 
-          console.log("<==== user logged in via Google update ====>", user);
+          console.log("<==== 🟢 user logged in via Google update ====>", user);
         }
 
         const token = jwt.sign(
@@ -192,7 +188,7 @@ const resolvers = {
         where: { id: userId },
         data: { isLoggedIn: false },
       });
-
+      console.log("🟢 To subscribe logout :", updatedUser);
       pubsub.publish(USER_LOGGEDOUT, {
         userLoggedOut: updatedUser,
       });
@@ -223,7 +219,7 @@ const resolvers = {
       });
 
       if (existingChat) {
-        throw new Error("Chat already exists");
+        throw new Error("Chat already exists.");
       }
 
       const chat = await prisma.chat.create({
@@ -236,7 +232,37 @@ const resolvers = {
           participant: true,
         },
       });
+      console.log("🟢 To subscribe create chat:", chat);
       pubsub.publish(CHAT_CREATED, { chatCreated: chat });
+      return chat;
+    },
+    deleteChat: async (_, { id }, { userId }) => {
+      if (!userId) {
+        throw new Error("Not authenticated");
+      }
+      console.log(" ---To deleteChat :------", id);
+      const chat = await prisma.chat.findUnique({
+        where: { id },
+        include: {
+          creator: true,
+          participant: true,
+        },
+      });
+
+      if (!chat) {
+        throw new Error("Chat not found");
+      }
+
+      const isParticipant =
+        chat.creatorId === userId || chat.participantId === userId;
+      if (!isParticipant) {
+        throw new Error("You do not have permission to delete this chat");
+      }
+
+      await prisma.chat.delete({ where: { id } });
+
+      pubsub.publish("CHAT_DELETED", { chatDeleted: chat });
+
       return chat;
     },
   },
@@ -256,6 +282,9 @@ const resolvers = {
     },
     chatCreated: {
       subscribe: () => pubsub.asyncIterator(CHAT_CREATED),
+    },
+    chatDeleted: {
+      subscribe: () => pubsub.asyncIterator("CHAT_DELETED"),
     },
   },
 };

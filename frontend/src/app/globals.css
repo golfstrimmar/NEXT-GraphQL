@@ -24,12 +24,12 @@ body {
   color: #171717;
   font-family: Arial, Helvetica, sans-serif;
 }
-:root,
+/* :root,
 html,
 body,
 * {
   cursor: url(/red-dot.svg) 8 8, auto !important;
-}
+} */
 @layer utilities {
   .animate-spin-slower {
     animation: spin 1.5s linear infinite;

@@ -1,15 +1,21 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSubscription, useQuery } from "@apollo/client";
+import { client } from "@/apolo/apolloClient";
+import Image from "next/image";
+
+import { useSubscription, useQuery, useMutation } from "@apollo/client";
 import { GET_USERS, GET_ALL_CHATS } from "@/apolo/queryes";
+import { LOGOUT_USER, DELETE_CHAT } from "@/apolo/mutations";
 import {
   USER_CREATED_SUBSCRIPTION,
   USER_DELETED_SUBSCRIPTION,
   USER_LOGIN_SUBSCRIPTION,
   USER_LOGGEDOUT_SUBSCRIPTION,
   CHAT_CREATED_SUBSCRIPTION,
+  CHAT_DELETED_SUBSCRIPTION,
 } from "@/apolo/subscriptions";
+
 import { useStateContext } from "@/components/StateProvider";
 import UsersList from "@/components/UsersList/UsersList";
 import transformData from "@/app/hooks/useTransformData";
@@ -20,15 +26,26 @@ export default function Users() {
   const router = useRouter();
   const { data: queryData, loading } = useQuery(GET_USERS);
   const { setUser } = useStateContext();
+  const [logoutUser] = useMutation(LOGOUT_USER);
   const { data: allChatsData } = useQuery(GET_ALL_CHATS);
   useIdleLogout();
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token && isTokenExpired(token)) {
+  const [deleteChat] = useMutation(DELETE_CHAT);
+  const handleActivity = async () => {
+    try {
+      await logoutUser();
       setUser(null);
       localStorage.removeItem("user");
       localStorage.removeItem("token");
       router.push("/login");
+    } catch (err) {
+      console.error("Logout error:", err);
+      console.log("------Failed to log out. Please try again.-------");
+    }
+  };
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token && isTokenExpired(token)) {
+      handleActivity();
     }
   }, []);
   // ⬇️ Подписка: добавление пользователя
@@ -36,7 +53,7 @@ export default function Users() {
     onData: ({ client, data }) => {
       const newUser = data?.data?.userCreated;
       if (!newUser) return;
-
+      console.log("<===== ✅ Subscribed to CREATE_USER: =====>", newUser);
       client.cache.updateQuery({ query: GET_USERS }, (oldData) => {
         if (!oldData) return { users: [newUser] };
         const exists = oldData.users.some((u: any) => u.id === newUser.id);
@@ -53,7 +70,7 @@ export default function Users() {
     onData: ({ client, data }) => {
       const user = data?.data?.userLogin;
       if (!user) return;
-
+      console.log("<===== ✅ Subscribed to LOGIN_USER: =====>", user);
       client.cache.updateQuery({ query: GET_USERS }, (oldData) => {
         if (!oldData) return null;
 
@@ -71,6 +88,10 @@ export default function Users() {
     onData: ({ client, data }) => {
       const userLoggedOut = data?.data?.userLoggedOut;
       if (!userLoggedOut) return;
+      console.log(
+        "<===== ❌✅ Subscribed to LOGGEDOUT_USER: =====>",
+        userLoggedOut
+      );
       client.cache.updateQuery({ query: GET_USERS }, (oldData) => {
         if (!oldData) return null;
 
@@ -88,6 +109,10 @@ export default function Users() {
     onData: ({ client, data }) => {
       const deletedUserId = data?.data?.userDeleted?.id;
       if (!deletedUserId) return;
+      console.log(
+        "<===== ❌❌❌ Subscribed to USER_DELETED:  =====>",
+        data?.data?.userDeleted
+      );
       const currentUserLoggedIn = localStorage.getItem("user");
       if (currentUserLoggedIn) {
         const currentUser = JSON.parse(currentUserLoggedIn);
@@ -106,9 +131,15 @@ export default function Users() {
     },
   });
 
+  // ⬇️ Подписка: создание чата
   useSubscription(CHAT_CREATED_SUBSCRIPTION, {
     onData: ({ client, data }) => {
+      if (data) {
+        console.log("<===data=====>", data);
+      }
+
       const newChat = data?.data?.chatCreated;
+      console.log("<===== ✅ Subscribed to ChatCreated: =====>", newChat);
       if (!newChat) return;
 
       client.cache.updateQuery({ query: GET_ALL_CHATS }, (oldData) => {
@@ -121,6 +152,37 @@ export default function Users() {
       });
     },
   });
+  // ⬇️ Подписка: удаление чата
+  useSubscription(CHAT_DELETED_SUBSCRIPTION, {
+    onData: ({ client, data }) => {
+      const deletedChat = data?.data?.chatDeleted;
+      if (!deletedChat) return;
+
+      console.log("🗑️ Chat deleted:", deletedChat);
+
+      client.cache.updateQuery({ query: GET_ALL_CHATS }, (oldData) => {
+        if (!oldData) return { chats: [] };
+
+        return {
+          chats: oldData.chats.filter(
+            (chat: any) => chat.id !== deletedChat.id
+          ),
+        };
+      });
+    },
+  });
+
+  // -------------------------
+  const handleDeleteChat = async (id: number) => {
+    try {
+      const { data } = await deleteChat({ variables: { id } });
+      client.resetStore();
+      console.log("<=====🟢 MUTATION deleteChat   =====>", data);
+    } catch (err) {
+      console.error("Mutation error:", err);
+    }
+  };
+
   return (
     <div className="mt-[100px] p-4">
       <h1 className="text-2xl font-bold mb-4">Users:</h1>
@@ -146,6 +208,15 @@ export default function Users() {
               🕒
               {transformData(chat.createdAt)}
             </p>
+            <button onClick={() => handleDeleteChat(chat.id)}>
+              <Image
+                src="/svg/cross.svg"
+                alt="delete"
+                width={20}
+                height={20}
+                className="cursor-pointer bg-white p-1 hover:border hover:border-red-500 rounded-md transition-all duration-200"
+              />
+            </button>
           </div>
         ))}
       </div>

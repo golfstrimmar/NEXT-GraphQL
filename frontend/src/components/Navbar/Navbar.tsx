@@ -26,11 +26,15 @@ const Navbar: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      await logoutUser();
-      setUser(null);
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      router.push("/");
+      const { data } = await logoutUser();
+      if (data?.logoutUser) {
+        setUser(null);
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        router.push("/");
+      } else {
+        console.log("Logout failed on server side.");
+      }
     } catch (err) {
       console.error("Logout error:", err);
       console.log("------Failed to log out. Please try again.-------");

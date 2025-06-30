@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 
 export const ADD_USER = gql`
-  mutation ($email: String!, $name: String, $password: String!) {
+  mutation addUser($email: String!, $name: String, $password: String!) {
     addUser(email: $email, name: $name, password: $password) {
       id
       email
@@ -25,7 +25,7 @@ export const LOGIN_USER = gql`
 `;
 
 export const SET_PASSWORD = gql`
-  mutation SetPassword($email: String!, $newPassword: String!) {
+  mutation setPassword($email: String!, $newPassword: String!) {
     setPassword(email: $email, newPassword: $newPassword) {
       id
       email
@@ -39,7 +39,7 @@ export const LOGOUT_USER = gql`
 `;
 
 export const GOOGLE_LOGIN = gql`
-  mutation ($idToken: String!) {
+  mutation googleLogin($idToken: String!) {
     googleLogin(idToken: $idToken) {
       id
       email
@@ -52,56 +52,15 @@ export const GOOGLE_LOGIN = gql`
 `;
 
 export const DELETE_USER = gql`
-  mutation DeleteUser($id: Int!) {
+  mutation deleteUser($id: Int!) {
     deleteUser(id: $id) {
       id
     }
   }
 `;
-// export const CREATE_CHAT = gql`
-//   mutation ($participantId: ID!) {
-//     createChat(participantId: $participantId) {
-//       id
-//       createdAt
-//       creator {
-//         id
-//         email
-//         name
-//       }
-//       participant {
-//         id
-//         email
-//         name
-//       }
-//       messages {
-//         id
-//         content
-//         createdAt
-//         sender {
-//           id
-//           name
-//         }
-//       }
-//     }
-//   }
-// `;
-
-export const SEND_MESSAGE = gql`
-  mutation ($chatId: ID!, $content: String!) {
-    sendMessage(chatId: $chatId, content: $content) {
-      id
-      content
-      createdAt
-      sender {
-        id
-        name
-      }
-    }
-  }
-`;
 
 export const CREATE_CHAT = gql`
-  mutation CreateChat($participantId: Int!) {
+  mutation createChat($participantId: Int!) {
     createChat(participantId: $participantId) {
       id
       createdAt
@@ -116,3 +75,25 @@ export const CREATE_CHAT = gql`
     }
   }
 `;
+
+export const DELETE_CHAT = gql`
+  mutation deleteChat($chatId: Int!) {
+    deleteChat(chatId: $chatId) {
+      id
+    }
+  }
+`;
+
+// export const SEND_MESSAGE = gql`
+//   mutation senDMessage($chatId: ID!, $content: String!) {
+//     sendMessage(chatId: $chatId, content: $content) {
+//       ide
+//       content
+//       createdAt
+//       sender {
+//         id
+//         name
+//       }
+//     }
+//   }
+// `;

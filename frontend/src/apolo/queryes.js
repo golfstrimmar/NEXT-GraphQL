@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 
 export const GET_USERS = gql`
-  query {
+  query getAllUsers {
     users {
       id
       email
@@ -40,7 +40,7 @@ export const GET_USERS = gql`
 //   }
 // `;
 export const GET_ALL_CHATS = gql`
-  query GetAllChats {
+  query getAllChats {
     chats {
       id
       createdAt

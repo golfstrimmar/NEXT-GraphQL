@@ -29,7 +29,8 @@ export default function Register() {
       return;
     }
     try {
-      await addUser({ variables: { email, name, password } });
+      const { data } = await addUser({ variables: { email, name, password } });
+      console.log("<=====🟢 MUTATION REGISTER NEW USER  =====>", data);
       setEmail("");
       setName("");
       setPassword("");

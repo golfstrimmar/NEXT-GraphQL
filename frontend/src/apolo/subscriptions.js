@@ -57,8 +57,11 @@ export const MESSAGE_SENT_SUBSCRIPTION = gql`
     }
   }
 `;
+
+
+
 export const CHAT_CREATED_SUBSCRIPTION = gql`
-  subscription {
+  subscription chatCreated {
     chatCreated {
       id
       createdAt
@@ -81,6 +84,13 @@ export const CHAT_CREATED_SUBSCRIPTION = gql`
           name
         }
       }
+    }
+  }
+`;
+export const CHAT_DELETED_SUBSCRIPTION = gql`
+  subscription chatDeleted {
+    chatDeleted {
+      id
     }
   }
 `;
