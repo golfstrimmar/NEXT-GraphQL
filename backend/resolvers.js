@@ -23,8 +23,6 @@ const CHAT_CREATED = "CHAT_CREATED";
 const SALT_ROUNDS = 10;
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_here";
 
-const loginListeners = [];
-
 const resolvers = {
   Query: {
     users: async () => {
@@ -58,7 +56,7 @@ const resolvers = {
           googleId,
         },
       });
-      console.log("<====== ✅ New User created======>", user);
+      console.log(" To subscribe  User created  🟢--> ", user);
       pubsub.publish(USER_CREATED, { userCreated: user });
       return user;
     },
@@ -85,7 +83,7 @@ const resolvers = {
         where: { id: user.id },
         data: { isLoggedIn: true },
       });
-      console.log("🟢 To subscribe login :", updatedUser);
+      console.log(" To subscribe login   🟢--> ");
       pubsub.publish(USER_LOGGEDIN, { userLogin: updatedUser }); // 👈 название поля должно совпадать с typeDefs
 
       return {
@@ -164,7 +162,7 @@ const resolvers = {
             expiresIn: "1h",
           }
         );
-
+        console.log("To subscribe userLogin  🟢-->");
         pubsub.publish(USER_LOGGEDIN, { userLogin: user });
 
         return {
@@ -188,7 +186,7 @@ const resolvers = {
         where: { id: userId },
         data: { isLoggedIn: false },
       });
-      console.log("🟢 To subscribe logout :", updatedUser);
+      console.log("To subscribe logout  🟢-->");
       pubsub.publish(USER_LOGGEDOUT, {
         userLoggedOut: updatedUser,
       });
@@ -232,7 +230,7 @@ const resolvers = {
           participant: true,
         },
       });
-      console.log("🟢 To subscribe create chat:", chat);
+      console.log(" To subscribe create chat 🟢-->");
       pubsub.publish(CHAT_CREATED, { chatCreated: chat });
       return chat;
     },
@@ -240,7 +238,7 @@ const resolvers = {
       if (!userId) {
         throw new Error("Not authenticated");
       }
-      console.log(" ---To deleteChat :------", id);
+
       const chat = await prisma.chat.findUnique({
         where: { id },
         include: {
@@ -260,10 +258,10 @@ const resolvers = {
       }
 
       await prisma.chat.delete({ where: { id } });
+      console.log("To subscribe deleteChat 🟢-->", id);
+      pubsub.publish("CHAT_DELETED", { chatDeleted: id });
 
-      pubsub.publish("CHAT_DELETED", { chatDeleted: chat });
-
-      return chat;
+      return id;
     },
   },
 

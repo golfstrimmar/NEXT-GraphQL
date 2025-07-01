@@ -16,7 +16,7 @@ import typeDefs from "./schema.js";
 const PORT = 4000;
 
 let currentNumber = 0;
-
+const activeSubscriptions = new Map();
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 const app = express();
 const httpServer = createServer(app);
@@ -29,18 +29,65 @@ const wsServer = new WebSocketServer({
 const serverCleanup = useServer(
   {
     schema,
-    context: async (ctx) => {
-      const auth = ctx.connectionParams?.headers?.Authorization || "";
-      const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
+
+    context: async (ctx, msg, args) => {
+      const authHeader = ctx.connectionParams?.headers?.Authorization || "";
+      const token = authHeader.startsWith("Bearer ")
+        ? authHeader.slice(7)
+        : null;
       const user = token ? verifyToken(token) : null;
 
       return { user };
     },
-    onConnect: async () => {
+
+    onConnect: async (ctx) => {
       console.log("📡 Client connected +");
     },
-    onDisconnect: async (_, code, reason) => {
+
+    onDisconnect: async (ctx, code, reason) => {
+      const clientId =
+        ctx.extra.request.headers["sec-websocket-key"] ||
+        ctx.extra.request.socket.remoteAddress;
       console.log(`⚠️ Client disconnected (${code}: ${reason})`);
+      activeSubscriptions.delete(clientId);
+    },
+
+    onSubscribe: async (ctx, msg) => {
+      const clientId =
+        ctx.extra.request.headers["sec-websocket-key"] ||
+        ctx.extra.request.socket.remoteAddress;
+      const operationName = msg?.payload?.operationName || "UnnamedOperation";
+
+      const authHeader = ctx.connectionParams?.headers?.Authorization || "";
+      const token = authHeader.startsWith("Bearer ")
+        ? authHeader.slice(7)
+        : null;
+      const user = token ? verifyToken(token) : null;
+      const userId = user?.userId || "anonymous";
+
+      if (!activeSubscriptions.has(clientId)) {
+        activeSubscriptions.set(clientId, { userId, operations: new Set() });
+      }
+
+      const connData = activeSubscriptions.get(clientId);
+      connData.operations.add(operationName);
+
+      // console.log(`🧷 Subscribed: ${operationName} by userId=${userId}`);
+    },
+
+    onComplete: async (ctx, msg) => {
+      const clientId =
+        ctx.extra.request.headers["sec-websocket-key"] ||
+        ctx.extra.request.socket.remoteAddress;
+      const operationName = msg?.payload?.operationName || "UnnamedOperation";
+
+      const connData = activeSubscriptions.get(clientId);
+      if (connData) {
+        connData.operations.delete(operationName);
+        // console.log(
+        //   `❌ Unsubscribed: ${operationName} by userId=${connData.userId}`
+        // );
+      }
     },
   },
   wsServer

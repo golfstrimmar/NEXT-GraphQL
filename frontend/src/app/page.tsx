@@ -25,7 +25,7 @@ import isTokenExpired from "@/utils/checkTokenExpiration";
 export default function Users() {
   const router = useRouter();
   const { data: queryData, loading } = useQuery(GET_USERS);
-  const { setUser } = useStateContext();
+  const { user, setUser } = useStateContext();
   const [logoutUser] = useMutation(LOGOUT_USER);
   const { data: allChatsData } = useQuery(GET_ALL_CHATS);
   useIdleLogout();
@@ -134,10 +134,6 @@ export default function Users() {
   // ⬇️ Подписка: создание чата
   useSubscription(CHAT_CREATED_SUBSCRIPTION, {
     onData: ({ client, data }) => {
-      if (data) {
-        console.log("<===data=====>", data);
-      }
-
       const newChat = data?.data?.chatCreated;
       console.log("<===== ✅ Subscribed to ChatCreated: =====>", newChat);
       if (!newChat) return;
@@ -155,28 +151,29 @@ export default function Users() {
   // ⬇️ Подписка: удаление чата
   useSubscription(CHAT_DELETED_SUBSCRIPTION, {
     onData: ({ client, data }) => {
-      const deletedChat = data?.data?.chatDeleted;
-      if (!deletedChat) return;
-
-      console.log("🗑️ Chat deleted:", deletedChat);
+      console.log(
+        "<===== 🗑️  Subscribed to  Chat deleted:   =====>",
+        data?.data?.chatDeleted
+      );
+      const deletedChatId = data?.data?.chatDeleted;
+      if (!deletedChatId) return;
 
       client.cache.updateQuery({ query: GET_ALL_CHATS }, (oldData) => {
         if (!oldData) return { chats: [] };
 
         return {
           chats: oldData.chats.filter(
-            (chat: any) => chat.id !== deletedChat.id
+            (chat: any) => Number(chat.id) !== Number(deletedChatId)
           ),
         };
       });
     },
   });
-
   // -------------------------
   const handleDeleteChat = async (id: number) => {
     try {
       const { data } = await deleteChat({ variables: { id } });
-      client.resetStore();
+      // client.resetStore();
       console.log("<=====🟢 MUTATION deleteChat   =====>", data);
     } catch (err) {
       console.error("Mutation error:", err);
@@ -195,31 +192,34 @@ export default function Users() {
       ) : (
         <UsersList users={queryData?.users ?? []} />
       )}
-      <div className="mt-10">
-        <h2 className="text-xl font-bold mb-2">📢 All Chats:</h2>
-        {allChatsData?.chats?.length === 0 && <p>No chats found</p>}
-        {allChatsData?.chats?.map((chat: any) => (
-          <div key={chat.id} className="p-2 mb-2 border rounded bg-white">
-            <p>
-              🗣 <strong>{chat.creator.name}</strong> ↔{" "}
-              <strong>{chat.participant.name}</strong>
-            </p>
-            <p className="text-sm text-gray-500">
-              🕒
-              {transformData(chat.createdAt)}
-            </p>
-            <button onClick={() => handleDeleteChat(chat.id)}>
-              <Image
-                src="/svg/cross.svg"
-                alt="delete"
-                width={20}
-                height={20}
-                className="cursor-pointer bg-white p-1 hover:border hover:border-red-500 rounded-md transition-all duration-200"
-              />
-            </button>
-          </div>
-        ))}
-      </div>
+      {user && (
+        <div className="mt-10">
+          <h2 className="text-xl font-bold mb-2">📢 All Chats:</h2>
+          {allChatsData?.chats?.length === 0 && <p>No chats found</p>}
+          {allChatsData?.chats?.map((chat: any) => (
+            <div key={chat.id} className="p-2 mb-2 border rounded bg-white">
+              <p>
+                🗣 <strong>{chat.creator.name}</strong> ↔{" "}
+                <strong>{chat.participant.name}</strong>
+              </p>
+              <p className="text-sm text-gray-500">
+                🕒
+                {transformData(chat.createdAt)}
+              </p>
+              <p>id: {chat.id}</p>
+              <button onClick={() => handleDeleteChat(chat.id)}>
+                <Image
+                  src="/svg/cross.svg"
+                  alt="delete"
+                  width={20}
+                  height={20}
+                  className="cursor-pointer bg-white p-1 hover:border hover:border-red-500 rounded-md transition-all duration-200"
+                />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

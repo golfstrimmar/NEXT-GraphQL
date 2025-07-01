@@ -93,11 +93,18 @@ const UsersList = ({ users }: Props) => {
     handleCreateChat: (id: number) => void,
     userName: string
   ) => {
+    console.log(
+      "<====userId, currentUserId, chats,userName====>",
+      userId,
+      currentUserId,
+      chats,
+      userName
+    );
+    console.log("<====allChatsData?.allChats====>", allChatsData?.allChats);
     const hasChat = chats?.some(
       (c) =>
         Number(c.creator.id) === userId || Number(c.participant.id) === userId
     );
-
     if (userId === currentUserId || hasChat || !currentUserId) return null;
 
     return (
@@ -140,7 +147,7 @@ const UsersList = ({ users }: Props) => {
             {renderCreateChatButton(
               foo.id,
               user?.id,
-              allChatsData?.allChats,
+              allChatsData?.chats,
               handleCreateChat,
               foo.name
             )}

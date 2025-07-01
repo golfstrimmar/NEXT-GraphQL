@@ -77,23 +77,7 @@ export const CREATE_CHAT = gql`
 `;
 
 export const DELETE_CHAT = gql`
-  mutation deleteChat($chatId: Int!) {
-    deleteChat(chatId: $chatId) {
-      id
-    }
+  mutation deleteChat($id: Int!) {
+    deleteChat(id: $id)
   }
 `;
-
-// export const SEND_MESSAGE = gql`
-//   mutation senDMessage($chatId: ID!, $content: String!) {
-//     sendMessage(chatId: $chatId, content: $content) {
-//       ide
-//       content
-//       createdAt
-//       sender {
-//         id
-//         name
-//       }
-//     }
-//   }
-// `;

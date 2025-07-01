@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 
 export const USER_CREATED_SUBSCRIPTION = gql`
-  subscription {
+  subscription userCreated {
     userCreated {
       id
       email
@@ -12,7 +12,7 @@ export const USER_CREATED_SUBSCRIPTION = gql`
 `;
 
 export const USER_LOGIN_SUBSCRIPTION = gql`
-  subscription {
+  subscription userLogin {
     userLogin {
       id
       email
@@ -34,7 +34,7 @@ export const USER_LOGGEDOUT_SUBSCRIPTION = gql`
 `;
 
 export const USER_DELETED_SUBSCRIPTION = gql`
-  subscription {
+  subscription userDeleted {
     userDeleted {
       id
       email
@@ -45,7 +45,7 @@ export const USER_DELETED_SUBSCRIPTION = gql`
 `;
 
 export const MESSAGE_SENT_SUBSCRIPTION = gql`
-  subscription ($chatId: ID!) {
+  subscription messageSent($chatId: ID!) {
     messageSent(chatId: $chatId) {
       id
       content
@@ -57,8 +57,6 @@ export const MESSAGE_SENT_SUBSCRIPTION = gql`
     }
   }
 `;
-
-
 
 export const CHAT_CREATED_SUBSCRIPTION = gql`
   subscription chatCreated {
@@ -75,22 +73,12 @@ export const CHAT_CREATED_SUBSCRIPTION = gql`
         email
         name
       }
-      messages {
-        id
-        content
-        createdAt
-        sender {
-          id
-          name
-        }
-      }
     }
   }
 `;
+
 export const CHAT_DELETED_SUBSCRIPTION = gql`
   subscription chatDeleted {
-    chatDeleted {
-      id
-    }
+    chatDeleted
   }
 `;
