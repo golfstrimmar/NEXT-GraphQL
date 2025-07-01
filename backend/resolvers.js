@@ -279,12 +279,18 @@ const resolvers = {
         throw new Error("You do not have permission to delete this chat");
       }
 
+      await prisma.message.deleteMany({
+        where: { chatId: id },
+      });
+
       await prisma.chat.delete({ where: { id } });
+
       console.log("To subscribe deleteChat 🟢-->", id);
       pubsub.publish("CHAT_DELETED", { chatDeleted: id });
 
       return id;
     },
+
     sendMessage: async (_, { chatId, text }, { userId }) => {
       if (!userId) throw new Error("Not authenticated");
 
@@ -309,7 +315,7 @@ const resolvers = {
         },
       });
 
-      pubsub.publish(`${MESSAGE_SENT}_${chatId}`, {
+      pubsub.publish(MESSAGE_SENT, {
         messageSent: message,
       });
 
@@ -337,10 +343,7 @@ const resolvers = {
       subscribe: () => pubsub.asyncIterator("CHAT_DELETED"),
     },
     messageSent: {
-      subscribe: (_, { chatId }, { userId }) => {
-        if (!userId) throw new Error("Not authenticated");
-        return pubsub.asyncIterator(`${MESSAGE_SENT}_${chatId}`);
-      },
+      subscribe: () => pubsub.asyncIterator(MESSAGE_SENT),
     },
   },
   Chat: {

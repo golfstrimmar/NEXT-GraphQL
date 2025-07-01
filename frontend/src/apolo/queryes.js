@@ -25,6 +25,14 @@ export const GET_ALL_CHATS = gql`
         id
         name
       }
+      messages {
+        id
+        text
+        sender {
+          id
+          name
+        }
+      }
     }
   }
 `;

@@ -71,11 +71,14 @@ export const CHAT_DELETED_SUBSCRIPTION = gql`
 `;
 
 export const MESSAGE_SENT_SUBSCRIPTION = gql`
-  subscription messageSent($chatId: ID!) {
-    messageSent(chatId: $chatId) {
+  subscription {
+    messageSent {
       id
       text
       createdAt
+      chat {
+        id
+      }
       sender {
         id
         name

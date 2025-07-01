@@ -19,7 +19,7 @@ const WS_URI = "ws://localhost:4000/graphql";
 const protectedOperations = [
   "logoutUser",
   "createChat",
-  // "chatCreated",
+  "sendMessage",
   "deleteChat",
   // "chatDeleted",
 ];

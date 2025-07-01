@@ -6,7 +6,7 @@ import Burger from "../ui/Burger/Burger";
 import styles from "./Navbar.module.scss";
 import { useRouter, usePathname } from "next/navigation";
 import { useMutation } from "@apollo/client";
-import useHasMounted from "@/app/hooks/useHasMounted";
+import useHasMounted from "@/hooks/useHasMounted";
 import { LOGOUT_USER } from "@/apolo/mutations";
 import { useStateContext } from "@/components/StateProvider";
 import { User } from "@/types/user";

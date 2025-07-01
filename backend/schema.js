@@ -67,7 +67,7 @@ type Subscription {
   userDeleted: User
   chatCreated: Chat
   chatDeleted: ID!
-  messageSent(chatId: Int!): Message!
+  messageSent: Message!
 }
 
 

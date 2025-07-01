@@ -1,79 +1,81 @@
 "use client";
-
-import { useState, useEffect } from "react";
-import { gql, useQuery, useMutation, useSubscription } from "@apollo/client";
-import { useSelector } from "react-redux";
-import dynamic from "next/dynamic";
-import Button from "@/components/ui/Button/Button";
+import React, { useState, useEffect } from "react";
+import styles from "./Chats.module.scss";
+import { useQuery, useMutation } from "@apollo/client";
+import { GET_ALL_CHATS } from "@/apolo/queryes";
+import { DELETE_CHAT, SEND_MESSAGE } from "@/apolo/mutations";
+import { useStateContext } from "@/components/StateProvider";
+import transformData from "@/hooks/useTransformData";
 import Image from "next/image";
-import { div } from "framer-motion/m";
-import {
-  GET_CHATS,
-  CREATE_CHAT,
-  CHAT_CREATED_SUBSCRIPTION,
-  SEND_MESSAGE,
-  MESSAGE_SENT_SUBSCRIPTION,
-} from "@/apolo/apolo";
-const ModalMessage = dynamic(
-  () => import("@/components/ModalMessage/ModalMessage"),
-  {
-    ssr: false,
-  }
-);
+import Input from "@/components/ui/Input/Input";
+import ModalMessage from "@/components/ModalMessage/ModalMessage";
+import useUserChatSubscriptions from "@/hooks/useUserChatSubscriptions";
 
-export default function Chats() {
-  const users = useSelector(
-    (state: { auth: { users: any[] } }) => state.auth.users
-  );
-  const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
-  const [messageContent, setMessageContent] = useState("");
-  const [participantId, setParticipantId] = useState("");
-  const user = useSelector((state: { auth: { user: any } }) => state.auth.user);
+type ChatType = {
+  id: number;
+  createdAt: string;
+  creator: { id: number; name: string };
+  participant: { id: number; name: string };
+  messages: {
+    id: number;
+    text: string;
+    sender: { id: number; name: string };
+  }[];
+};
 
-  const { data, loading, error, refetch } = useQuery(GET_CHATS, {
-    ssr: false,
-    skip: !user?.id, // Пропускаем если нет пользователя
-  });
+const Chats = () => {
+  const { user } = useStateContext();
+  const { data: allChatsData } = useQuery<{ chats: ChatType[] }>(GET_ALL_CHATS);
+  const [deleteChat] = useMutation(DELETE_CHAT);
+  const [sendMessage] = useMutation(SEND_MESSAGE);
 
-  const [errorMessage, setErrorMessage] = useState<string>("");
-  const [createChat, { loading: createChatLoading }] = useMutation(CREATE_CHAT);
-  const [sendMessage, { loading: sendMessageLoading }] =
-    useMutation(SEND_MESSAGE);
-  const shouldSubscribe = Boolean(selectedChatId && !loading);
+  useUserChatSubscriptions();
 
-  const { data: subscriptionData } = useSubscription(
-    MESSAGE_SENT_SUBSCRIPTION,
-    {
-      variables: { chatId: selectedChatId?.toString() },
-      skip: !selectedChatId || !user?.id,
-    }
-  );
-  const { data: chatCreatedData } = useSubscription(CHAT_CREATED_SUBSCRIPTION, {
-    skip: !user?.id,
-  });
+  const [texts, setTexts] = useState<Record<number, string>>({});
+
   const [successMessage, setSuccessMessage] = useState<string>("");
   const [openModalMessage, setOpenModalMessage] = useState<boolean>(false);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
-  console.log("📡 useSubscription CALLED for chatId =", selectedChatId);
-  const [messages, setMessages] = useState<any[]>([]);
+  // -----------------
 
-  const selectedChat = data?.chats.find(
-    (chat: any) => Number(chat.id) === selectedChatId
-  );
+  useEffect(() => {
+    if (allChatsData?.chats) {
+      console.log("<==== allChatsData?.chats====>", allChatsData?.chats);
+    }
+  }, [allChatsData?.chats]);
+  // -----------------
+  const handleDeleteChat = async (id: number) => {
+    try {
+      const { data } = await deleteChat({ variables: { id } });
+      console.log("<=====🟢 MUTATION deleteChat   =====>", data);
+    } catch (err) {
+      console.error("Mutation error:", err);
+      showModal("Failed to delete chat");
+    }
+  };
 
-  // const getOtherUser = () => {
-  //   let otherUser = null;
-  //   if (selectedChat) {
-  //     otherUser =
-  //       Number(selectedChat.creator.id) === user?.id
-  //         ? selectedChat.participant
-  //         : selectedChat.creator;
-  //   }
-  //   return otherUser;
-  // };
+  // -----------------
+  const handleSendMessage = async (
+    e: React.FormEvent<HTMLFormElement>,
+    chatID: number
+  ) => {
+    e.preventDefault();
+    const messageText = texts[chatID] || "";
+    if (!messageText.trim()) {
+      showModal("Text is required!");
+      return;
+    }
+    try {
+      await sendMessage({ variables: { chatId: chatID, text: messageText } });
+      setTexts((prev) => ({ ...prev, [chatID]: "" }));
+    } catch (err) {
+      console.error("Mutation error:", err);
+      showModal("Failed to send message");
+    }
+  };
 
-  // ------------------------------------------------
+  // -----------------
   const showModal = (message: string) => {
     setSuccessMessage(message);
     setOpenModalMessage(true);
@@ -81,227 +83,88 @@ export default function Chats() {
     setTimeout(() => {
       setOpenModalMessage(false);
       setSuccessMessage("");
-      return;
+      setIsModalVisible(false);
     }, 2000);
   };
-  // ------------------------------------------------
 
-  useEffect(() => {
-    if (users) {
-      console.log("<==== users====>", users);
-    }
-  }, [users]);
-
-  useEffect(() => {
-    if (chatCreatedData?.chatCreated) {
-      console.log("📥 New chat created:", chatCreatedData.chatCreated);
-      refetch();
-      // Опционально: автоматически выбираем новый чат
-      setSelectedChatId(Number(chatCreatedData.chatCreated.id));
-    }
-  }, [chatCreatedData, refetch]);
-
-  useEffect(() => {
-    if (subscriptionData?.messageSent) {
-      setMessages((prev) => [...prev, subscriptionData.messageSent]);
-    }
-  }, [subscriptionData]);
-  useEffect(() => {
-    if (data) {
-      console.log("<==== chats ====>", data.chats);
-    }
-    if (error && error.message === "Unexpected error.") {
-      showModal("For get chats you need to be logged in.");
-    }
-  }, [data, error]);
-
-  useEffect(() => {
-    if (selectedChatId && data?.chats) {
-      const chat = data.chats.find((c: any) => Number(c.id) === selectedChatId);
-      if (chat) setMessages(chat.messages || []);
-    }
-  }, [selectedChatId, data]);
-
-  const handleCreateChat = async (participantId: string) => {
-    try {
-      const { data } = await createChat({ variables: { participantId } });
-      setSelectedChatId(Number(data?.createChat.id));
-    } catch (err) {
-      console.error("Create chat error:", err);
-      showModal("Chat already exists.");
-    }
-  };
-
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedChatId || !messageContent.trim()) {
-      showModal("Please fill in all fields.");
-      return;
-    }
-    try {
-      await sendMessage({
-        variables: { chatId: selectedChatId, content: messageContent },
-      });
-      setMessageContent("");
-    } catch (err) {
-      console.error("Send message error:", err);
-      showModal("Failed to send message.");
-    }
-  };
-  // --------------window---------------------
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (target.closest(".chat") || target.closest(".chat-form")) {
-        console.log(
-          "<==== target =======>",
-          target.closest(".chat-container") || target.closest(".chat-form")
-        );
-      }
-
-      if (!target.closest(".chat-form") && !target.closest(".chat")) {
-        setSelectedChatId(null);
-      }
-    };
-
-    window.addEventListener("click", handleClickOutside);
-    return () => {
-      window.removeEventListener("click", handleClickOutside);
-    };
-  }, []);
-  // -----------
-  const currentUsers = () => {
-    const CU = users
-      .filter((u) => u.id !== user.id)
-      .filter(
-        (u) =>
-          !data.chats?.some((c: any) => Number(c.creator.id) === u.id) &&
-          !data.chats?.some((c: any) => Number(c.participant.id) === u.id)
-      );
-    return (
-      <>
-        {CU.length > 0 && (
-          <h2 className="text-lg font-semibold">Start chat with:</h2>
-        )}
-        <div className="flex flex-wrap gap-2">
-          {CU.map((u) => (
-            <div key={u.id}>
-              {/* <p>{u.id}</p> */}
-              <Button onClick={() => handleCreateChat(u.id)}>
-                {u.name || u.email}
-              </Button>
-            </div>
-          ))}
-        </div>
-      </>
-    );
-  };
-  // -----------
-  if (error) return <p className="text-red-500 text-l mt-4">{errorMessage}</p>;
+  if (!user) return <p>Please log in to see your chats.</p>;
 
   return (
-    <div className=" h-screen mt-2">
+    <div className="mt-10">
       {isModalVisible && (
         <ModalMessage message={successMessage} open={openModalMessage} />
       )}
-      <div className="">
-        {loading && (
-          <div className="relative w-10 h-10">
-            <div className="absolute inset-0 rounded-full border-4 border-gray-300 animate-spin"></div>
-            <div className="absolute inset-1 rounded-full border-4 border-blue-500 border-t-transparent animate-spin-slower"></div>
-          </div>
-        )}
-        <h1 className="text-2xl font-bold mb-4">Chats for user: {user.name}</h1>
-        <div className="mb-4">{currentUsers()}</div>
-        <h2 className="text-lg font-semibold">Your chats with:</h2>
-        <div className="chat-container">
-          {data?.chats.map((chat: any) => (
-            <div
-              key={chat.id}
-              onClick={() => {
-                if (selectedChatId !== Number(chat.id)) {
-                  setSelectedChatId(Number(chat.id));
-                } else {
-                  setSelectedChatId(null);
-                }
-              }}
-              className={`chat px-2 inline-flex gap-2 mr-2 justify-between items-center transition-all duration-300   border rounded-2xl  mb-2 cursor-pointer ${
-                selectedChatId === Number(chat.id) ? "bg-lime-400" : ""
-              }`}
-            >
-              <p>
-                {Number(chat.creator.id) === user?.id
-                  ? chat.participant.name || chat.participant.email
-                  : chat.creator.name || chat.creator.email}
-              </p>
 
-              <Image src="/svg/click.svg" alt="click" width={15} height={15} />
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="chat-form">
-        {selectedChatId ? (
-          <>
-            <p className="text-[12px] text-gray-400">
-              Chat created: {new Date(selectedChat?.createdAt).toLocaleString()}
+      <h2 className="mb-2">Your Chats:</h2>
+
+      {allChatsData?.chats?.length === 0 && <p>No chats found</p>}
+
+      {allChatsData?.chats
+        ?.filter(
+          (chat) =>
+            chat.creator.id === user?.id || chat.participant.id === user?.id
+        )
+        .map((chat) => (
+          <div key={chat.id} className="p-2 mb-2 border rounded bg-white">
+            <p>
+              📢 <strong>{chat.creator.name}</strong> ↔{" "}
+              <strong>{chat.participant.name}</strong>
             </p>
-            <div className=" border p-4 mb-4">
-              {messages.map((message: any) => (
-                <div
-                  key={message.id}
-                  className={` mb-2 grid grid-cols-[max-content_1fr] gap-2 p-1 bg-gray-100 ${
-                    message.sender.id === user?.id ? "text-right" : "text-left"
-                  }`}
-                >
-                  <div>
-                    <p
-                      className={`inline-block px-2 rounded text-[14px] text-bold ${
-                        message.sender.name === user?.name
-                          ? "bg-blue-400"
-                          : "bg-lime-400"
-                      }`}
-                    >
-                      {message.sender.name}
-                    </p>
+            <p className="text-sm text-gray-500">
+              🕒 {transformData(chat.createdAt)}
+            </p>
+            <p>id: {chat.id}</p>
+            <button onClick={() => handleDeleteChat(chat.id)} type="button">
+              <Image
+                src="/svg/cross.svg"
+                alt="delete"
+                width={20}
+                height={20}
+                className="cursor-pointer bg-white p-1 border hover:border-red-500 rounded-md transition-all duration-200"
+              />
+            </button>
 
-                    <p className="text-[10px] px-2 text-gray-500">
-                      {new Date(message.createdAt).toLocaleString()}
-                    </p>
-                  </div>
-                  <p className="inline-block px-2 bg-white rounded border border-gray-300 ">
-                    {message.content}
-                  </p>
-                </div>
-              ))}
-            </div>
-            <form onSubmit={handleSendMessage} className="relative">
-              <input
-                type="text"
-                placeholder="Type new message..."
-                value={messageContent}
-                onChange={(e) => setMessageContent(e.target.value)}
-                className="w-full p-2 border rounded "
-                required
+            <ul className="flex flex-col">
+              {chat.messages &&
+                chat.messages?.map((message) => (
+                  <li key={message.id}>
+                    <span className="font-bold">{message.sender.name}:</span>{" "}
+                    {message.text}
+                  </li>
+                ))}
+            </ul>
+
+            <form
+              className="mt-2 relative"
+              onSubmit={(e) => handleSendMessage(e, chat.id)}
+            >
+              <Input
+                typeInput="text"
+                data="Write a message..."
+                value={texts[chat.id] || ""}
+                onChange={(e) =>
+                  setTexts((prev) => ({
+                    ...prev,
+                    [chat.id]: e.target.value,
+                  }))
+                }
               />
               <button
                 type="submit"
-                disabled={sendMessageLoading}
-                className="cursor-pointer absolute z-20 right-2 top-1/2 -translate-y-1/2"
+                className="cursor-pointer absolute right-2 top-1/2 transform -translate-y-1/2 z-10 p-1 border hover:border-blue-500 rounded-md transition-all duration-200"
               >
                 <Image
                   src="/svg/envelope.svg"
                   alt="send"
-                  width={25}
-                  height={25}
+                  width={20}
+                  height={20}
                 />
               </button>
             </form>
-          </>
-        ) : (
-          <p>Select a chat to view messages</p>
-        )}
-      </div>
+          </div>
+        ))}
     </div>
   );
-}
+};
+
+export default Chats;
