@@ -1,3 +1,4 @@
+// graphql/mutations.js
 import { gql } from "@apollo/client";
 
 export const ADD_USER = gql`
@@ -32,6 +33,7 @@ export const SET_PASSWORD = gql`
     }
   }
 `;
+
 export const LOGOUT_USER = gql`
   mutation logoutUser {
     logoutUser
@@ -79,5 +81,22 @@ export const CREATE_CHAT = gql`
 export const DELETE_CHAT = gql`
   mutation deleteChat($id: Int!) {
     deleteChat(id: $id)
+  }
+`;
+
+export const SEND_MESSAGE = gql`
+  mutation sendMessage($chatId: Int!, $text: String!) {
+    sendMessage(chatId: $chatId, text: $text) {
+      id
+      text
+      createdAt
+      sender {
+        id
+        name
+      }
+      chat {
+        id
+      }
+    }
   }
 `;

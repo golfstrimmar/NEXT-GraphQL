@@ -19,6 +19,7 @@ const USER_DELETED = "USER_DELETED";
 const USER_LOGGEDIN = "USER_LOGGEDIN";
 const USER_LOGGEDOUT = "USER_LOGGEDOUT";
 const CHAT_CREATED = "CHAT_CREATED";
+const MESSAGE_SENT = "MESSAGE_SENT";
 
 const SALT_ROUNDS = 10;
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_here";
@@ -37,6 +38,27 @@ const resolvers = {
         orderBy: {
           createdAt: "desc",
         },
+      });
+    },
+    messages: async (_, { chatId }, { userId }) => {
+      if (!userId) throw new Error("Not authenticated");
+
+      // Проверка доступа к чату
+      const chat = await prisma.chat.findUnique({
+        where: { id: chatId },
+      });
+
+      if (
+        !chat ||
+        (chat.creatorId !== userId && chat.participantId !== userId)
+      ) {
+        throw new Error("Access denied to chat messages");
+      }
+
+      return await prisma.message.findMany({
+        where: { chatId },
+        orderBy: { createdAt: "asc" },
+        include: { sender: true, chat: true },
       });
     },
   },
@@ -263,6 +285,36 @@ const resolvers = {
 
       return id;
     },
+    sendMessage: async (_, { chatId, text }, { userId }) => {
+      if (!userId) throw new Error("Not authenticated");
+
+      const chat = await prisma.chat.findUnique({ where: { id: chatId } });
+
+      if (
+        !chat ||
+        (chat.creatorId !== userId && chat.participantId !== userId)
+      ) {
+        throw new Error("Access denied");
+      }
+
+      const message = await prisma.message.create({
+        data: {
+          text,
+          senderId: userId,
+          chatId,
+        },
+        include: {
+          sender: true,
+          chat: true,
+        },
+      });
+
+      pubsub.publish(`${MESSAGE_SENT}_${chatId}`, {
+        messageSent: message,
+      });
+
+      return message;
+    },
   },
 
   Subscription: {
@@ -283,6 +335,21 @@ const resolvers = {
     },
     chatDeleted: {
       subscribe: () => pubsub.asyncIterator("CHAT_DELETED"),
+    },
+    messageSent: {
+      subscribe: (_, { chatId }, { userId }) => {
+        if (!userId) throw new Error("Not authenticated");
+        return pubsub.asyncIterator(`${MESSAGE_SENT}_${chatId}`);
+      },
+    },
+  },
+  Chat: {
+    messages: async (parent) => {
+      return await prisma.message.findMany({
+        where: { chatId: parent.id },
+        orderBy: { createdAt: "asc" },
+        include: { sender: true },
+      });
     },
   },
 };

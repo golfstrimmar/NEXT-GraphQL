@@ -5,8 +5,8 @@ import { client } from "@/apolo/apolloClient";
 import Image from "next/image";
 
 import { useSubscription, useQuery, useMutation } from "@apollo/client";
-import { GET_USERS, GET_ALL_CHATS } from "@/apolo/queryes";
-import { LOGOUT_USER, DELETE_CHAT } from "@/apolo/mutations";
+import { GET_USERS, GET_ALL_CHATS, GET_MESSAGES } from "@/apolo/queryes";
+import { LOGOUT_USER, DELETE_CHAT, CREATE_MESSAGE } from "@/apolo/mutations";
 import {
   USER_CREATED_SUBSCRIPTION,
   USER_DELETED_SUBSCRIPTION,
@@ -14,6 +14,7 @@ import {
   USER_LOGGEDOUT_SUBSCRIPTION,
   CHAT_CREATED_SUBSCRIPTION,
   CHAT_DELETED_SUBSCRIPTION,
+  MESSAGE_CREATED_SUBSCRIPTION,
 } from "@/apolo/subscriptions";
 
 import { useStateContext } from "@/components/StateProvider";
@@ -48,6 +49,7 @@ export default function Users() {
       handleActivity();
     }
   }, []);
+
   // ⬇️ Подписка: добавление пользователя
   useSubscription(USER_CREATED_SUBSCRIPTION, {
     onData: ({ client, data }) => {
@@ -169,6 +171,26 @@ export default function Users() {
       });
     },
   });
+  // ⬇️ Подписка на новые сообщения
+  // useSubscription(MESSAGE_CREATED_SUBSCRIPTION, {
+  //   variables: { chatId },
+  //   onData: ({ client, data }) => {
+  //     const newMessage = data?.data?.messageCreated;
+  //     if (!newMessage) return;
+  //     client.cache.updateQuery(
+  //       { query: GET_MESSAGES, variables: { chatId } },
+  //       (oldData: any) => {
+  //         if (!oldData) return { messages: [newMessage] };
+  //         const exists = oldData.messages.some(
+  //           (m: any) => m.id === newMessage.id
+  //         );
+  //         if (exists) return oldData;
+  //         return { messages: [...oldData.messages, newMessage] };
+  //       }
+  //     );
+  //   },
+  // });
+
   // -------------------------
   const handleDeleteChat = async (id: number) => {
     try {
@@ -179,7 +201,79 @@ export default function Users() {
       console.error("Mutation error:", err);
     }
   };
+  // function ChatMessages({ chatId }: { chatId: number }) {
+  //   const { data, loading } = useQuery(GET_MESSAGES, { variables: { chatId } });
+  //   const [createMessage] = useMutation(CREATE_MESSAGE);
+  //   const [messageText, setMessageText] = useState("");
 
+  //   // Подписка на новые сообщения
+  //   useSubscription(MESSAGE_CREATED_SUBSCRIPTION, {
+  //     variables: { chatId },
+  //     onData: ({ client, data }) => {
+  //       const newMessage = data?.data?.messageCreated;
+  //       if (!newMessage) return;
+  //       client.cache.updateQuery(
+  //         { query: GET_MESSAGES, variables: { chatId } },
+  //         (oldData: any) => {
+  //           if (!oldData) return { messages: [newMessage] };
+  //           const exists = oldData.messages.some(
+  //             (m: any) => m.id === newMessage.id
+  //           );
+  //           if (exists) return oldData;
+  //           return { messages: [...oldData.messages, newMessage] };
+  //         }
+  //       );
+  //     },
+  //   });
+
+  //   const handleSendMessage = async (e: React.FormEvent) => {
+  //     e.preventDefault();
+  //     if (!messageText.trim()) return;
+
+  //     try {
+  //       await createMessage({ variables: { chatId, text: messageText } });
+  //       setMessageText("");
+  //     } catch (err) {
+  //       console.error("Error sending message:", err);
+  //     }
+  //   };
+
+  //   if (loading) return <p>Loading messages...</p>;
+
+  //   return (
+  //     <div className="mt-2 border-t pt-2">
+  //       <div className="max-h-40 overflow-y-auto mb-2">
+  //         {data?.messages?.length === 0 && <p>No messages yet</p>}
+  //         {data?.messages?.map((msg: any) => (
+  //           <div key={msg.id} className="mb-1">
+  //             <strong>{msg.sender.name}: </strong>
+  //             <span>{msg.text}</span>
+  //             <span className="text-xs text-gray-400 ml-2">
+  //               {transformData(msg.createdAt)}
+  //             </span>
+  //           </div>
+  //         ))}
+  //       </div>
+  //       <form onSubmit={handleSendMessage} className="flex gap-2">
+  //         <input
+  //           type="text"
+  //           value={messageText}
+  //           onChange={(e) => setMessageText(e.target.value)}
+  //           placeholder="Type your message..."
+  //           className="flex-grow border rounded p-1"
+  //         />
+  //         <button
+  //           type="submit"
+  //           className="bg-blue-500 text-white px-3 rounded hover:bg-blue-600"
+  //         >
+  //           Send
+  //         </button>
+  //       </form>
+  //     </div>
+  //   );
+  // }
+  // -------------------------
+  if (loading) return <p>Loading messages...</p>;
   return (
     <div className="mt-[100px] p-4">
       <h1 className="text-2xl font-bold mb-4">Users:</h1>
@@ -196,28 +290,33 @@ export default function Users() {
         <div className="mt-10">
           <h2 className="text-xl font-bold mb-2">📢 All Chats:</h2>
           {allChatsData?.chats?.length === 0 && <p>No chats found</p>}
-          {allChatsData?.chats?.map((chat: any) => (
-            <div key={chat.id} className="p-2 mb-2 border rounded bg-white">
-              <p>
-                🗣 <strong>{chat.creator.name}</strong> ↔{" "}
-                <strong>{chat.participant.name}</strong>
-              </p>
-              <p className="text-sm text-gray-500">
-                🕒
-                {transformData(chat.createdAt)}
-              </p>
-              <p>id: {chat.id}</p>
-              <button onClick={() => handleDeleteChat(chat.id)}>
-                <Image
-                  src="/svg/cross.svg"
-                  alt="delete"
-                  width={20}
-                  height={20}
-                  className="cursor-pointer bg-white p-1 hover:border hover:border-red-500 rounded-md transition-all duration-200"
-                />
-              </button>
-            </div>
-          ))}
+          {allChatsData?.chats
+            ?.filter(
+              (chat: any) =>
+                chat.creator.id === user?.id || chat.participant.id === user?.id
+            )
+            .map((chat: any) => (
+              <div key={chat.id} className="p-2 mb-2 border rounded bg-white">
+                <p>
+                  🗣 <strong>{chat.creator.name}</strong> ↔{" "}
+                  <strong>{chat.participant.name}</strong>
+                </p>
+                <p className="text-sm text-gray-500">
+                  🕒
+                  {transformData(chat.createdAt)}
+                </p>
+                <p>id: {chat.id}</p>
+                <button onClick={() => handleDeleteChat(chat.id)}>
+                  <Image
+                    src="/svg/cross.svg"
+                    alt="delete"
+                    width={20}
+                    height={20}
+                    className="cursor-pointer bg-white p-1 hover:border hover:border-red-500 rounded-md transition-all duration-200"
+                  />
+                </button>
+              </div>
+            ))}
         </div>
       )}
     </div>

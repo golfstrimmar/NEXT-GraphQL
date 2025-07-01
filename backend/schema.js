@@ -14,13 +14,24 @@ type Chat {
   createdAt: String
   creator: User!
   participant: User!
+  messages: [Message!]!
 }
+
+type Message {
+  id: Int!
+  text: String!
+  sender: User!
+  chat: Chat!
+  createdAt: String!
+}
+
 
 
 
 type Query {
   users: [User]
   chats: [Chat!]!
+  messages(chatId: Int!): [Message!]!
 }
 
 type AuthPayload {
@@ -46,6 +57,7 @@ type Mutation {
   deleteUser(id: Int!): User
   createChat(participantId: Int!): Chat!
   deleteChat(id: Int!): ID!
+  sendMessage(chatId: Int!, text: String!): Message!
 }
 
 type Subscription {
@@ -55,6 +67,7 @@ type Subscription {
   userDeleted: User
   chatCreated: Chat
   chatDeleted: ID!
+  messageSent(chatId: Int!): Message!
 }
 
 

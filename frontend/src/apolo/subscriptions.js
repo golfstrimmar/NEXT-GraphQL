@@ -1,3 +1,4 @@
+// graphql/subscriptions.js
 import { gql } from "@apollo/client";
 
 export const USER_CREATED_SUBSCRIPTION = gql`
@@ -44,20 +45,6 @@ export const USER_DELETED_SUBSCRIPTION = gql`
   }
 `;
 
-export const MESSAGE_SENT_SUBSCRIPTION = gql`
-  subscription messageSent($chatId: ID!) {
-    messageSent(chatId: $chatId) {
-      id
-      content
-      createdAt
-      sender {
-        id
-        name
-      }
-    }
-  }
-`;
-
 export const CHAT_CREATED_SUBSCRIPTION = gql`
   subscription chatCreated {
     chatCreated {
@@ -80,5 +67,19 @@ export const CHAT_CREATED_SUBSCRIPTION = gql`
 export const CHAT_DELETED_SUBSCRIPTION = gql`
   subscription chatDeleted {
     chatDeleted
+  }
+`;
+
+export const MESSAGE_SENT_SUBSCRIPTION = gql`
+  subscription messageSent($chatId: ID!) {
+    messageSent(chatId: $chatId) {
+      id
+      text
+      createdAt
+      sender {
+        id
+        name
+      }
+    }
   }
 `;
