@@ -59,8 +59,8 @@ const Blog = () => {
     }
   };
 
-  if (loading) return <p>Загрузка постов...</p>;
-  if (error) return <p>Ошибка загрузки постов.</p>;
+  // if (loading) return <p>Загрузка постов...</p>;
+  // if (error) return <p>Ошибка загрузки постов.</p>;
 
   return (
     <section className="mt-4  mx-auto">
