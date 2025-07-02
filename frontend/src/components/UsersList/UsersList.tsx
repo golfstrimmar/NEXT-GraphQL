@@ -7,6 +7,7 @@ import { DELETE_USER, CREATE_CHAT } from "@/apolo/mutations";
 import useUserChatSubscriptions from "@/hooks/useUserChatSubscriptions";
 import { useStateContext } from "@/components/StateProvider";
 import { GET_USERS, GET_ALL_CHATS } from "@/apolo/queryes";
+import Loading from "@/components/Loading";
 
 const UsersList = () => {
   const client = useApolloClient();
@@ -174,10 +175,7 @@ const UsersList = () => {
       {queryData?.users.length === 0 && <p>No users</p>}
       <h2 className=" mb-4">Users:</h2>
       {loading ? (
-        <div className="relative w-10 h-10">
-          <div className="absolute inset-0 rounded-full border-4 border-gray-300 animate-spin"></div>
-          <div className="absolute inset-1 rounded-full border-4 border-blue-500 border-t-transparent animate-spin-slower"></div>
-        </div>
+        <Loading />
       ) : (
         <ul className="flex flex-col gap-2">{userList}</ul>
       )}

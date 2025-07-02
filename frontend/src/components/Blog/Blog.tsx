@@ -50,7 +50,7 @@ const Blog = () => {
           category,
         },
       });
-      
+
       setText("");
       setCategory("");
     } catch (err) {
