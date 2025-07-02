@@ -21,7 +21,7 @@ const protectedOperations = [
   "createChat",
   "sendMessage",
   "deleteChat",
-  // "chatDeleted",
+  "addPost",
 ];
 
 // ✅ HTTP link

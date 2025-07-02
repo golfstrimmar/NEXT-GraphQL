@@ -13,6 +13,7 @@ import {
   CHAT_CREATED,
   CHAT_DELETED,
   MESSAGE_SENT,
+  POST_CREATED,
 } from "./../utils/pubsub.js";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
@@ -299,6 +300,24 @@ const Mutation = {
     });
 
     return message;
+  },
+  addPost: async (_, { text, category }, { userId }) => {
+    if (!userId) throw new Error("Not authenticated");
+
+    const post = await prisma.post.create({
+      data: {
+        text,
+        category,
+        creatorId: userId,
+      },
+      include: {
+        creator: true,
+      },
+    });
+
+    pubsub.publish(POST_CREATED, { postCreated: post });
+
+    return post;
   },
 };
 

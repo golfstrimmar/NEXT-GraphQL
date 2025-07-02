@@ -100,3 +100,17 @@ export const SEND_MESSAGE = gql`
     }
   }
 `;
+export const ADD_POST = gql`
+  mutation addPost($text: String!, $category: String!) {
+    addPost(text: $text, category: $category) {
+      id
+      text
+      category
+      createdAt
+      creator {
+        id
+        name
+      }
+    }
+  }
+`;

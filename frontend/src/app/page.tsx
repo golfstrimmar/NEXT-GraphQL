@@ -11,7 +11,7 @@ import UsersList from "@/components/UsersList/UsersList";
 import useIdleLogout from "@/hooks/useIdleLogout";
 import isTokenExpired from "@/utils/checkTokenExpiration";
 import Chats from "@/components/Chats/Chats";
-
+import Blog from "@/components/Blog/Blog";
 export default function Users() {
   const router = useRouter();
   const { user, setUser } = useStateContext();
@@ -53,6 +53,7 @@ export default function Users() {
       <div className="mt-[80px] w-full">
         <UsersList />
         <Chats />
+        <Blog />
       </div>
     </div>
   );

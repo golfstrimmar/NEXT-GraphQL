@@ -71,7 +71,7 @@ export const CHAT_DELETED_SUBSCRIPTION = gql`
 `;
 
 export const MESSAGE_SENT_SUBSCRIPTION = gql`
-  subscription {
+  subscription messageSent {
     messageSent {
       id
       text
@@ -80,6 +80,21 @@ export const MESSAGE_SENT_SUBSCRIPTION = gql`
         id
       }
       sender {
+        id
+        name
+      }
+    }
+  }
+`;
+
+export const POST_CREATED_SUBSCRIPTION = gql`
+  subscription postCreated {
+    postCreated {
+      id
+      text
+      category
+      createdAt
+      creator {
         id
         name
       }

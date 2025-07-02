@@ -35,6 +35,16 @@ const Query = {
       include: { sender: true, chat: true },
     });
   },
+  posts: async () => {
+    return await prisma.post.findMany({
+      include: {
+        creator: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  },
 };
 
 export default Query;

@@ -36,3 +36,19 @@ export const GET_ALL_CHATS = gql`
     }
   }
 `;
+
+
+export const GET_ALL_POSTS = gql`
+  query getAllPosts {
+    posts {
+      id
+      text
+      category
+      createdAt
+      creator {
+        id
+        name
+      }
+    }
+  }
+`;

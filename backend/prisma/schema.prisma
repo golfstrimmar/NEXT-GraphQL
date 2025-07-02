@@ -19,6 +19,7 @@ model User {
   createdChats Chat[]    @relation("ChatCreator")
   joinedChats  Chat[]    @relation("ChatParticipant")
   sentMessages Message[] @relation("SentMessages")
+  posts        Post[]    // добавляем связь с постами
 }
 
 model Chat {
@@ -32,7 +33,6 @@ model Chat {
   @@unique([creatorId, participantId])
 }
 
-
 model Message {
   id        Int      @id @default(autoincrement())
   text      String
@@ -41,4 +41,13 @@ model Message {
   chat      Chat     @relation("ChatMessages", fields: [chatId], references: [id])
   chatId    Int
   createdAt DateTime @default(now())
+}
+
+model Post {
+  id          Int      @id @default(autoincrement())
+  text        String
+  category    String
+  createdAt   DateTime @default(now())
+  creatorId   Int
+  creator     User     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
 }

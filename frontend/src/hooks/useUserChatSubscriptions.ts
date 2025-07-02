@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useSubscription, useQuery, useMutation } from "@apollo/client";
 import { gql } from "@apollo/client";
-import { GET_USERS, GET_ALL_CHATS, GET_MESSAGES } from "@/apolo/queryes";
+import { GET_USERS, GET_ALL_CHATS, GET_ALL_POSTS } from "@/apolo/queryes";
 import {
   USER_CREATED_SUBSCRIPTION,
   USER_DELETED_SUBSCRIPTION,
@@ -10,6 +10,7 @@ import {
   CHAT_CREATED_SUBSCRIPTION,
   CHAT_DELETED_SUBSCRIPTION,
   MESSAGE_SENT_SUBSCRIPTION,
+  POST_CREATED_SUBSCRIPTION,
 } from "@/apolo/subscriptions";
 
 import { useStateContext } from "@/components/StateProvider";
@@ -155,6 +156,7 @@ export default function useUserChatSubscriptions(chatIds?: number[]) {
       });
     },
   });
+  // ⬇️ Подписка: отправка сообщения в чат
   useSubscription(MESSAGE_SENT_SUBSCRIPTION, {
     onData: ({ client, data }) => {
       const newMessage = data?.data?.messageSent;
@@ -197,6 +199,26 @@ export default function useUserChatSubscriptions(chatIds?: number[]) {
             return [...existingMessages, newMessageRef];
           },
         },
+      });
+    },
+  });
+  useSubscription(POST_CREATED_SUBSCRIPTION, {
+    onData: ({ client, data }) => {
+      const newPost = data?.data?.postCreated;
+      if (!newPost) return;
+      console.log("<===== 📝 Subscribed to POST_CREATED: =====>", newPost);
+
+      client.cache.updateQuery({ query: GET_ALL_POSTS }, (oldData) => {
+        if (!oldData || !oldData.posts) {
+          return { posts: [newPost] };
+        }
+
+        const exists = oldData.posts.some((p: any) => p.id === newPost.id);
+        if (exists) return oldData;
+
+        return {
+          posts: [newPost, ...oldData.posts],
+        };
       });
     },
   });

@@ -7,6 +7,7 @@ import {
   CHAT_CREATED,
   CHAT_DELETED,
   MESSAGE_SENT,
+  POST_CREATED,
 } from "./../utils/pubsub.js";
 
 const Subscription = {
@@ -30,6 +31,9 @@ const Subscription = {
   },
   messageSent: {
     subscribe: () => pubsub.asyncIterator(MESSAGE_SENT),
+  },
+  postCreated: {
+    subscribe: () => pubsub.asyncIterator(POST_CREATED),
   },
 };
 
