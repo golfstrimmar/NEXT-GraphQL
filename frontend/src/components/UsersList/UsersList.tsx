@@ -4,19 +4,9 @@ import Image from "next/image";
 import transformData from "@/hooks/useTransformData";
 import { useMutation, useApolloClient, useQuery } from "@apollo/client";
 import { DELETE_USER, CREATE_CHAT } from "@/apolo/mutations";
-import User from "@/types/user";
-
+import useUserChatSubscriptions from "@/hooks/useUserChatSubscriptions";
 import { useStateContext } from "@/components/StateProvider";
 import { GET_USERS, GET_ALL_CHATS } from "@/apolo/queryes";
-
-import dynamic from "next/dynamic";
-
-const ModalMessage = dynamic(
-  () => import("@/components/ModalMessage/ModalMessage"),
-  {
-    ssr: false,
-  }
-);
 
 const UsersList = () => {
   const client = useApolloClient();
@@ -24,33 +14,18 @@ const UsersList = () => {
   const [createChat] = useMutation(CREATE_CHAT);
   const { data: queryData, loading } = useQuery(GET_USERS);
   const { data: allChatsData } = useQuery(GET_ALL_CHATS);
-  const { user } = useStateContext();
-  const [successMessage, setSuccessMessage] = useState<string>("");
-  const [openModalMessage, setOpenModalMessage] = useState<boolean>(false);
-  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
-
+  const { user, setUser, showModal } = useStateContext();
+  useUserChatSubscriptions();
   useEffect(() => {
-    if (allChatsData) {
-      console.log("<==== allChatsData====>", allChatsData.chats);
+    if (!loading && queryData && Array.isArray(queryData.users)) {
+      if (queryData.users.length === 0) {
+        console.log("<==== all users =======>", queryData.users);
+        setUser(null);
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      }
     }
-  }, [allChatsData]);
-
-  useEffect(() => {
-    if (user) {
-      console.log("<==== user====>", user);
-    }
-  }, [user]);
-
-  const showModal = (message: string) => {
-    setSuccessMessage(message);
-    setOpenModalMessage(true);
-    setIsModalVisible(true);
-    setTimeout(() => {
-      setOpenModalMessage(false);
-      setSuccessMessage("");
-      return;
-    }, 2000);
-  };
+  }, [queryData, loading, setUser]);
 
   const handleDelete = async (id: number) => {
     try {
@@ -61,7 +36,7 @@ const UsersList = () => {
       const deletedUser = data?.deleteUser;
       if (deletedUser?.id) {
         console.log("❌❌❌ Mutation to delete user:", deletedUser);
-        // Обновляем кэш вручную
+        showModal(`User deleted successfully!`);
         client.cache.updateQuery({ query: GET_USERS }, (oldData: any) => {
           if (!oldData) return { users: [] };
 
@@ -80,7 +55,7 @@ const UsersList = () => {
         variables: { participantId },
       });
       console.log("🟢  Mutation to createChat:", data.createChat);
-      client.resetStore();
+
       showModal(`💬 Chat created successfully!`);
     } catch (error: any) {
       showModal(error.message);
@@ -104,9 +79,9 @@ const UsersList = () => {
     return (
       <button
         onClick={() => handleCreateChat(userId)}
-        className="text-[12px] bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition duration-300 ease-in-out cursor-pointer"
+        className="text-[12px] bg-blue-500 text-white px-3  rounded hover:bg-blue-600 transition duration-300 ease-in-out cursor-pointer"
       >
-        Creat chat with{" "}
+        Creat chat with
         <span className="font-bold text-[16px]"> {userName}</span>
       </button>
     );
@@ -196,9 +171,6 @@ const UsersList = () => {
 
   return (
     <div className="space-y-2 ">
-      {isModalVisible && (
-        <ModalMessage message={successMessage} open={openModalMessage} />
-      )}
       {queryData?.users.length === 0 && <p>No users</p>}
       <h2 className=" mb-4">Users:</h2>
       {loading ? (

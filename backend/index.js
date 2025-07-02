@@ -10,7 +10,7 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import { verifyToken } from "./utils/verifyToken.js";
 
-import resolvers from "./resolvers.js";
+import resolvers from "./resolvers/index.js";
 import typeDefs from "./schema.js";
 
 const PORT = 4000;

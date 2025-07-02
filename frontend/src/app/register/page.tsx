@@ -3,25 +3,23 @@
 import { useState } from "react";
 import { useMutation } from "@apollo/client";
 import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
 import { client } from "../../apolo/apolloClient";
 import Input from "@/components/ui/Input/Input";
 import Button from "@/components/ui/Button/Button";
-const ModalMessage = dynamic(
-  () => import("@/components/ModalMessage/ModalMessage"),
-  { ssr: false }
-);
+import { useStateContext } from "@/components/StateProvider";
 import { ADD_USER } from "@/apolo/mutations";
-
+import useUserChatSubscriptions from "@/hooks/useUserChatSubscriptions";
 export default function Register() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
-  const [modalOpen, setModalOpen] = useState(false);
+  const { showModal } = useStateContext();
   const [addUser, { loading }] = useMutation(ADD_USER);
+  // ===============================
 
+  useUserChatSubscriptions();
+  // ===============================
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !email || !password) {
@@ -35,7 +33,7 @@ export default function Register() {
       setName("");
       setPassword("");
       showModal("Registration successful!");
-      client.resetStore();
+      // client.resetStore();
       setTimeout(() => {
         router.push("/");
       }, 2000);
@@ -45,18 +43,8 @@ export default function Register() {
     }
   };
 
-  const showModal = (message: string) => {
-    setSuccessMessage(message);
-    setModalOpen(true);
-    setTimeout(() => {
-      setModalOpen(false);
-      setSuccessMessage("");
-    }, 2000);
-  };
-
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      {modalOpen && <ModalMessage message={successMessage} open={modalOpen} />}
       <form
         onSubmit={handleSubmit}
         className="bg-white p-6 rounded shadow-md w-full max-w-sm"

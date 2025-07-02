@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import styles from "./Chats.module.scss";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_ALL_CHATS } from "@/apolo/queryes";
 import { DELETE_CHAT, SEND_MESSAGE } from "@/apolo/mutations";
@@ -8,7 +7,6 @@ import { useStateContext } from "@/components/StateProvider";
 import transformData from "@/hooks/useTransformData";
 import Image from "next/image";
 import Input from "@/components/ui/Input/Input";
-import ModalMessage from "@/components/ModalMessage/ModalMessage";
 import useUserChatSubscriptions from "@/hooks/useUserChatSubscriptions";
 
 type ChatType = {
@@ -28,20 +26,16 @@ const Chats = () => {
   const { data: allChatsData } = useQuery<{ chats: ChatType[] }>(GET_ALL_CHATS);
   const [deleteChat] = useMutation(DELETE_CHAT);
   const [sendMessage] = useMutation(SEND_MESSAGE);
-
+  const { showModal } = useStateContext();
   useUserChatSubscriptions();
 
   const [texts, setTexts] = useState<Record<number, string>>({});
-
-  const [successMessage, setSuccessMessage] = useState<string>("");
-  const [openModalMessage, setOpenModalMessage] = useState<boolean>(false);
-  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
   // -----------------
 
   useEffect(() => {
     if (allChatsData?.chats) {
-      console.log("<==== allChatsData?.chats====>", allChatsData?.chats);
+      console.log("<==== chats ====>", allChatsData?.chats);
     }
   }, [allChatsData?.chats]);
   // -----------------
@@ -49,6 +43,7 @@ const Chats = () => {
     try {
       const { data } = await deleteChat({ variables: { id } });
       console.log("<=====🟢 MUTATION deleteChat   =====>", data);
+      showModal("Chat deleted successfully!");
     } catch (err) {
       console.error("Mutation error:", err);
       showModal("Failed to delete chat");
@@ -75,30 +70,14 @@ const Chats = () => {
     }
   };
 
-  // -----------------
-  const showModal = (message: string) => {
-    setSuccessMessage(message);
-    setOpenModalMessage(true);
-    setIsModalVisible(true);
-    setTimeout(() => {
-      setOpenModalMessage(false);
-      setSuccessMessage("");
-      setIsModalVisible(false);
-    }, 2000);
-  };
+  // ----------------
 
   if (!user) return <p>Please log in to see your chats.</p>;
 
   return (
     <div className="mt-10">
-      {isModalVisible && (
-        <ModalMessage message={successMessage} open={openModalMessage} />
-      )}
-
       <h2 className="mb-2">Your Chats:</h2>
-
       {allChatsData?.chats?.length === 0 && <p>No chats found</p>}
-
       {allChatsData?.chats
         ?.filter(
           (chat) =>

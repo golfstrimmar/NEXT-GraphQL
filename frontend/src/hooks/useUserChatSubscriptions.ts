@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useSubscription, useQuery, useMutation } from "@apollo/client";
 import { gql } from "@apollo/client";
+import { GET_USERS, GET_ALL_CHATS, GET_MESSAGES } from "@/apolo/queryes";
 import {
   USER_CREATED_SUBSCRIPTION,
   USER_DELETED_SUBSCRIPTION,
@@ -11,7 +12,6 @@ import {
   MESSAGE_SENT_SUBSCRIPTION,
 } from "@/apolo/subscriptions";
 
-import { GET_USERS, GET_ALL_CHATS, GET_MESSAGES } from "@/apolo/queryes";
 import { useStateContext } from "@/components/StateProvider";
 export default function useUserChatSubscriptions(chatIds?: number[]) {
   const { user, setUser } = useStateContext();
@@ -102,6 +102,16 @@ export default function useUserChatSubscriptions(chatIds?: number[]) {
           users: oldData.users.filter((u: any) => u.id !== deletedUserId),
         };
       });
+      client.cache.updateQuery({ query: GET_ALL_CHATS }, (oldData) => {
+        if (!oldData) return { chats: [] };
+        return {
+          chats: oldData.chats.filter(
+            (chat: any) =>
+              chat.creator.id !== deletedUserId &&
+              chat.participant.id !== deletedUserId
+          ),
+        };
+      });
     },
   });
 
@@ -113,7 +123,8 @@ export default function useUserChatSubscriptions(chatIds?: number[]) {
       if (!newChat) return;
 
       client.cache.updateQuery({ query: GET_ALL_CHATS }, (oldData) => {
-        if (!oldData) return { chats: [newChat] };
+        console.log("oldData in cache update:", oldData);
+        if (!oldData || !oldData.chats) return { chats: [newChat] };
         const exists = oldData.chats.some((c: any) => c.id === newChat.id);
         if (exists) return oldData;
         return {
@@ -133,6 +144,7 @@ export default function useUserChatSubscriptions(chatIds?: number[]) {
       if (!deletedChatId) return;
 
       client.cache.updateQuery({ query: GET_ALL_CHATS }, (oldData) => {
+        console.log("oldData in deleteChat update:", oldData);
         if (!oldData) return { chats: [] };
 
         return {
@@ -150,13 +162,12 @@ export default function useUserChatSubscriptions(chatIds?: number[]) {
       if (!newMessage) return;
 
       const chatId = newMessage.chat?.id;
-      console.log("<===✅ Subscrib chatId=====>", chatId);
 
       const chatCacheId = client.cache.identify({
         __typename: "Chat",
         id: String(chatId),
       });
-      console.log("<===✅ Subscrib chatCacheId=====>", chatCacheId);
+
       if (!chatCacheId) return;
 
       client.cache.modify({

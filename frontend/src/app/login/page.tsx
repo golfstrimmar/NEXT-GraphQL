@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useMutation, useApolloClient } from "@apollo/client";
 import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import Input from "@/components/ui/Input/Input";
 import Button from "@/components/ui/Button/Button";
@@ -12,21 +11,13 @@ import { LOGIN_USER, GOOGLE_LOGIN, SET_PASSWORD } from "@/apolo/mutations";
 import { GET_USERS } from "@/apolo/queryes";
 import { useStateContext } from "@/components/StateProvider";
 
-const ModalMessage = dynamic(
-  () => import("@/components/ModalMessage/ModalMessage"),
-  { ssr: false }
-);
-
 export default function Login() {
   const router = useRouter();
   const client = useApolloClient();
-  const { setUser } = useStateContext();
+  const { showModal, setUser } = useStateContext();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
-  const [openModalMessage, setOpenModalMessage] = useState(false);
-  const [isModalVisible, setIsModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const [loginUser, { loading: loginLoading }] = useMutation(LOGIN_USER);
@@ -35,17 +26,6 @@ export default function Login() {
   const [showSetPasswordModal, setShowSetPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [setPasswordMutation] = useMutation(SET_PASSWORD);
-
-  const showModal = (message: string) => {
-    setSuccessMessage(message);
-    setOpenModalMessage(true);
-    setIsModalVisible(true);
-    setTimeout(() => {
-      setOpenModalMessage(false);
-      setSuccessMessage("");
-      setIsModalVisible(false);
-    }, 2000);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -185,9 +165,6 @@ export default function Login() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-200">
-      {isModalVisible && (
-        <ModalMessage message={successMessage} open={openModalMessage} />
-      )}
       <form
         onSubmit={handleSubmit}
         className="bg-white p-6 rounded-lg shadow-md w-full max-w-sm flex flex-col gap-3"
