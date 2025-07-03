@@ -43,7 +43,6 @@ const Input: React.FC<InputProps> = ({
     <div className={styles["input-field"]}>
       {typeInput === "textarea" ? (
         <textarea
-          rows="5"
           id={id}
           name={name}
           value={value}

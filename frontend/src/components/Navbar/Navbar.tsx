@@ -10,6 +10,7 @@ import useHasMounted from "@/hooks/useHasMounted";
 import { LOGOUT_USER } from "@/apolo/mutations";
 import { useStateContext } from "@/components/StateProvider";
 import { User } from "@/types/user";
+import Image from "next/image";
 
 const Navbar: React.FC = () => {
   const hasMounted = useHasMounted();
@@ -53,10 +54,16 @@ const Navbar: React.FC = () => {
   if (!hasMounted) return null;
 
   return (
-    <nav className="fixed top-0 left-0 w-full bg-blue-700 blue-500 p-4 shadow-md z-50">
+    <nav className="fixed top-0 left-0 w-full bg-[#30344c] blue-500 py-4 shadow-md z-50">
       <div className="container mx-auto flex justify-between items-center">
-        <Link href="/" className="text-white text-lg font-bold">
-          A
+        <Link href="/" className="rounded-lg overflow-hidden">
+          <Image
+            src="/chat.jpg"
+            alt="Logo"
+            width={50}
+            height={50}
+            className=""
+          />
         </Link>
         <Burger handlerburgerClick={() => setIsOpen(!isOpen)} isOpen={isOpen} />
         <ul className={`${styles["navbar-menu"]} ${isOpen ? styles.run : ""}`}>
@@ -69,6 +76,17 @@ const Navbar: React.FC = () => {
               onClick={() => setIsOpen(false)}
             >
               Home
+            </Link>
+          </li>
+          <li className="flex flex-col justify-center">
+            <Link
+              href="/chats"
+              className={`hover:text-gray-300 transition-colors duration-200 ${
+                activeLink === "/chats" ? "text-[#0ae42e]" : "text-white"
+              }`}
+              onClick={() => setIsOpen(false)}
+            >
+              Chats
             </Link>
           </li>
 

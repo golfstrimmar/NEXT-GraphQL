@@ -27,8 +27,9 @@ type Message {
 
 type Post {
   id: Int!
-  text: String!
   category: String!
+  title: String!
+  text: String!
   createdAt: String!
   creator: User!
 }
@@ -65,7 +66,7 @@ type Mutation {
   createChat(participantId: Int!): Chat!
   deleteChat(id: Int!): ID!
   sendMessage(chatId: Int!, text: String!): Message!
-  addPost(text: String!, category: String!): Post!
+  addPost( category: String!, title: String!, text: String!): Post!
 }
 
 type Subscription {

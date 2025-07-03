@@ -46,6 +46,7 @@ model Message {
 model Post {
   id          Int      @id @default(autoincrement())
   text        String
+  title       String
   category    String
   createdAt   DateTime @default(now())
   creatorId   Int

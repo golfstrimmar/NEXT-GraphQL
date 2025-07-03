@@ -7,7 +7,6 @@ import { LOGOUT_USER } from "@/apolo/mutations";
 import useUserChatSubscriptions from "@/hooks/useUserChatSubscriptions";
 
 import { useStateContext } from "@/components/StateProvider";
-import UsersList from "@/components/UsersList/UsersList";
 import useIdleLogout from "@/hooks/useIdleLogout";
 import isTokenExpired from "@/utils/checkTokenExpiration";
 import Chats from "@/components/Chats/Chats";
@@ -49,10 +48,8 @@ export default function Users() {
   // ===============================
 
   return (
-    <div className="container mx-auto flex justify-between items-center">
+    <div className="container ">
       <div className="mt-[80px] w-full">
-        <UsersList />
-        <Chats />
         <Blog />
       </div>
     </div>

@@ -197,7 +197,7 @@ const Mutation = {
 
     // 4. Удалить самого пользователя
     const user = await prisma.user.delete({ where: { id } });
-
+    console.log("To subscribe userDeleted  🟢-->");
     pubsub.publish(USER_DELETED, { userDeleted: user });
 
     return user;
@@ -294,27 +294,28 @@ const Mutation = {
         chat: true,
       },
     });
-
+    console.log("To subscribe messageSent 🟢-->");
     pubsub.publish(MESSAGE_SENT, {
       messageSent: message,
     });
 
     return message;
   },
-  addPost: async (_, { text, category }, { userId }) => {
+  addPost: async (_, { category, title, text }, { userId }) => {
     if (!userId) throw new Error("Not authenticated");
-
+    console.log("<====🟢add Post🟢====> ", category, title, text, userId);
     const post = await prisma.post.create({
       data: {
-        text,
         category,
+        title,
+        text,
         creatorId: userId,
       },
       include: {
         creator: true,
       },
     });
-
+    console.log(" To subscribe postCreated   🟢--> ");
     pubsub.publish(POST_CREATED, { postCreated: post });
 
     return post;

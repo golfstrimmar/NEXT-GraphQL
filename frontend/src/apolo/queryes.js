@@ -43,6 +43,7 @@ export const GET_ALL_POSTS = gql`
     posts {
       id
       text
+      title
       category
       createdAt
       creator {

@@ -1,11 +1,15 @@
 "use client";
 import React, { useState } from "react";
+import "./Blog.scss";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_ALL_POSTS } from "@/apolo/queryes";
 import { ADD_POST } from "@/apolo/mutations";
 import useUserChatSubscriptions from "@/hooks/useUserChatSubscriptions";
 import { useStateContext } from "@/components/StateProvider";
-
+import Input from "@/components/ui/Input/Input";
+import Button from "@/components/ui/Button/Button";
+import Loading from "@/components/Loading";
+import Image from "next/image";
 type PostType = {
   id: string;
   text: string;
@@ -29,6 +33,7 @@ const Blog = () => {
   });
 
   const [text, setText] = useState("");
+  const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,14 +49,15 @@ const Blog = () => {
       return;
     }
     try {
-      await addPost({
+      const { data } = await addPost({
         variables: {
-          text,
           category,
+          title,
+          text,
         },
       });
-
       setText("");
+      setTitle("");
       setCategory("");
     } catch (err) {
       console.error("Error adding post:", err);
@@ -59,48 +65,80 @@ const Blog = () => {
     }
   };
 
-  // if (loading) return <p>Загрузка постов...</p>;
-  // if (error) return <p>Ошибка загрузки постов.</p>;
-
   return (
-    <section className="mt-4  mx-auto">
-      <h2 className="text-2xl font-bold mb-4">Блог</h2>
+    <section className="my-4  mx-auto blog w-full">
+      <h2 className="text-2xl font-bold mb-4">Blog</h2>
+      <ul className="flex flex-col gap-4 ">
+        {loading ? (
+          <Loading />
+        ) : (
+          data?.posts.map((post) => (
+            <li key={post.id} className="card">
+              <h4 className="font-semibold">{post.category}</h4>
+              <p className="bg-white my-4 p-2 rounded  text-black">
+                {post.text}
+              </p>
+              <small className="text-white">Author: {post.creator.name}</small>
+              <div className="flex gap-4 items-center mt-4 w-full">
+                <Image
+                  src="/svg/comment.svg"
+                  alt={post.creator.name}
+                  width={20}
+                  height={20}
+                />
 
-      <form onSubmit={handleSubmit} className="mb-6 flex flex-col gap-3">
-        <textarea
-          placeholder="Текст поста"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          rows={4}
-          className="p-2 border rounded resize-none"
-          required
-        />
-        <input
-          type="text"
-          placeholder="Категория"
+                <Image
+                  src="/svg/like.svg"
+                  alt={post.creator.name}
+                  width={20}
+                  height={20}
+                />
+                <div className="transform rotate-180">
+                  <Image
+                    src="/svg/like.svg"
+                    alt={post.creator.name}
+                    width={20}
+                    height={20}
+                  />
+                </div>
+                <div className="ml-auto p-1 rounded-lg border  hover:border-red-800 trasition-all duration-300 cursor-pointer">
+                  <Image
+                    src="/svg/cross.svg"
+                    alt={post.creator.name}
+                    width={12}
+                    height={12}
+                  />
+                </div>
+              </div>
+            </li>
+          ))
+        )}
+      </ul>
+      <form onSubmit={handleSubmit} className="m-6 flex flex-col gap-3">
+        <Input
+          typeInput="text"
+          data="Category *"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="p-2 border rounded"
-          required
         />
-        <button
-          type="submit"
-          disabled={addLoading}
-          className="bg-blue-600 text-white py-2 rounded disabled:opacity-50"
-        >
-          {addLoading ? "Добавление..." : "Добавить пост"}
-        </button>
+        <Input
+          typeInput="text"
+          data="Title *"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        <Input
+          typeInput="textarea"
+          data="Enter your post here... *"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+        />
+        <div className="w-50 max-w-1/2 ">
+          <Button type="submit" disabled={addLoading}>
+            {addLoading ? "Adding..." : "Add Post"}
+          </Button>
+        </div>
       </form>
-
-      <ul className="flex flex-col gap-4">
-        {data?.posts.map((post) => (
-          <li key={post.id} className="border p-4 rounded shadow-sm">
-            <h4 className="font-semibold">{post.category}</h4>
-            <p>{post.text}</p>
-            <small>Автор: {post.creator.name}</small>
-          </li>
-        ))}
-      </ul>
     </section>
   );
 };

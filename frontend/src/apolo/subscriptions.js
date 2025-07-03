@@ -92,6 +92,7 @@ export const POST_CREATED_SUBSCRIPTION = gql`
     postCreated {
       id
       text
+      title
       category
       createdAt
       creator {
