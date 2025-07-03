@@ -14,8 +14,8 @@ import {
   CHAT_DELETED,
   MESSAGE_SENT,
   POST_CREATED,
+  REACTION_CHANGED,
 } from "./../utils/pubsub.js";
-
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_here";
 const SALT_ROUNDS = 10;
@@ -319,6 +319,73 @@ const Mutation = {
     pubsub.publish(POST_CREATED, { postCreated: post });
 
     return post;
+  },
+  toggleLike: async (_, { postId, reaction }, { userId }) => {
+    if (!userId) throw new Error("Not authenticated");
+
+    const post = await prisma.post.findUnique({
+      where: { id: Number(postId) },
+    });
+    if (!post) throw new Error("Post not found");
+
+    const existingReaction = await prisma.postReaction.findUnique({
+      where: {
+        userId_postId: {
+          userId,
+          postId: Number(postId),
+        },
+      },
+    });
+
+    let currentUserReaction;
+
+    if (existingReaction) {
+      if (existingReaction.reaction === reaction) {
+        // Remove reaction if it's the same
+        await prisma.postReaction.delete({
+          where: { userId_postId: { userId, postId: Number(postId) } },
+        });
+        currentUserReaction = null;
+      } else {
+        // Update reaction
+        await prisma.postReaction.update({
+          where: { userId_postId: { userId, postId: Number(postId) } },
+          data: { reaction },
+        });
+        currentUserReaction = reaction;
+      }
+    } else {
+      // Create new reaction
+      await prisma.postReaction.create({
+        data: {
+          userId,
+          postId: Number(postId),
+          reaction,
+        },
+      });
+      currentUserReaction = reaction;
+    }
+
+    // Count updated likes and dislikes
+    const [likes, dislikes] = await Promise.all([
+      prisma.postReaction.count({
+        where: { postId: Number(postId), reaction: "LIKE" },
+      }),
+      prisma.postReaction.count({
+        where: { postId: Number(postId), reaction: "DISLIKE" },
+      }),
+    ]);
+
+    const result = {
+      postId: Number(postId),
+      likes,
+      dislikes,
+      currentUserReaction,
+    };
+
+    pubsub.publish(REACTION_CHANGED, { reactionChanged: result });
+
+    return result;
   },
 };
 

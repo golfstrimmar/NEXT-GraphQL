@@ -37,15 +37,17 @@ export const GET_ALL_CHATS = gql`
   }
 `;
 
-
 export const GET_ALL_POSTS = gql`
-  query getAllPosts {
+  query GetAllPosts {
     posts {
       id
-      text
       title
+      text
       category
       createdAt
+      likes
+      dislikes
+      currentUserReaction
       creator {
         id
         name

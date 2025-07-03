@@ -35,7 +35,7 @@ const serverCleanup = useServer(
       const token = authHeader.startsWith("Bearer ")
         ? authHeader.slice(7)
         : null;
-      const user = token ? verifyToken(token) : null;
+      const user = token ? await verifyToken(token) : null;
 
       return { user };
     },
@@ -62,7 +62,7 @@ const serverCleanup = useServer(
       const token = authHeader.startsWith("Bearer ")
         ? authHeader.slice(7)
         : null;
-      const user = token ? verifyToken(token) : null;
+      const user = token ? await verifyToken(token) : null;
       const userId = user?.userId || "anonymous";
 
       if (!activeSubscriptions.has(clientId)) {
@@ -121,7 +121,7 @@ app.use(
       // console.log("🛡️ Authorization header:", auth); // <-- Лог заголовка
 
       const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
-      const decoded = token ? verifyToken(token) : null;
+      const decoded = token ? await verifyToken(token) : null;
 
       // console.log("🧾 Decoded token payload:", decoded); // <-- Лог результата верификации
 

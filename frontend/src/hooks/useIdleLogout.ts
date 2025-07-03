@@ -4,7 +4,7 @@ import { useStateContext } from "@/components/StateProvider";
 import { LOGOUT_USER } from "@/apolo/mutations";
 import { useMutation } from "@apollo/client";
 
-const IDLE_TIMEOUT = 30 * 60 * 1000; // 30 минут
+const IDLE_TIMEOUT = 30 * 60 * 1000;
 let timer: ReturnType<typeof setTimeout>;
 
 const useIdleLogout = () => {
@@ -17,14 +17,14 @@ const useIdleLogout = () => {
         console.log("⏳ User idle. Logging out...");
         try {
           await logoutUser();
-          setUser(null);
-          localStorage.removeItem("user");
-          localStorage.removeItem("token");
-          window.location.href = "/login";
         } catch (err) {
           console.error("Logout error:", err);
           console.log("------Failed to log out. Please try again.-------");
         }
+        setUser(null);
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+        window.location.href = "/login";
       }, IDLE_TIMEOUT);
     };
 

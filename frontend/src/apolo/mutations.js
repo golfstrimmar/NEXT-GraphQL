@@ -115,3 +115,13 @@ export const ADD_POST = gql`
     }
   }
 `;
+export const TOGGLE_LIKE = gql`
+  mutation toggleLike($postId: ID!, $reaction: ReactionType!) {
+    toggleLike(postId: $postId, reaction: $reaction) {
+      postId
+      likes
+      dislikes
+      currentUserReaction
+    }
+  }
+`;

@@ -11,6 +11,7 @@ import {
   CHAT_DELETED_SUBSCRIPTION,
   MESSAGE_SENT_SUBSCRIPTION,
   POST_CREATED_SUBSCRIPTION,
+  REACTION_CHANGED_SUBSCRIPTION,
 } from "@/apolo/subscriptions";
 
 import { useStateContext } from "@/components/StateProvider";
@@ -219,6 +220,29 @@ export default function useUserChatSubscriptions(chatIds?: number[]) {
         return {
           posts: [newPost, ...oldData.posts],
         };
+      });
+    },
+  });
+
+  useSubscription(REACTION_CHANGED_SUBSCRIPTION, {
+    onData: ({ client, data }) => {
+      const reactedPost = data?.data?.postReacted;
+      if (!reactedPost) return;
+      console.log(
+        "<===== 👍👎 Subscribed to POST_REACTED: =====>",
+        reactedPost
+      );
+
+      client.cache.updateQuery({ query: GET_ALL_POSTS }, (oldData) => {
+        if (!oldData || !oldData.posts) return { posts: [reactedPost] };
+
+        const updatedPosts = oldData.posts.map((post: any) =>
+          post.id === reactedPost.id
+            ? { ...post, reactions: reactedPost.reactions }
+            : post
+        );
+
+        return { posts: updatedPosts };
       });
     },
   });

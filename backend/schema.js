@@ -1,4 +1,9 @@
 const typeDefs = `
+enum ReactionType {
+  LIKE
+  DISLIKE
+}
+
 type User {
   id: Int!
   email: String!
@@ -9,6 +14,7 @@ type User {
   createdAt: String
   updatedAt: String
 }
+
 type Chat {
   id: Int!
   createdAt: String
@@ -32,8 +38,17 @@ type Post {
   text: String!
   createdAt: String!
   creator: User!
+  likes: Int!
+  dislikes: Int!
+  currentUserReaction: ReactionType
 }
 
+type PostReactionResult {
+  postId: Int!
+  likes: Int!
+  dislikes: Int!
+  currentUserReaction: ReactionType
+}
 
 type Query {
   users: [User]
@@ -66,7 +81,8 @@ type Mutation {
   createChat(participantId: Int!): Chat!
   deleteChat(id: Int!): ID!
   sendMessage(chatId: Int!, text: String!): Message!
-  addPost( category: String!, title: String!, text: String!): Post!
+  addPost(category: String!, title: String!, text: String!): Post!
+  toggleLike(postId: ID!, reaction: ReactionType!): PostReactionResult!
 }
 
 type Subscription {
@@ -78,9 +94,8 @@ type Subscription {
   chatDeleted: ID!
   messageSent: Message!
   postCreated: Post!
+  reactionChanged: PostReactionResult!
 }
-
-
 `;
 
 export default typeDefs;

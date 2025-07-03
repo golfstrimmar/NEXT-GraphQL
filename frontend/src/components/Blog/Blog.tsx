@@ -3,18 +3,22 @@ import React, { useState } from "react";
 import "./Blog.scss";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_ALL_POSTS } from "@/apolo/queryes";
-import { ADD_POST } from "@/apolo/mutations";
+import { ADD_POST, TOGGLE_LIKE } from "@/apolo/mutations";
 import useUserChatSubscriptions from "@/hooks/useUserChatSubscriptions";
 import { useStateContext } from "@/components/StateProvider";
 import Input from "@/components/ui/Input/Input";
 import Button from "@/components/ui/Button/Button";
 import Loading from "@/components/Loading";
 import Image from "next/image";
+
 type PostType = {
   id: string;
   text: string;
   category: string;
   createdAt: string;
+  likes: number;
+  dislikes: number;
+  currentUserReaction: "LIKE" | "DISLIKE" | null;
   creator: {
     id: string;
     name: string;
@@ -24,11 +28,12 @@ type PostType = {
 const Blog = () => {
   useUserChatSubscriptions();
   const { user, showModal } = useStateContext();
-  const { data, loading, error } = useQuery<{ posts: PostType[] }>(
-    GET_ALL_POSTS
-  );
-
+  const { data, loading } = useQuery<{ posts: PostType[] }>(GET_ALL_POSTS);
   const [addPost, { loading: addLoading }] = useMutation(ADD_POST, {
+    refetchQueries: [{ query: GET_ALL_POSTS }],
+  });
+
+  const [toggleLike] = useMutation(TOGGLE_LIKE, {
     refetchQueries: [{ query: GET_ALL_POSTS }],
   });
 
@@ -49,13 +54,7 @@ const Blog = () => {
       return;
     }
     try {
-      const { data } = await addPost({
-        variables: {
-          category,
-          title,
-          text,
-        },
-      });
+      await addPost({ variables: { category, title, text } });
       setText("");
       setTitle("");
       setCategory("");
@@ -65,46 +64,78 @@ const Blog = () => {
     }
   };
 
+  const handleReaction = async (
+    postId: string,
+    reaction: "LIKE" | "DISLIKE"
+  ) => {
+    if (!user) return showModal("Login to react to posts.");
+    try {
+      await toggleLike({
+        variables: {
+          postId,
+          reaction,
+        },
+      });
+    } catch (err) {
+      console.error("Error reacting to post:", err);
+    }
+  };
+
   return (
-    <section className="my-4  mx-auto blog w-full">
+    <section className="my-4 mx-auto blog w-full">
       <h2 className="text-2xl font-bold mb-4">Blog</h2>
-      <ul className="flex flex-col gap-4 ">
+      <ul className="flex flex-col gap-4">
         {loading ? (
           <Loading />
         ) : (
           data?.posts.map((post) => (
             <li key={post.id} className="card">
               <h4 className="font-semibold">{post.category}</h4>
-              <p className="bg-white my-4 p-2 rounded  text-black">
+              <p className="bg-white my-4 p-2 rounded text-black">
                 {post.text}
               </p>
               <small className="text-white">Author: {post.creator.name}</small>
               <div className="flex gap-4 items-center mt-4 w-full">
                 <Image
                   src="/svg/comment.svg"
-                  alt={post.creator.name}
+                  alt="comment"
                   width={20}
                   height={20}
                 />
-
-                <Image
-                  src="/svg/like.svg"
-                  alt={post.creator.name}
-                  width={20}
-                  height={20}
-                />
-                <div className="transform rotate-180">
+                <button onClick={() => handleReaction(post.id, "LIKE")}>
                   <Image
                     src="/svg/like.svg"
-                    alt={post.creator.name}
+                    alt="like"
                     width={20}
                     height={20}
+                    className={
+                      post.currentUserReaction === "LIKE"
+                        ? "opacity-100"
+                        : "opacity-40"
+                    }
                   />
-                </div>
-                <div className="ml-auto p-1 rounded-lg border  hover:border-red-800 trasition-all duration-300 cursor-pointer">
+                  <span className="text-sm ml-1">{post.likes}</span>
+                </button>
+                <button onClick={() => handleReaction(post.id, "DISLIKE")}>
+                  <div className="transform rotate-180">
+                    <Image
+                      src="/svg/like.svg"
+                      alt="dislike"
+                      width={20}
+                      height={20}
+                      className={
+                        post.currentUserReaction === "DISLIKE"
+                          ? "opacity-100"
+                          : "opacity-40"
+                      }
+                    />
+                  </div>
+                  <span className="text-sm ml-1">{post.dislikes}</span>
+                </button>
+                <div className="ml-auto p-1 rounded-lg border hover:border-red-800 transition-all duration-300 cursor-pointer">
                   <Image
                     src="/svg/cross.svg"
-                    alt={post.creator.name}
+                    alt="delete"
                     width={12}
                     height={12}
                   />
@@ -133,7 +164,7 @@ const Blog = () => {
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
-        <div className="w-50 max-w-1/2 ">
+        <div className="w-50 max-w-1/2">
           <Button type="submit" disabled={addLoading}>
             {addLoading ? "Adding..." : "Add Post"}
           </Button>

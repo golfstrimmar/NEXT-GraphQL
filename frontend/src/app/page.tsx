@@ -30,6 +30,9 @@ export default function Users() {
       localStorage.removeItem("token");
       router.push("/login");
     } catch (err) {
+      setUser(null);
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
       console.error("Logout error:", err);
       console.log("------Failed to log out. Please try again.-------");
     }

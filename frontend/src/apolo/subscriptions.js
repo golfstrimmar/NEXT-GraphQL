@@ -1,4 +1,3 @@
-// graphql/subscriptions.js
 import { gql } from "@apollo/client";
 
 export const USER_CREATED_SUBSCRIPTION = gql`
@@ -99,6 +98,17 @@ export const POST_CREATED_SUBSCRIPTION = gql`
         id
         name
       }
+    }
+  }
+`;
+
+export const REACTION_CHANGED_SUBSCRIPTION = gql`
+  subscription reactionChanged {
+    reactionChanged {
+      postId
+      likes
+      dislikes
+      currentUserReaction
     }
   }
 `;
