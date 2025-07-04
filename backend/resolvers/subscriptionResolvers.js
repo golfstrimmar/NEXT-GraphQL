@@ -8,7 +8,7 @@ import {
   CHAT_DELETED,
   MESSAGE_SENT,
   POST_CREATED,
-  REACTION_CHANGED, // ✅ добавлено
+  REACTION_CHANGED,
 } from "./../utils/pubsub.js";
 
 const Subscription = {

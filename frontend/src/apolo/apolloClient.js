@@ -22,6 +22,7 @@ const protectedOperations = [
   "sendMessage",
   "deleteChat",
   "addPost",
+  "toggleLike",
 ];
 
 // ✅ HTTP link

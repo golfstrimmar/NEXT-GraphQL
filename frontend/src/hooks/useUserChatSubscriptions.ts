@@ -226,19 +226,21 @@ export default function useUserChatSubscriptions(chatIds?: number[]) {
 
   useSubscription(REACTION_CHANGED_SUBSCRIPTION, {
     onData: ({ client, data }) => {
-      const reactedPost = data?.data?.postReacted;
+      const reactedPost = data?.data?.reactionChanged;
       if (!reactedPost) return;
-      console.log(
-        "<===== 👍👎 Subscribed to POST_REACTED: =====>",
-        reactedPost
-      );
+      console.log("<===== ✅ Subscribed to POST_REACTED: =====>", reactedPost);
 
       client.cache.updateQuery({ query: GET_ALL_POSTS }, (oldData) => {
         if (!oldData || !oldData.posts) return { posts: [reactedPost] };
 
         const updatedPosts = oldData.posts.map((post: any) =>
-          post.id === reactedPost.id
-            ? { ...post, reactions: reactedPost.reactions }
+          post.id === reactedPost.postId
+            ? {
+                ...post,
+                likes: reactedPost.likes,
+                dislikes: reactedPost.dislikes,
+                currentUserReaction: reactedPost.currentUserReaction,
+              }
             : post
         );
 

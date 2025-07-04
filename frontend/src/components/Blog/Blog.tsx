@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./Blog.scss";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_ALL_POSTS } from "@/apolo/queryes";
@@ -28,7 +28,9 @@ type PostType = {
 const Blog = () => {
   useUserChatSubscriptions();
   const { user, showModal } = useStateContext();
-  const { data, loading } = useQuery<{ posts: PostType[] }>(GET_ALL_POSTS);
+  const { data, loading, error } = useQuery<{ posts: PostType[] }>(
+    GET_ALL_POSTS
+  );
   const [addPost, { loading: addLoading }] = useMutation(ADD_POST, {
     refetchQueries: [{ query: GET_ALL_POSTS }],
   });
@@ -40,6 +42,14 @@ const Blog = () => {
   const [text, setText] = useState("");
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
+
+  // -------------------------
+
+  useEffect(() => {
+    if (data?.posts) {
+      console.log("<==== data?.posts====>", data?.posts);
+    }
+  }, [data?.posts]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,7 +124,7 @@ const Blog = () => {
                         : "opacity-40"
                     }
                   />
-                  <span className="text-sm ml-1">{post.likes}</span>
+                  <span className="text-sm ml-1  text-white">{post.likes}</span>
                 </button>
                 <button onClick={() => handleReaction(post.id, "DISLIKE")}>
                   <div className="transform rotate-180">
@@ -130,7 +140,9 @@ const Blog = () => {
                       }
                     />
                   </div>
-                  <span className="text-sm ml-1">{post.dislikes}</span>
+                  <span className="text-sm ml-1  text-white">
+                    {post.dislikes}
+                  </span>
                 </button>
                 <div className="ml-auto p-1 rounded-lg border hover:border-red-800 transition-all duration-300 cursor-pointer">
                   <Image

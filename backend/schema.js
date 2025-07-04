@@ -82,7 +82,7 @@ type Mutation {
   deleteChat(id: Int!): ID!
   sendMessage(chatId: Int!, text: String!): Message!
   addPost(category: String!, title: String!, text: String!): Post!
-  toggleLike(postId: ID!, reaction: ReactionType!): PostReactionResult!
+  toggleLike(postId: Int!, reaction: ReactionType!): PostReactionResult!
 }
 
 type Subscription {

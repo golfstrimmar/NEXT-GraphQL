@@ -41,17 +41,17 @@ export const GET_ALL_POSTS = gql`
   query GetAllPosts {
     posts {
       id
+      category
       title
       text
-      category
       createdAt
-      likes
-      dislikes
-      currentUserReaction
       creator {
         id
         name
       }
+      likes
+      dislikes
+      currentUserReaction
     }
   }
 `;

@@ -321,41 +321,44 @@ const Mutation = {
     return post;
   },
   toggleLike: async (_, { postId, reaction }, { userId }) => {
-    if (!userId) throw new Error("Not authenticated");
+    if (!userId) {
+      throw new Error("Unauthorized");
+    }
+    console.log("🔵 toggleLike called", postId, reaction, userId);
 
-    const post = await prisma.post.findUnique({
-      where: { id: Number(postId) },
-    });
-    if (!post) throw new Error("Post not found");
-
-    const existingReaction = await prisma.postReaction.findUnique({
-      where: {
-        userId_postId: {
-          userId,
-          postId: Number(postId),
+    let existingReaction;
+    try {
+      existingReaction = await prisma.postReaction.findUnique({
+        where: {
+          userId_postId: {
+            userId,
+            postId: Number(postId),
+          },
         },
-      },
-    });
+      });
+    } catch (err) {
+      console.error("❌ findUnique failed:", err);
+    }
 
     let currentUserReaction;
 
     if (existingReaction) {
       if (existingReaction.reaction === reaction) {
-        // Remove reaction if it's the same
+        // Удаляем реакцию
         await prisma.postReaction.delete({
-          where: { userId_postId: { userId, postId: Number(postId) } },
+          where: { id: existingReaction.id },
         });
         currentUserReaction = null;
       } else {
-        // Update reaction
+        // Обновляем реакцию
         await prisma.postReaction.update({
-          where: { userId_postId: { userId, postId: Number(postId) } },
+          where: { id: existingReaction.id },
           data: { reaction },
         });
         currentUserReaction = reaction;
       }
     } else {
-      // Create new reaction
+      // Создаем новую реакцию
       await prisma.postReaction.create({
         data: {
           userId,
@@ -366,26 +369,33 @@ const Mutation = {
       currentUserReaction = reaction;
     }
 
-    // Count updated likes and dislikes
-    const [likes, dislikes] = await Promise.all([
-      prisma.postReaction.count({
-        where: { postId: Number(postId), reaction: "LIKE" },
-      }),
-      prisma.postReaction.count({
-        where: { postId: Number(postId), reaction: "DISLIKE" },
-      }),
-    ]);
+    // Получаем обновлённые лайки и дизлайки
+    const post = await prisma.post.findUnique({
+      where: { id: Number(postId) },
+      include: { reactions: true },
+    });
 
-    const result = {
+    const likes = post.reactions.filter((r) => r.reaction === "LIKE").length;
+    const dislikes = post.reactions.filter(
+      (r) => r.reaction === "DISLIKE"
+    ).length;
+    console.log(" To subscribe reactionChanged   🟢--> ");
+
+    pubsub.publish(REACTION_CHANGED, {
+      reactionChanged: {
+        postId: Number(postId),
+        likes,
+        dislikes,
+        currentUserReaction,
+      },
+    });
+
+    return {
       postId: Number(postId),
       likes,
       dislikes,
       currentUserReaction,
     };
-
-    pubsub.publish(REACTION_CHANGED, { reactionChanged: result });
-
-    return result;
   },
 };
 

@@ -35,32 +35,31 @@ const Query = {
       include: { sender: true, chat: true },
     });
   },
-  posts: async (_, __, { userId }) => {
+
+  posts: async () => {
     const posts = await prisma.post.findMany({
       include: {
         creator: true,
-        reactions: true, // если есть связь
-      },
-      orderBy: {
-        createdAt: "desc",
+        reactions: true,
       },
     });
 
     return posts.map((post) => {
-      const likes = post.reactions.filter((r) => r.type === "LIKE").length;
+      const likes = post.reactions.filter((r) => r.reaction === "LIKE").length;
       const dislikes = post.reactions.filter(
-        (r) => r.type === "DISLIKE"
+        (r) => r.reaction === "DISLIKE"
       ).length;
 
-      const currentUserReaction = userId
-        ? post.reactions.find((r) => r.userId === userId)?.type || null
-        : null;
-
       return {
-        ...post,
+        id: post.id,
+        category: post.category,
+        title: post.title,
+        text: post.text,
+        createdAt: post.createdAt.toISOString(),
+        creator: post.creator,
         likes,
         dislikes,
-        currentUserReaction,
+        currentUserReaction: null,
       };
     });
   },
