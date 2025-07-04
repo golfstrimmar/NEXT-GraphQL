@@ -40,15 +40,22 @@ const Query = {
     const posts = await prisma.post.findMany({
       include: {
         creator: true,
-        reactions: true,
+        reactions: {
+          include: {
+            user: true,
+          },
+        },
       },
     });
 
     return posts.map((post) => {
-      const likes = post.reactions.filter((r) => r.reaction === "LIKE").length;
-      const dislikes = post.reactions.filter(
-        (r) => r.reaction === "DISLIKE"
-      ).length;
+      const likes = post.reactions
+        .filter((r) => r.reaction === "LIKE" && r.user)
+        .map((r) => r.user.name || "Аноним");
+
+      const dislikes = post.reactions
+        .filter((r) => r.reaction === "DISLIKE" && r.user)
+        .map((r) => r.user.name || "Аноним");
 
       return {
         id: post.id,
@@ -57,6 +64,8 @@ const Query = {
         text: post.text,
         createdAt: post.createdAt.toISOString(),
         creator: post.creator,
+        likesCount: likes.length,
+        dislikesCount: dislikes.length,
         likes,
         dislikes,
         currentUserReaction: null,

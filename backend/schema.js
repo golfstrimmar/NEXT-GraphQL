@@ -38,8 +38,10 @@ type Post {
   text: String!
   createdAt: String!
   creator: User!
-  likes: Int!
-  dislikes: Int!
+  likesCount: Int!
+  dislikesCount: Int!
+  likes: [String!]!         
+  dislikes: [String!]!      
   currentUserReaction: ReactionType
 }
 

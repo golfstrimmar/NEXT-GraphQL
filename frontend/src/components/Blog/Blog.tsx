@@ -47,7 +47,8 @@ const Blog = () => {
 
   useEffect(() => {
     if (data?.posts) {
-      console.log("<==== data?.posts====>", data?.posts);
+      console.log("<==== posts on blog page====>", data?.posts);
+      console.log(JSON.stringify(data?.posts, null, 2));
     }
   }, [data?.posts]);
 
@@ -112,7 +113,10 @@ const Blog = () => {
                   width={20}
                   height={20}
                 />
-                <button onClick={() => handleReaction(post.id, "LIKE")}>
+                <button
+                  onClick={() => handleReaction(post.id, "LIKE")}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
                   <Image
                     src="/svg/like.svg"
                     alt="like"
@@ -124,9 +128,15 @@ const Blog = () => {
                         : "opacity-40"
                     }
                   />
+                  <span className="text-sm ml-1  text-white">
+                    {post.likes.length}
+                  </span>
                   <span className="text-sm ml-1  text-white">{post.likes}</span>
                 </button>
-                <button onClick={() => handleReaction(post.id, "DISLIKE")}>
+                <button
+                  onClick={() => handleReaction(post.id, "DISLIKE")}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
                   <div className="transform rotate-180">
                     <Image
                       src="/svg/like.svg"
@@ -140,6 +150,9 @@ const Blog = () => {
                       }
                     />
                   </div>
+                  <span className="text-sm ml-1  text-white">
+                    {post.dislikes.length}
+                  </span>
                   <span className="text-sm ml-1  text-white">
                     {post.dislikes}
                   </span>
