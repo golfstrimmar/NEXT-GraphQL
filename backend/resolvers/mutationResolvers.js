@@ -17,6 +17,7 @@ import {
   REACTION_CHANGED,
   COMMENT_CREATED,
   POST_DELETED,
+  POST_COMMENT_DELETED,
 } from "./../utils/pubsub.js";
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_here";
@@ -290,6 +291,7 @@ const Mutation = {
         text,
         senderId: userId,
         chatId,
+        createdAt,
       },
       include: {
         sender: true,
@@ -339,9 +341,11 @@ const Mutation = {
     if (!userId) {
       throw new Error("Unauthorized");
     }
+
     console.log("🔵 toggleLike called", postId, reaction, userId);
 
     let existingReaction;
+
     try {
       existingReaction = await prisma.postReaction.findUnique({
         where: {
@@ -384,18 +388,27 @@ const Mutation = {
       currentUserReaction = reaction;
     }
 
-    // Получаем обновлённые лайки и дизлайки
-    const post = await prisma.post.findUnique({
+    // Получаем реакции с пользователями
+    const postWithReactions = await prisma.post.findUnique({
       where: { id: Number(postId) },
-      include: { reactions: true },
+      include: {
+        reactions: {
+          include: { user: true },
+        },
+      },
     });
 
-    const likes = post.reactions.filter((r) => r.reaction === "LIKE").length;
-    const dislikes = post.reactions.filter(
-      (r) => r.reaction === "DISLIKE"
-    ).length;
-    console.log(" To subscribe reactionChanged   🟢--> ");
+    const likes = postWithReactions.reactions
+      .filter((r) => r.reaction === "LIKE" && r.user)
+      .map((r) => r.user.name || "Аноним");
 
+    const dislikes = postWithReactions.reactions
+      .filter((r) => r.reaction === "DISLIKE" && r.user)
+      .map((r) => r.user.name || "Аноним");
+
+    console.log("To subscribe reactionChanged   🟢--> ");
+
+    // Отправка подписки
     pubsub.publish(REACTION_CHANGED, {
       reactionChanged: {
         postId: Number(postId),
@@ -405,6 +418,7 @@ const Mutation = {
       },
     });
 
+    // Возврат результата мутации
     return {
       postId: Number(postId),
       likes,
@@ -435,6 +449,38 @@ const Mutation = {
       commentCreated: comment,
     });
     return comment;
+  },
+  deleteComment: async (_, { postId, commentId }, { userId }) => {
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+
+    const comment = await prisma.postComment.findUnique({
+      where: { id: commentId },
+    });
+
+    if (!comment) {
+      throw new Error("Comment not found");
+    }
+
+    if (comment.userId !== userId) {
+      throw new Error("Access denied");
+    }
+
+    await prisma.postComment.delete({
+      where: { id: commentId },
+    });
+
+    console.log("To subscribe postCommentDeleted 🟢-->");
+
+    pubsub.publish(POST_COMMENT_DELETED, {
+      postCommentDeleted: {
+        commentId: commentId,
+        postId,
+      },
+    });
+
+    return commentId;
   },
 };
 

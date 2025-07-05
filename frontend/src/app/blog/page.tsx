@@ -8,6 +8,7 @@ import {
   TOGGLE_LIKE,
   CREATE_COMMENT,
   DELETE_POST,
+  DELETE_POST_COMMENT,
 } from "@/apolo/mutations";
 import useUserChatSubscriptions from "@/hooks/useUserChatSubscriptions";
 import { useStateContext } from "@/components/StateProvider";
@@ -51,14 +52,16 @@ const Blog = () => {
   const [deletePost] = useMutation(DELETE_POST, {
     refetchQueries: [{ query: GET_ALL_POSTS }],
   });
-  const [toggleLike] = useMutation(TOGGLE_LIKE, {
-    refetchQueries: [{ query: GET_ALL_POSTS }],
-  });
+  const [toggleLike] = useMutation(TOGGLE_LIKE);
 
   const [createComment] = useMutation(CREATE_COMMENT, {
     refetchQueries: [{ query: GET_ALL_POSTS }],
   });
 
+  const [deleteComment] = useMutation(DELETE_POST_COMMENT, {
+    refetchQueries: [{ query: GET_ALL_POSTS }],
+  });
+  // --------------------------------------
   const [commentTexts, setCommentTexts] = useState<{
     [postId: string]: string;
   }>({});
@@ -161,6 +164,21 @@ const Blog = () => {
     });
     setOpenLikeMenus({});
   };
+  const handleDeletePostComment = async (postId, commentId) => {
+    if (!user) return showModal("Login to delit comment.");
+    console.log("<===== postId, commentId====>", postId, commentId);
+    try {
+      await deleteComment({
+        variables: {
+          postId: Number(postId),
+          commentId: Number(commentId),
+        },
+      });
+      showModal("Comment deleted successfully.");
+    } catch (err) {
+      console.error("Error deleting comment:", err);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -169,7 +187,10 @@ const Blog = () => {
         setOpenLikeMenus({});
         setOpenDislikeMenus({});
       }
-      if (!e.target.closest(".comment-toggle")) {
+      if (
+        !(e.target as HTMLElement).closest(".comments") &&
+        !(e.target as HTMLElement).closest(".comment-toggle")
+      ) {
         setOpenCommentsMenus({});
       }
     };
@@ -379,11 +400,30 @@ const Blog = () => {
                               <div className="text-black bg-white rounded px-2">
                                 {comment.text}
                               </div>
-                              <div className="text-[12px] ">
+                              <div className="text-[12px] flex items-center mt-2 gap-2">
                                 <small>👤 {comment.user.name}</small>
                                 <small className="ml-2">
                                   🕒 {transformData(comment.createdAt)}
                                 </small>
+                                {comment.user.id === user?.id && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      handleDeletePostComment(
+                                        post.id,
+                                        comment.id
+                                      );
+                                    }}
+                                    className=" cursor-pointer"
+                                  >
+                                    <Image
+                                      src="/svg/cross.svg"
+                                      alt="send"
+                                      width={12}
+                                      height={12}
+                                    />
+                                  </button>
+                                )}
                               </div>
                             </li>
                           ))}

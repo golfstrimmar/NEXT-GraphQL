@@ -149,3 +149,9 @@ export const DELETE_POST = gql`
     deletePost(id: $id)
   }
 `;
+
+export const DELETE_POST_COMMENT = gql`
+  mutation deleteComment($postId: Int!, $commentId: Int!) {
+    deleteComment(postId: $postId, commentId: $commentId)
+  }
+`;

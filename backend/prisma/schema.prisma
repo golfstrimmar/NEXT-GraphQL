@@ -22,6 +22,7 @@ model User {
   posts        Post[]          
   reactions    PostReaction[]  
   comments     PostComment[]
+  commentReactions PostCommentReaction[]
 }
 
 model Chat {
@@ -77,12 +78,29 @@ enum ReactionType {
 
 
 model PostComment {
-  id        Int      @id @default(autoincrement())       // Уникальный ID комментария
-  text      String                                       // Текст комментария
-  createdAt DateTime @default(now())                     // Время создания
-  userId    Int                                          // Автор комментария
-  postId    Int                                          // Пост, к которому оставлен комментарий
+  id        Int      @id @default(autoincrement())
+  text      String
+  createdAt DateTime @default(now())
+  userId    Int
+  postId    Int
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade) // Автор
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade) // Пост
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  reactions PostCommentReaction[] 
+}
+
+
+
+model PostCommentReaction {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  commentId  Int                         
+  reaction   ReactionType
+  createdAt  DateTime @default(now())
+
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment    PostComment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, commentId], name: "userId_commentId") 
 }

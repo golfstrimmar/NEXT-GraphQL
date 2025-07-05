@@ -135,3 +135,9 @@ export const POST_DELETED_SUBSCRIPTION = gql`
     postDeleted
   }
 `;
+
+export const POST_COMMENT_DELETED_SUBSCRIPTION = gql`
+  subscription postCommentDeleted {
+    deleteComment
+  }
+`;

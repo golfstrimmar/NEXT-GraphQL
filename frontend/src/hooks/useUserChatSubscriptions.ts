@@ -14,6 +14,7 @@ import {
   REACTION_CHANGED_SUBSCRIPTION,
   COMMENT_CREATED_SUBSCRIPTION,
   POST_DELETED_SUBSCRIPTION,
+  POST_COMMENT_DELETED_SUBSCRIPTION,
 } from "@/apolo/subscriptions";
 
 import { useStateContext } from "@/components/StateProvider";
@@ -228,25 +229,27 @@ export default function useUserChatSubscriptions(chatIds?: number[]) {
 
   useSubscription(REACTION_CHANGED_SUBSCRIPTION, {
     onData: ({ client, data }) => {
-      const reactedPost = data?.data?.reactionChanged;
-      if (!reactedPost) return;
-      console.log("<===== ✅ Subscribed to POST_REACTED: =====>", reactedPost);
+      const reacted = data?.data?.reactionChanged;
+      if (!reacted) return;
 
-      client.cache.updateQuery({ query: GET_ALL_POSTS }, (oldData) => {
-        if (!oldData || !oldData.posts) return { posts: [reactedPost] };
+      console.log(
+        "<===== ✅ SUBSCRIPTION reactionChanged data received:",
+        reacted
+      );
 
-        const updatedPosts = oldData.posts.map((post: any) =>
-          post.id === reactedPost.postId
-            ? {
-                ...post,
-                likes: reactedPost.likes,
-                dislikes: reactedPost.dislikes,
-                currentUserReaction: reactedPost.currentUserReaction,
-              }
-            : post
-        );
-
-        return { posts: updatedPosts };
+      client.cache.modify({
+        id: client.cache.identify({ __typename: "Post", id: reacted.postId }),
+        fields: {
+          likes() {
+            return reacted.likes;
+          },
+          dislikes() {
+            return reacted.dislikes;
+          },
+          currentUserReaction() {
+            return reacted.currentUserReaction;
+          },
+        },
       });
     },
   });
@@ -290,6 +293,29 @@ export default function useUserChatSubscriptions(chatIds?: number[]) {
           posts(existingPosts = [], { readField }) {
             return existingPosts.filter(
               (postRef: any) => readField("id", postRef) !== deletedPostId
+            );
+          },
+        },
+      });
+    },
+  });
+  useSubscription(POST_COMMENT_DELETED_SUBSCRIPTION, {
+    onData: ({ client, data }) => {
+      const deleted = data?.data?.postCommentDeleted;
+      if (!deleted) return;
+
+      const { commentId, postId } = deleted;
+      console.log(
+        "<===== 📝 Subscribed to POST_COMMENT_DELETED: =====>",
+        deleted
+      );
+
+      client.cache.modify({
+        id: client.cache.identify({ __typename: "Post", id: postId }),
+        fields: {
+          comments(existingCommentRefs = [], { readField }) {
+            return existingCommentRefs.filter(
+              (ref: any) => readField("id", ref) !== commentId
             );
           },
         },

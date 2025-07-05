@@ -58,8 +58,8 @@ type PostComment {
 
 type PostReactionResult {
   postId: Int!
-  likes: Int!
-  dislikes: Int!
+  likes: [String!]!
+  dislikes: [String!]!
   currentUserReaction: ReactionType
 }
 
@@ -78,7 +78,10 @@ type AuthPayload {
   isLoggedIn: Boolean
   token: String
 }
-
+type PostCommentDeletedPayload {
+  commentId: Int!
+  postId: Int!
+}
 type Mutation {
   addUser(
     email: String!
@@ -98,6 +101,7 @@ type Mutation {
   toggleLike(postId: Int!, reaction: ReactionType!): PostReactionResult!
   createComment(postId: Int!, text: String!): PostComment!
   deletePost(id: Int!): ID
+  deleteComment(postId: Int!, commentId: Int!): ID
 }
 
 type Subscription {
@@ -112,6 +116,7 @@ type Subscription {
   reactionChanged: PostReactionResult!
   commentCreated: PostComment
   postDeleted: ID
+  postCommentDeleted: PostCommentDeletedPayload!
 }
 `;
 

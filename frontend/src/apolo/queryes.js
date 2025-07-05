@@ -28,6 +28,7 @@ export const GET_ALL_CHATS = gql`
       messages {
         id
         text
+        createdAt
         sender {
           id
           name

@@ -1,0 +1,21 @@
+.chat {
+  width: 100%;
+  background-color: #30344c;
+  padding: 1em;
+  box-shadow: 4px 4px 20px rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  color: #c6e1ed;
+
+  form {
+    background-color: white;
+    border-radius: 10px;
+    border: 1px solid #9d93fa;
+
+    label {}
+
+    input {
+      color: grey;
+
+    }
+  }
+}
