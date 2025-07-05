@@ -64,7 +64,7 @@ export default function Login() {
       setTimeout(() => {
         setEmail("");
         setPassword("");
-        router.push("/chats");
+        router.push("/");
       }, 2000);
     } catch (err) {
       console.error("Login error:", err);
@@ -133,7 +133,7 @@ export default function Login() {
       });
 
       showModal("Google login successful!");
-      setTimeout(() => router.push("/chats"), 2000);
+      setTimeout(() => router.push("/"), 2000);
     } catch (err) {
       console.error("Google login error:", err);
       showModal("Google login failed");

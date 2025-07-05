@@ -77,7 +77,7 @@ const Chats = () => {
     <div className="mt-[80px] ">
       <div className="container">
         <UsersList />
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col  gap-2">
           {!user && (
             <p className="inline-block mt-6  bg-gray-200  border rounded p-2 text-center">
               <span className="bg-white p-1 rounded">
@@ -85,7 +85,8 @@ const Chats = () => {
               </span>
             </p>
           )}
-          {user && <h2 className="mb-2">Your Chats:</h2>}
+          {user && <h2 className="mt-4">Your Chats:</h2>}
+
           {allChatsData?.chats?.length === 0 && <p>No chats found</p>}
           {allChatsData?.chats
             ?.filter(

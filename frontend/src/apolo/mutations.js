@@ -100,6 +100,7 @@ export const SEND_MESSAGE = gql`
     }
   }
 `;
+
 export const ADD_POST = gql`
   mutation addPost($category: String!, $title: String!, $text: String!) {
     addPost(category: $category, title: $title, text: $text) {
@@ -123,5 +124,28 @@ export const TOGGLE_LIKE = gql`
       dislikes
       currentUserReaction
     }
+  }
+`;
+
+export const CREATE_COMMENT = gql`
+  mutation createComment($postId: Int!, $text: String!) {
+    createComment(postId: $postId, text: $text) {
+      id
+      text
+      createdAt
+      user {
+        id
+        name
+      }
+      post {
+        id
+      }
+    }
+  }
+`;
+
+export const DELETE_POST = gql`
+  mutation deletePost($id: Int!) {
+    deletePost(id: $id)
   }
 `;

@@ -15,6 +15,8 @@ import {
   MESSAGE_SENT,
   POST_CREATED,
   REACTION_CHANGED,
+  COMMENT_CREATED,
+  POST_DELETED,
 } from "./../utils/pubsub.js";
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_here";
@@ -320,6 +322,19 @@ const Mutation = {
 
     return post;
   },
+  deletePost: async (_, { id }, { userId }) => {
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+    const post = await prisma.post.findUnique({ where: { id } });
+    if (!post || post.creatorId !== userId) {
+      throw new Error("Access denied");
+    }
+    await prisma.post.delete({ where: { id } });
+    console.log(" To subscribe postDeleted   🟢--> ");
+    pubsub.publish(POST_DELETED, { postDeleted: id });
+    return id;
+  },
   toggleLike: async (_, { postId, reaction }, { userId }) => {
     if (!userId) {
       throw new Error("Unauthorized");
@@ -396,6 +411,30 @@ const Mutation = {
       dislikes,
       currentUserReaction,
     };
+  },
+
+  createComment: async (_, { postId, text }, { userId }) => {
+    console.log("Creating comment", { postId, text, userId });
+    if (!userId) {
+      throw new Error("Unauthorized");
+    }
+    if (!text.trim()) {
+      throw new Error("Comment cannot be empty");
+    }
+
+    const comment = await prisma.postComment.create({
+      data: {
+        postId: Number(postId),
+        text,
+        userId,
+      },
+      include: { user: true, post: true },
+    });
+    console.log(" To subscribe commentCreated   🟢--> ");
+    pubsub.publish(COMMENT_CREATED, {
+      commentCreated: comment,
+    });
+    return comment;
   },
 };
 

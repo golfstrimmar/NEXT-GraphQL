@@ -52,6 +52,15 @@ export const GET_ALL_POSTS = gql`
       likes
       dislikes
       currentUserReaction
+      comments {
+        id
+        text
+        createdAt
+        user {
+          id
+          name
+        }
+      }
     }
   }
 `;

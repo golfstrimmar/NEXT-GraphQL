@@ -45,6 +45,11 @@ const Query = {
             user: true,
           },
         },
+        comments: {
+          include: {
+            user: true, 
+          },
+        },
       },
     });
 
@@ -69,6 +74,8 @@ const Query = {
         likes,
         dislikes,
         currentUserReaction: null,
+        commentsCount: post.comments.length,
+        comments: post.comments,
       };
     });
   },

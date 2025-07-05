@@ -112,3 +112,26 @@ export const REACTION_CHANGED_SUBSCRIPTION = gql`
     }
   }
 `;
+
+export const COMMENT_CREATED_SUBSCRIPTION = gql`
+  subscription commentCreated {
+    commentCreated {
+      id
+      text
+      createdAt
+      post {
+        id
+      }
+      user {
+        id
+        name
+      }
+    }
+  }
+`;
+
+export const POST_DELETED_SUBSCRIPTION = gql`
+  subscription postDeleted {
+    postDeleted
+  }
+`;

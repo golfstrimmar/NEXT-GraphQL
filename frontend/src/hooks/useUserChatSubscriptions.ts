@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { use, useEffect } from "react";
 import { useSubscription, useQuery, useMutation } from "@apollo/client";
 import { gql } from "@apollo/client";
 import { GET_USERS, GET_ALL_CHATS, GET_ALL_POSTS } from "@/apolo/queryes";
@@ -12,6 +12,8 @@ import {
   MESSAGE_SENT_SUBSCRIPTION,
   POST_CREATED_SUBSCRIPTION,
   REACTION_CHANGED_SUBSCRIPTION,
+  COMMENT_CREATED_SUBSCRIPTION,
+  POST_DELETED_SUBSCRIPTION,
 } from "@/apolo/subscriptions";
 
 import { useStateContext } from "@/components/StateProvider";
@@ -245,6 +247,52 @@ export default function useUserChatSubscriptions(chatIds?: number[]) {
         );
 
         return { posts: updatedPosts };
+      });
+    },
+  });
+
+  useSubscription(COMMENT_CREATED_SUBSCRIPTION, {
+    onData: ({ client, data }) => {
+      const newComment = data?.data?.commentCreated;
+      if (!newComment) return;
+      console.log(
+        "<===== 📝 Subscribed to COMMENT_CREATED: =====>",
+        newComment
+      );
+
+      client.cache.updateQuery({ query: GET_ALL_POSTS }, (oldData) => {
+        if (!oldData || !oldData.posts) return oldData;
+
+        const updatedPosts = oldData.posts.map((post: any) =>
+          post.id === newComment.post.id
+            ? {
+                ...post,
+                comments: [...post.comments, newComment],
+              }
+            : post
+        );
+
+        return { posts: updatedPosts };
+      });
+    },
+  });
+
+  useSubscription(POST_DELETED_SUBSCRIPTION, {
+    onData: ({ client, data }) => {
+      const deletedPostId = data?.data?.postDeleted;
+      if (!deletedPostId) return;
+      console.log(
+        "<===== 📝 Subscribed to POST_DELETED: =====>",
+        deletedPostId
+      );
+      client.cache.modify({
+        fields: {
+          posts(existingPosts = [], { readField }) {
+            return existingPosts.filter(
+              (postRef: any) => readField("id", postRef) !== deletedPostId
+            );
+          },
+        },
       });
     },
   });

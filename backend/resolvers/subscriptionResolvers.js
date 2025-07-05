@@ -9,6 +9,8 @@ import {
   MESSAGE_SENT,
   POST_CREATED,
   REACTION_CHANGED,
+  COMMENT_CREATED,
+  POST_DELETED,
 } from "./../utils/pubsub.js";
 
 const Subscription = {
@@ -39,6 +41,14 @@ const Subscription = {
 
   reactionChanged: {
     subscribe: () => pubsub.asyncIterator(REACTION_CHANGED),
+  },
+
+  commentCreated: {
+    subscribe: () => pubsub.asyncIterator(COMMENT_CREATED),
+  },
+
+  postDeleted: {
+    subscribe: () => pubsub.asyncIterator(POST_DELETED),
   },
 };
 

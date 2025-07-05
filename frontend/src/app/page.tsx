@@ -9,8 +9,6 @@ import useUserChatSubscriptions from "@/hooks/useUserChatSubscriptions";
 import { useStateContext } from "@/components/StateProvider";
 import useIdleLogout from "@/hooks/useIdleLogout";
 import isTokenExpired from "@/utils/checkTokenExpiration";
-import Chats from "@/components/Chats/Chats";
-import Blog from "@/components/Blog/Blog";
 export default function Users() {
   const router = useRouter();
   const { user, setUser } = useStateContext();
@@ -52,9 +50,7 @@ export default function Users() {
 
   return (
     <div className="container ">
-      <div className="mt-[80px] w-full">
-        <Blog />
-      </div>
+      <div className="mt-[80px] w-full">Home</div>
     </div>
   );
 }

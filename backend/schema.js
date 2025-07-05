@@ -43,7 +43,18 @@ type Post {
   likes: [String!]!         
   dislikes: [String!]!      
   currentUserReaction: ReactionType
+  comments: [PostComment!]!
 }
+
+type PostComment {
+  id: Int!
+  text: String!
+  createdAt: String!
+  user: User!
+  post: Post!
+}
+
+
 
 type PostReactionResult {
   postId: Int!
@@ -85,6 +96,8 @@ type Mutation {
   sendMessage(chatId: Int!, text: String!): Message!
   addPost(category: String!, title: String!, text: String!): Post!
   toggleLike(postId: Int!, reaction: ReactionType!): PostReactionResult!
+  createComment(postId: Int!, text: String!): PostComment!
+  deletePost(id: Int!): ID
 }
 
 type Subscription {
@@ -97,6 +110,8 @@ type Subscription {
   messageSent: Message!
   postCreated: Post!
   reactionChanged: PostReactionResult!
+  commentCreated: PostComment
+  postDeleted: ID
 }
 `;
 

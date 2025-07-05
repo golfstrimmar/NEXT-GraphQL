@@ -80,6 +80,17 @@ const Navbar: React.FC = () => {
           </li>
           <li className="flex flex-col justify-center">
             <Link
+              href="/blog"
+              className={`hover:text-gray-300 transition-colors duration-200 ${
+                activeLink === "/blog" ? "text-[#0ae42e]" : "text-white"
+              }`}
+              onClick={() => setIsOpen(false)}
+            >
+              Blog
+            </Link>
+          </li>
+          <li className="flex flex-col justify-center">
+            <Link
               href="/chats"
               className={`hover:text-gray-300 transition-colors duration-200 ${
                 activeLink === "/chats" ? "text-[#0ae42e]" : "text-white"
@@ -89,7 +100,6 @@ const Navbar: React.FC = () => {
               Chats
             </Link>
           </li>
-
           {!user ? (
             <>
               <li className="flex flex-col justify-center">
