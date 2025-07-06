@@ -46,15 +46,19 @@ type Post {
   comments: [PostComment!]!
 }
 
+
+
+
 type PostComment {
   id: Int!
   text: String!
   createdAt: String!
   user: User!
   post: Post!
+  likesCount: Int!
+  dislikesCount: Int!
+  currentUserReaction: ReactionType
 }
-
-
 
 type PostReactionResult {
   postId: Int!
@@ -67,9 +71,12 @@ type Query {
   users: [User]
   chats: [Chat!]!
   messages(chatId: Int!): [Message!]!
-  posts: [Post!]
+  posts(skip: Int!, take: Int!): PostsResult!
 }
-
+type PostsResult {
+  posts: [Post!]!
+  totalCount: Int!
+}
 type AuthPayload {
   id: Int!
   email: String!
@@ -102,6 +109,7 @@ type Mutation {
   createComment(postId: Int!, text: String!): PostComment!
   deletePost(id: Int!): ID
   deleteComment(postId: Int!, commentId: Int!): ID
+  toggleCommentReaction(commentId: Int!, reaction: ReactionType!): PostComment!
 }
 
 type Subscription {
@@ -117,6 +125,7 @@ type Subscription {
   commentCreated: PostComment
   postDeleted: ID
   postCommentDeleted: PostCommentDeletedPayload!
+  commentReactionChanged: PostComment!
 }
 `;
 

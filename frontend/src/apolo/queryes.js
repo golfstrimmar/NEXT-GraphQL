@@ -39,27 +39,33 @@ export const GET_ALL_CHATS = gql`
 `;
 
 export const GET_ALL_POSTS = gql`
-  query GetAllPosts {
-    posts {
-      id
-      category
-      title
-      text
-      createdAt
-      creator {
+  query GetAllPosts($skip: Int!, $take: Int!) {
+    posts(skip: $skip, take: $take) {
+      totalCount
+      posts {
         id
-        name
-      }
-      likes
-      dislikes
-      currentUserReaction
-      comments {
-        id
+        category
+        title
         text
         createdAt
-        user {
+        creator {
           id
           name
+        }
+        likes
+        dislikes
+        currentUserReaction
+        comments {
+          id
+          text
+          createdAt
+          user {
+            id
+            name
+          }
+          likesCount
+          dislikesCount
+          currentUserReaction
         }
       }
     }

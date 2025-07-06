@@ -36,24 +36,25 @@ const Query = {
     });
   },
 
-  posts: async () => {
+  posts: async (_, { skip = 0, take = 5 }, context) => {
+    const currentUserId = context?.userId || null;
+    const totalCount = await prisma.post.count();
     const posts = await prisma.post.findMany({
+      skip,
+      take,
+      orderBy: { createdAt: "desc" }, // сортируем по дате, новые сверху
       include: {
         creator: true,
-        reactions: {
-          include: {
-            user: true,
-          },
-        },
+        reactions: { include: { user: true } },
         comments: {
           include: {
-            user: true, 
+            user: true,
+            reactions: { include: { user: true } },
           },
         },
       },
     });
-
-    return posts.map((post) => {
+    const formattedPosts = posts.map((post) => {
       const likes = post.reactions
         .filter((r) => r.reaction === "LIKE" && r.user)
         .map((r) => r.user.name || "Аноним");
@@ -62,22 +63,57 @@ const Query = {
         .filter((r) => r.reaction === "DISLIKE" && r.user)
         .map((r) => r.user.name || "Аноним");
 
+      const currentUserReaction = currentUserId
+        ? post.reactions.find((r) => r.userId === currentUserId)?.reaction ||
+          null
+        : null;
+
+      const comments = post.comments.map((comment) => {
+        const commentLikesCount = comment.reactions.filter(
+          (r) => r.reaction === "LIKE"
+        ).length;
+
+        const commentDislikesCount = comment.reactions.filter(
+          (r) => r.reaction === "DISLIKE"
+        ).length;
+
+        const commentUserReaction = currentUserId
+          ? comment.reactions.find((r) => r.userId === currentUserId)
+              ?.reaction || null
+          : null;
+
+        return {
+          id: comment.id,
+          text: comment.text,
+          createdAt: comment.createdAt,
+          user: comment.user,
+          likesCount: commentLikesCount,
+          dislikesCount: commentDislikesCount,
+          currentUserReaction: commentUserReaction,
+        };
+      });
+
       return {
         id: post.id,
-        category: post.category,
         title: post.title,
         text: post.text,
-        createdAt: post.createdAt.toISOString(),
+        category: post.category,
+        createdAt: post.createdAt,
         creator: post.creator,
         likesCount: likes.length,
         dislikesCount: dislikes.length,
         likes,
         dislikes,
-        currentUserReaction: null,
-        commentsCount: post.comments.length,
-        comments: post.comments,
+        currentUserReaction,
+        commentsCount: comments.length,
+        comments,
       };
     });
+
+    return {
+      posts: formattedPosts,
+      totalCount,
+    };
   },
 };
 

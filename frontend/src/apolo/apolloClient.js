@@ -26,6 +26,7 @@ const protectedOperations = [
   "createComment",
   "deletePost",
   "deleteComment",
+  "toggleCommentReaction",
 ];
 
 // ✅ HTTP link

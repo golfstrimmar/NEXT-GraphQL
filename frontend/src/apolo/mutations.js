@@ -155,3 +155,23 @@ export const DELETE_POST_COMMENT = gql`
     deleteComment(postId: $postId, commentId: $commentId)
   }
 `;
+
+export const TOGGLE_COMMENT_REACTION = gql`
+  mutation toggleCommentReaction($commentId: Int!, $reaction: ReactionType!) {
+    toggleCommentReaction(commentId: $commentId, reaction: $reaction) {
+      id
+      text
+      createdAt
+      user {
+        id
+        name
+      }
+      post {
+        id
+      }
+      likesCount
+      dislikesCount
+      currentUserReaction
+    }
+  }
+`;

@@ -138,6 +138,29 @@ export const POST_DELETED_SUBSCRIPTION = gql`
 
 export const POST_COMMENT_DELETED_SUBSCRIPTION = gql`
   subscription postCommentDeleted {
-    deleteComment
+    postCommentDeleted {
+      commentId
+      postId
+    }
+  }
+`;
+
+export const COMMENT_REACTION_CHANGED_SUBSCRIPTION = gql`
+  subscription commentReactionChanged {
+    commentReactionChanged {
+      id
+      text
+      createdAt
+      user {
+        id
+        name
+      }
+      post {
+        id
+      }
+      likesCount
+      dislikesCount
+      currentUserReaction
+    }
   }
 `;

@@ -9,6 +9,7 @@ import {
   CREATE_COMMENT,
   DELETE_POST,
   DELETE_POST_COMMENT,
+  TOGGLE_COMMENT_REACTION,
 } from "@/apolo/mutations";
 import useUserChatSubscriptions from "@/hooks/useUserChatSubscriptions";
 import { useStateContext } from "@/components/StateProvider";
@@ -43,11 +44,18 @@ type PostType = {
 };
 
 const Blog = () => {
-  useUserChatSubscriptions();
   const { user, showModal } = useStateContext();
-  const { data, loading, error } = useQuery<{ posts: PostType[] }>(
-    GET_ALL_POSTS
-  );
+
+  const POSTS_PER_PAGE = 5;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useUserChatSubscriptions(currentPage, setCurrentPage);
+  const { data, loading, error } = useQuery(GET_ALL_POSTS, {
+    variables: {
+      skip: (currentPage - 1) * POSTS_PER_PAGE,
+      take: POSTS_PER_PAGE,
+    },
+  });
 
   const [deletePost] = useMutation(DELETE_POST, {
     refetchQueries: [{ query: GET_ALL_POSTS }],
@@ -57,7 +65,7 @@ const Blog = () => {
   const [createComment] = useMutation(CREATE_COMMENT, {
     refetchQueries: [{ query: GET_ALL_POSTS }],
   });
-
+  const [toggleCommentReaction] = useMutation(TOGGLE_COMMENT_REACTION);
   const [deleteComment] = useMutation(DELETE_POST_COMMENT, {
     refetchQueries: [{ query: GET_ALL_POSTS }],
   });
@@ -179,6 +187,23 @@ const Blog = () => {
       console.error("Error deleting comment:", err);
     }
   };
+  const handleCommentReaction = async (
+    commentId: string,
+    reaction: "LIKE" | "DISLIKE"
+  ) => {
+    if (!user) return showModal("Login to react to comment.");
+    try {
+      await toggleCommentReaction({
+        variables: {
+          commentId: Number(commentId),
+          reaction,
+        },
+      });
+    } catch (err) {
+      console.error("Error reacting to comment:", err);
+      showModal("Error reacting to comment.");
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -206,7 +231,7 @@ const Blog = () => {
           {loading ? (
             <Loading />
           ) : (
-            data?.posts.map((post) => (
+            data?.posts.posts.map((post) => (
               <li key={post.id} className="card">
                 <h4 className="font-semibold">{post.category}</h4>
                 <p className="bg-white my-4 p-2 rounded text-black">
@@ -405,6 +430,23 @@ const Blog = () => {
                                 <small className="ml-2">
                                   🕒 {transformData(comment.createdAt)}
                                 </small>
+                                <button
+                                  onClick={() =>
+                                    handleCommentReaction(comment.id, "LIKE")
+                                  }
+                                  className="flex items-center gap-1 cursor-pointer px-1 rounded bg-green-100 hover:bg-green-200 text-sm"
+                                >
+                                  👍 {comment.likesCount}
+                                </button>
+
+                                <button
+                                  onClick={() =>
+                                    handleCommentReaction(comment.id, "DISLIKE")
+                                  }
+                                  className="flex items-center gap-1 cursor-pointer px-1 rounded bg-red-100 hover:bg-red-200 text-sm"
+                                >
+                                  👎 {comment.dislikesCount}
+                                </button>
                                 {comment.user.id === user?.id && (
                                   <button
                                     type="button"
@@ -414,7 +456,7 @@ const Blog = () => {
                                         comment.id
                                       );
                                     }}
-                                    className=" cursor-pointer"
+                                    className="ml-auto p-1 rounded-lg  cursor-pointer"
                                   >
                                     <Image
                                       src="/svg/cross.svg"
@@ -473,6 +515,54 @@ const Blog = () => {
             ))
           )}
         </ul>
+        {data && data.posts.posts && (
+          <div className="flex justify-center items-center gap-4 mt-6 ">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="
+    px-3 py-1 rounded text-white cursor-pointer
+    bg-[#30344c]
+    hover:bg-[#5b6496]
+    disabled:bg-gray-700
+    disabled:cursor-not-allowed
+    disabled:opacity-50
+    transition-colors duration-200
+    focus:outline-none focus:ring-2 focus:ring-blue-400
+  "
+            >
+              ← Prev
+            </button>
+            <span>
+              Page {currentPage} of{" "}
+              {Math.ceil(data.posts.totalCount / POSTS_PER_PAGE)}
+            </span>
+            <button
+              onClick={() =>
+                setCurrentPage((prev) =>
+                  prev < Math.ceil(data.posts.totalCount / POSTS_PER_PAGE)
+                    ? prev + 1
+                    : prev
+                )
+              }
+              disabled={
+                currentPage >= Math.ceil(data.posts.totalCount / POSTS_PER_PAGE)
+              }
+              className="
+    px-3 py-1 rounded text-white cursor-pointer
+    bg-[#30344c]
+    hover:bg-[#5b6496]
+    disabled:bg-gray-700
+    disabled:cursor-not-allowed
+    disabled:opacity-50
+    transition-colors duration-200
+    focus:outline-none focus:ring-2 focus:ring-blue-400
+  "
+            >
+              Next →
+            </button>
+          </div>
+        )}
         <AddPostForm />
       </div>
     </section>

@@ -18,6 +18,7 @@ import {
   COMMENT_CREATED,
   POST_DELETED,
   POST_COMMENT_DELETED,
+  COMMENT_REACTION_CHANGED,
 } from "./../utils/pubsub.js";
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_here";
@@ -172,40 +173,66 @@ const Mutation = {
     return true;
   },
   deleteUser: async (_, { id }) => {
-    // 1. Найти все чаты пользователя (creator или participant)
-    const userChats = await prisma.chat.findMany({
-      where: {
-        OR: [{ creatorId: id }, { participantId: id }],
-      },
-      select: { id: true },
-    });
-
-    const chatIds = userChats.map((chat) => chat.id);
-
-    // 2. Удалить все сообщения из этих чатов
-    if (chatIds.length > 0) {
-      await prisma.message.deleteMany({
-        where: {
-          chatId: { in: chatIds },
-        },
-      });
-    }
-
-    // 3. Удалить все эти чаты
-    await prisma.chat.deleteMany({
-      where: {
-        id: { in: chatIds },
-      },
-    });
-
-    // 4. Удалить самого пользователя
     const user = await prisma.user.delete({ where: { id } });
-    console.log("To subscribe userDeleted  🟢-->");
     pubsub.publish(USER_DELETED, { userDeleted: user });
-
     return user;
   },
+  // deleteUser: async (_, { id }) => {
+  //   // 1. Найти все чаты пользователя (creator или participant)
+  //   const userChats = await prisma.chat.findMany({
+  //     where: {
+  //       OR: [{ creatorId: id }, { participantId: id }],
+  //     },
+  //     select: { id: true },
+  //   });
 
+  //   const chatIds = userChats.map((chat) => chat.id);
+
+  //   // 2. Удалить все сообщения из этих чатов
+  //   if (chatIds.length > 0) {
+  //     await prisma.message.deleteMany({
+  //       where: {
+  //         chatId: { in: chatIds },
+  //       },
+  //     });
+  //   }
+
+  //   // 3. Удалить все эти чаты
+  //   await prisma.chat.deleteMany({
+  //     where: {
+  //       id: { in: chatIds },
+  //     },
+  //   });
+
+  //   // 4. Удалить все комментарии пользователя
+  //   await prisma.postComment.deleteMany({
+  //     where: {
+  //       userId: id,
+  //     },
+  //   });
+
+  //   // 5. Удалить все реакции пользователя (оценки)
+  //   await prisma.reaction.deleteMany({
+  //     where: {
+  //       userId: id,
+  //     },
+  //   });
+
+  //   // 6. Удалить все посты пользователя (если нужно)
+  //   await prisma.post.deleteMany({
+  //     where: {
+  //       authorId: id,
+  //     },
+  //   });
+
+  //   // 7. Удалить самого пользователя
+  //   const user = await prisma.user.delete({ where: { id } });
+
+  //   console.log("To subscribe userDeleted  🟢-->");
+  //   pubsub.publish(USER_DELETED, { userDeleted: user });
+
+  //   return user;
+  // },
   createChat: async (_, { participantId }, { userId }) => {
     if (!userId) {
       throw new Error("Not authenticated");
@@ -291,7 +318,7 @@ const Mutation = {
         text,
         senderId: userId,
         chatId,
-        createdAt,
+        
       },
       include: {
         sender: true,
@@ -481,6 +508,106 @@ const Mutation = {
     });
 
     return commentId;
+  },
+  toggleCommentReaction: async (_, { commentId, reaction }, { userId }) => {
+    if (!userId) throw new Error("Not authenticated");
+
+    // Проверяем, есть ли уже реакция
+    const existing = await prisma.postCommentReaction.findUnique({
+      where: {
+        userId_commentId: {
+          userId,
+          commentId,
+        },
+      },
+    });
+
+    let currentUserReaction;
+
+    if (existing) {
+      if (existing.reaction === reaction) {
+        // Если реакция та же — удалить
+        await prisma.postCommentReaction.delete({
+          where: {
+            userId_commentId: {
+              userId,
+              commentId,
+            },
+          },
+        });
+        currentUserReaction = null;
+      } else {
+        // Иначе — обновить реакцию
+        await prisma.postCommentReaction.update({
+          where: {
+            userId_commentId: {
+              userId,
+              commentId,
+            },
+          },
+          data: {
+            reaction,
+          },
+        });
+        currentUserReaction = reaction;
+      }
+    } else {
+      // Если не было — создать
+      await prisma.postCommentReaction.create({
+        data: {
+          userId,
+          commentId,
+          reaction,
+        },
+      });
+      currentUserReaction = reaction;
+    }
+
+    // Получаем все реакции для пересчёта
+    const updatedComment = await prisma.postComment.findUnique({
+      where: { id: commentId },
+      include: {
+        reactions: {
+          include: {
+            user: true,
+          },
+        },
+        user: true,
+      },
+    });
+
+    const likesCount = updatedComment.reactions.filter(
+      (r) => r.reaction === "LIKE"
+    ).length;
+
+    const dislikesCount = updatedComment.reactions.filter(
+      (r) => r.reaction === "DISLIKE"
+    ).length;
+
+    console.log("To subscribe commentReactionChanged 🟢-->");
+
+    pubsub.publish(COMMENT_REACTION_CHANGED, {
+      commentReactionChanged: {
+        id: updatedComment.id,
+        text: updatedComment.text,
+        createdAt: updatedComment.createdAt,
+        user: updatedComment.user,
+        post: { id: updatedComment.postId },
+        likesCount,
+        dislikesCount,
+        currentUserReaction,
+      },
+    });
+    return {
+      id: updatedComment.id,
+      text: updatedComment.text,
+      createdAt: updatedComment.createdAt,
+      user: updatedComment.user,
+      post: { id: updatedComment.postId }, // минимально, если надо больше — включи post
+      likesCount,
+      dislikesCount,
+      currentUserReaction,
+    };
   },
 };
 
