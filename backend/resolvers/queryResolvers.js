@@ -114,6 +114,17 @@ const Query = {
       posts: formattedPosts,
       totalCount,
     };
+  },    
+  categories: async () => {
+    const posts = await prisma.post.findMany({
+      distinct: ["category"],
+      select: {
+        category: true,
+      },
+    });
+    return posts.map((post) => {
+      return post.category;
+    });
   },
 };
 

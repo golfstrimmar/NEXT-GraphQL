@@ -72,6 +72,7 @@ type Query {
   chats: [Chat!]!
   messages(chatId: Int!): [Message!]!
   posts(skip: Int!, take: Int!): PostsResult!
+  categories: [String!]
 }
 type PostsResult {
   posts: [Post!]!

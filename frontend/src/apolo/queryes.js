@@ -71,3 +71,8 @@ export const GET_ALL_POSTS = gql`
     }
   }
 `;
+export const GET_ALL_CATEGORIES = gql`
+  query GetAllCategories {
+    categories
+  }
+`;
