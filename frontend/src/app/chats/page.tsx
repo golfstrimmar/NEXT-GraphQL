@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@apollo/client";
-import { GET_ALL_CHATS } from "@/apolo/queryes";
+import { GET_USER_CHATS } from "@/apolo/queryes";
 import { DELETE_CHAT, SEND_MESSAGE } from "@/apolo/mutations";
 import { useStateContext } from "@/components/StateProvider";
 import transformData from "@/hooks/useTransformData";
@@ -25,7 +25,8 @@ type ChatType = {
 
 const Chats = () => {
   const { user } = useStateContext();
-  const { data: allChatsData } = useQuery<{ chats: ChatType[] }>(GET_ALL_CHATS);
+  const { loading, error, data } = useQuery(GET_USER_CHATS);
+
   const [deleteChat] = useMutation(DELETE_CHAT);
   const [sendMessage] = useMutation(SEND_MESSAGE);
   const { showModal } = useStateContext();
@@ -36,10 +37,9 @@ const Chats = () => {
   // -----------------
 
   useEffect(() => {
-    if (allChatsData?.chats) {
-      console.log("<==== chats ====>", allChatsData?.chats);
-    }
-  }, [allChatsData?.chats]);
+    if (error) console.error("Chats query error:", error);
+    if (data) console.log("🟢🟢User chats data:", data.userChats);
+  }, [data, error]);
   // -----------------
   const handleDeleteChat = async (id: number) => {
     try {
@@ -88,8 +88,8 @@ const Chats = () => {
           )}
           {user && <h2 className="mt-4">Your Chats:</h2>}
 
-          {allChatsData?.chats?.length === 0 && <p>No chats found</p>}
-          {allChatsData?.chats
+          {data?.userChats.length === 0 && <p>No chats found</p>}
+          {data?.userChats
             ?.filter(
               (chat) =>
                 chat.creator.id === user?.id || chat.participant.id === user?.id

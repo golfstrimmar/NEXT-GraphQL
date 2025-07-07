@@ -6,27 +6,34 @@ import { useMutation, useApolloClient, useQuery } from "@apollo/client";
 import { DELETE_USER, CREATE_CHAT } from "@/apolo/mutations";
 import useUserChatSubscriptions from "@/hooks/useUserChatSubscriptions";
 import { useStateContext } from "@/components/StateProvider";
-import { GET_USERS, GET_ALL_CHATS } from "@/apolo/queryes";
+import { GET_USERS, GET_USER_CHATS } from "@/apolo/queryes";
 import Loading from "@/components/Loading";
 
 const UsersList = () => {
   const client = useApolloClient();
   const [deleteUser] = useMutation(DELETE_USER);
   const [createChat] = useMutation(CREATE_CHAT);
-  const { data: queryData, loading } = useQuery(GET_USERS);
-  const { data: allChatsData } = useQuery(GET_ALL_CHATS);
+  const { data: queryData } = useQuery(GET_USERS);
+  const { loading, error, data } = useQuery(GET_USER_CHATS);
   const { user, setUser, showModal } = useStateContext();
+
   useUserChatSubscriptions();
   useEffect(() => {
-    if (!loading && queryData && Array.isArray(queryData.users)) {
-      if (queryData.users.length === 0) {
-        console.log("<==== all users =======>", queryData.users);
-        setUser(null);
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-      }
+    if (queryData?.users) {
+      console.log("<==== 🧑‍🤝‍🧑 users====>", queryData.users);
     }
-  }, [queryData, loading, setUser]);
+  }, [queryData]);
+
+  // useEffect(() => {
+  //   if (!loading && queryData && Array.isArray(queryData.users)) {
+  //     if (queryData.users.length === 0) {
+  //       console.log("<==== all users =======>", queryData.users);
+  //       setUser(null);
+  //       localStorage.removeItem("token");
+  //       localStorage.removeItem("user");
+  //     }
+  //   }
+  // }, [queryData, loading, setUser]);
 
   const handleDelete = async (id: number) => {
     try {
@@ -36,7 +43,6 @@ const UsersList = () => {
 
       const deletedUser = data?.deleteUser;
       if (deletedUser?.id) {
-        console.log("❌❌❌ Mutation to delete user:", deletedUser);
         showModal(`User deleted successfully!`);
         client.cache.updateQuery({ query: GET_USERS }, (oldData: any) => {
           if (!oldData) return { users: [] };
@@ -73,7 +79,7 @@ const UsersList = () => {
   };
 
   const renderCreateChatButton = ({ userId, handleCreateChat, userName }) => {
-    const chats = allChatsData?.chats;
+    const chats = data?.userChats;
     const hasChat = hasChatWithUser(userId, chats);
     if (userId === user?.id || hasChat || !user?.id) return null;
 
@@ -167,7 +173,7 @@ const UsersList = () => {
           </div>
         </li>
       ));
-  }, [queryData?.users, user?.id, allChatsData?.chats]);
+  }, [queryData?.users, user?.id, data?.userChats, handleDelete]);
   // --------------------------
 
   return (

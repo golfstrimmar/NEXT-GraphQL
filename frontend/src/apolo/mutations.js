@@ -2,7 +2,7 @@
 import { gql } from "@apollo/client";
 
 export const ADD_USER = gql`
-  mutation addUser($email: String!, $name: String, $password: String!) {
+  mutation addUser($email: String!, $name: String!, $password: String!) {
     addUser(email: $email, name: $name, password: $password) {
       id
       email
@@ -83,12 +83,11 @@ export const DELETE_CHAT = gql`
     deleteChat(id: $id)
   }
 `;
-
 export const SEND_MESSAGE = gql`
-  mutation sendMessage($chatId: Int!, $text: String!) {
-    sendMessage(chatId: $chatId, text: $text) {
+  mutation sendMessage($chatId: Int!, $content: String!) {
+    sendMessage(chatId: $chatId, content: $content) {
       id
-      text
+      content
       createdAt
       sender {
         id
@@ -101,77 +100,77 @@ export const SEND_MESSAGE = gql`
   }
 `;
 
-export const ADD_POST = gql`
-  mutation addPost($category: String!, $title: String!, $text: String!) {
-    addPost(category: $category, title: $title, text: $text) {
-      id
-      category
-      title
-      text
-      createdAt
-      creator {
-        id
-        name
-      }
-    }
-  }
-`;
-export const TOGGLE_LIKE = gql`
-  mutation toggleLike($postId: Int!, $reaction: ReactionType!) {
-    toggleLike(postId: $postId, reaction: $reaction) {
-      postId
-      likes
-      dislikes
-      currentUserReaction
-    }
-  }
-`;
+// export const ADD_POST = gql`
+//   mutation addPost($category: String!, $title: String!, $text: String!) {
+//     addPost(category: $category, title: $title, text: $text) {
+//       id
+//       category
+//       title
+//       text
+//       createdAt
+//       creator {
+//         id
+//         name
+//       }
+//     }
+//   }
+// `;
+// export const TOGGLE_LIKE = gql`
+//   mutation toggleLike($postId: Int!, $reaction: ReactionType!) {
+//     toggleLike(postId: $postId, reaction: $reaction) {
+//       postId
+//       likes
+//       dislikes
+//       currentUserReaction
+//     }
+//   }
+// `;
 
-export const CREATE_COMMENT = gql`
-  mutation createComment($postId: Int!, $text: String!) {
-    createComment(postId: $postId, text: $text) {
-      id
-      text
-      createdAt
-      user {
-        id
-        name
-      }
-      post {
-        id
-      }
-    }
-  }
-`;
+// export const CREATE_COMMENT = gql`
+//   mutation createComment($postId: Int!, $text: String!) {
+//     createComment(postId: $postId, text: $text) {
+//       id
+//       text
+//       createdAt
+//       user {
+//         id
+//         name
+//       }
+//       post {
+//         id
+//       }
+//     }
+//   }
+// `;
 
-export const DELETE_POST = gql`
-  mutation deletePost($id: Int!) {
-    deletePost(id: $id)
-  }
-`;
+// export const DELETE_POST = gql`
+//   mutation deletePost($id: Int!) {
+//     deletePost(id: $id)
+//   }
+// `;
 
-export const DELETE_POST_COMMENT = gql`
-  mutation deleteComment($postId: Int!, $commentId: Int!) {
-    deleteComment(postId: $postId, commentId: $commentId)
-  }
-`;
+// export const DELETE_POST_COMMENT = gql`
+//   mutation deleteComment($postId: Int!, $commentId: Int!) {
+//     deleteComment(postId: $postId, commentId: $commentId)
+//   }
+// `;
 
-export const TOGGLE_COMMENT_REACTION = gql`
-  mutation toggleCommentReaction($commentId: Int!, $reaction: ReactionType!) {
-    toggleCommentReaction(commentId: $commentId, reaction: $reaction) {
-      id
-      text
-      createdAt
-      user {
-        id
-        name
-      }
-      post {
-        id
-      }
-      likesCount
-      dislikesCount
-      currentUserReaction
-    }
-  }
-`;
+// export const TOGGLE_COMMENT_REACTION = gql`
+//   mutation toggleCommentReaction($commentId: Int!, $reaction: ReactionType!) {
+//     toggleCommentReaction(commentId: $commentId, reaction: $reaction) {
+//       id
+//       text
+//       createdAt
+//       user {
+//         id
+//         name
+//       }
+//       post {
+//         id
+//       }
+//       likesCount
+//       dislikesCount
+//       currentUserReaction
+//     }
+//   }
+// `;

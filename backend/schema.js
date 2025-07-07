@@ -1,133 +1,66 @@
 const typeDefs = `
-enum ReactionType {
-  LIKE
-  DISLIKE
-}
-
-type User {
-  id: Int!
-  email: String!
-  password: String
-  googleId: String
-  name: String
-  isLoggedIn: Boolean
-  createdAt: String
-  updatedAt: String
-}
-
-type Chat {
-  id: Int!
-  createdAt: String
-  creator: User!
-  participant: User!
-  messages: [Message!]!
-}
-
-type Message {
-  id: Int!
-  text: String!
-  sender: User!
-  chat: Chat!
-  createdAt: String!
-}
-
-type Post {
-  id: Int!
-  category: String!
-  title: String!
-  text: String!
-  createdAt: String!
-  creator: User!
-  likesCount: Int!
-  dislikesCount: Int!
-  likes: [String!]!         
-  dislikes: [String!]!      
-  currentUserReaction: ReactionType
-  comments: [PostComment!]!
-}
-
-
-
-
-type PostComment {
-  id: Int!
-  text: String!
-  createdAt: String!
-  user: User!
-  post: Post!
-  likesCount: Int!
-  dislikesCount: Int!
-  currentUserReaction: ReactionType
-}
-
-type PostReactionResult {
-  postId: Int!
-  likes: [String!]!
-  dislikes: [String!]!
-  currentUserReaction: ReactionType
-}
-
-type Query {
-  users: [User]
-  chats: [Chat!]!
-  messages(chatId: Int!): [Message!]!
-  posts(skip: Int!, take: Int!): PostsResult!
-  categories: [String!]
-}
-type PostsResult {
-  posts: [Post!]!
-  totalCount: Int!
-}
-type AuthPayload {
-  id: Int!
-  email: String!
-  name: String
-  createdAt: String
-  isLoggedIn: Boolean
-  token: String
-}
-type PostCommentDeletedPayload {
-  commentId: Int!
-  postId: Int!
-}
-type Mutation {
-  addUser(
+  type User {
+    id: Int!
     email: String!
-    name: String
+    name: String!
     password: String
     googleId: String
-  ): User
-  loginUser(email: String!, password: String!): AuthPayload
-  googleLogin(idToken: String!): AuthPayload
-  logoutUser: Boolean!
-  setPassword(email: String!, newPassword: String!): User
-  deleteUser(id: Int!): User
-  createChat(participantId: Int!): Chat!
-  deleteChat(id: Int!): ID!
-  sendMessage(chatId: Int!, text: String!): Message!
-  addPost(category: String!, title: String!, text: String!): Post!
-  toggleLike(postId: Int!, reaction: ReactionType!): PostReactionResult!
-  createComment(postId: Int!, text: String!): PostComment!
-  deletePost(id: Int!): ID
-  deleteComment(postId: Int!, commentId: Int!): ID
-  toggleCommentReaction(commentId: Int!, reaction: ReactionType!): PostComment!
-}
+    createdAt: String!
+    token: String
+    isLoggedIn: Boolean
+    chatsCreated: [Chat!]!
+    chatsParticipated: [Chat!]!
+    messages: [Message!]!
+  }
 
-type Subscription {
-  userCreated: User
-  userLogin: User
-  userLoggedOut: User!
-  userDeleted: User
-  chatCreated: Chat
-  chatDeleted: ID!
-  messageSent: Message!
-  postCreated: Post!
-  reactionChanged: PostReactionResult!
-  commentCreated: PostComment
-  postDeleted: ID
-  postCommentDeleted: PostCommentDeletedPayload!
-  commentReactionChanged: PostComment!
-}
+  type Chat {
+    id: Int!
+   
+    createdAt: String!
+    updatedAt: String!
+    isActive: Boolean!
+    creator: User!
+    participant: User!
+    messages: [Message!]!
+  }
+
+  type Message {
+    id: Int!
+    content: String!
+    createdAt: String!
+    chat: Chat!
+    sender: User!
+  }
+
+  type Query {
+    users: [User!]!
+    chats: [Chat!]!
+    userChats: [Chat!]!
+    messages(chatId: Int!): [Message!]!
+  }
+
+  type Mutation {
+    addUser(email: String!, name: String!, password: String, googleId: String): User!
+    loginUser(email: String!, password: String!): User!
+    setPassword(email: String!, newPassword: String!): User!
+    googleLogin(idToken: String!): User!
+    logoutUser: Boolean!
+    deleteUser(id: Int!): User!
+    
+    createChat( participantId: Int!): Chat!
+    sendMessage(chatId: Int!, content: String!): Message!
+    deleteChat(id: Int!): Chat!
+  }
+
+  type Subscription {
+    userCreated: User!
+    userLogin: User!
+    userLoggedOut: User!
+    userDeleted: User!
+    messageSent(chatId: Int!): Message!
+    chatCreated: Chat!
+    chatDeleted: ID!
+  }
 `;
 
 export default typeDefs;

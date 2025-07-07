@@ -64,7 +64,7 @@ export default function Login() {
       setTimeout(() => {
         setEmail("");
         setPassword("");
-        router.push("/");
+        router.push("/chats");
       }, 2000);
     } catch (err) {
       console.error("Login error:", err);

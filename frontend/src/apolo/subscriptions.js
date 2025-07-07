@@ -86,81 +86,81 @@ export const MESSAGE_SENT_SUBSCRIPTION = gql`
   }
 `;
 
-export const POST_CREATED_SUBSCRIPTION = gql`
-  subscription postCreated {
-    postCreated {
-      id
-      text
-      title
-      category
-      createdAt
-      creator {
-        id
-        name
-      }
-    }
-  }
-`;
+// export const POST_CREATED_SUBSCRIPTION = gql`
+//   subscription postCreated {
+//     postCreated {
+//       id
+//       text
+//       title
+//       category
+//       createdAt
+//       creator {
+//         id
+//         name
+//       }
+//     }
+//   }
+// `;
 
-export const REACTION_CHANGED_SUBSCRIPTION = gql`
-  subscription reactionChanged {
-    reactionChanged {
-      postId
-      likes
-      dislikes
-      currentUserReaction
-    }
-  }
-`;
+// export const REACTION_CHANGED_SUBSCRIPTION = gql`
+//   subscription reactionChanged {
+//     reactionChanged {
+//       postId
+//       likes
+//       dislikes
+//       currentUserReaction
+//     }
+//   }
+// `;
 
-export const COMMENT_CREATED_SUBSCRIPTION = gql`
-  subscription commentCreated {
-    commentCreated {
-      id
-      text
-      createdAt
-      post {
-        id
-      }
-      user {
-        id
-        name
-      }
-    }
-  }
-`;
+// export const COMMENT_CREATED_SUBSCRIPTION = gql`
+//   subscription commentCreated {
+//     commentCreated {
+//       id
+//       text
+//       createdAt
+//       post {
+//         id
+//       }
+//       user {
+//         id
+//         name
+//       }
+//     }
+//   }
+// `;
 
-export const POST_DELETED_SUBSCRIPTION = gql`
-  subscription postDeleted {
-    postDeleted
-  }
-`;
+// export const POST_DELETED_SUBSCRIPTION = gql`
+//   subscription postDeleted {
+//     postDeleted
+//   }
+// `;
 
-export const POST_COMMENT_DELETED_SUBSCRIPTION = gql`
-  subscription postCommentDeleted {
-    postCommentDeleted {
-      commentId
-      postId
-    }
-  }
-`;
+// export const POST_COMMENT_DELETED_SUBSCRIPTION = gql`
+//   subscription postCommentDeleted {
+//     postCommentDeleted {
+//       commentId
+//       postId
+//     }
+//   }
+// `;
 
-export const COMMENT_REACTION_CHANGED_SUBSCRIPTION = gql`
-  subscription commentReactionChanged {
-    commentReactionChanged {
-      id
-      text
-      createdAt
-      user {
-        id
-        name
-      }
-      post {
-        id
-      }
-      likesCount
-      dislikesCount
-      currentUserReaction
-    }
-  }
-`;
+// export const COMMENT_REACTION_CHANGED_SUBSCRIPTION = gql`
+//   subscription commentReactionChanged {
+//     commentReactionChanged {
+//       id
+//       text
+//       createdAt
+//       user {
+//         id
+//         name
+//       }
+//       post {
+//         id
+//       }
+//       likesCount
+//       dislikesCount
+//       currentUserReaction
+//     }
+//   }
+// `;

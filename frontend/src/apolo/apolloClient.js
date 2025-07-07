@@ -18,15 +18,17 @@ const WS_URI = "ws://localhost:4000/graphql";
 // 🛡️ Список операций, требующих токена
 const protectedOperations = [
   "logoutUser",
+  "deleteUser",
+  "GetUserChats",
   "createChat",
   "sendMessage",
   "deleteChat",
-  "addPost",
-  "toggleLike",
-  "createComment",
-  "deletePost",
-  "deleteComment",
-  "toggleCommentReaction",
+  // "addPost",
+  // "toggleLike",
+  // "createComment",
+  // "deletePost",
+  // "deleteComment",
+  // "toggleCommentReaction",
 ];
 
 // ✅ HTTP link

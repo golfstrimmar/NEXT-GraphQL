@@ -1,6 +1,6 @@
 import { useSubscription } from "@apollo/client";
 import { gql } from "@apollo/client";
-import { GET_USERS, GET_ALL_CHATS, GET_ALL_POSTS } from "@/apolo/queryes";
+import { GET_USERS, GET_USER_CHATS, GET_ALL_POSTS } from "@/apolo/queryes";
 import {
   USER_CREATED_SUBSCRIPTION,
   USER_DELETED_SUBSCRIPTION,
@@ -9,22 +9,21 @@ import {
   CHAT_CREATED_SUBSCRIPTION,
   CHAT_DELETED_SUBSCRIPTION,
   MESSAGE_SENT_SUBSCRIPTION,
-  POST_CREATED_SUBSCRIPTION,
-  REACTION_CHANGED_SUBSCRIPTION,
-  COMMENT_CREATED_SUBSCRIPTION,
-  POST_DELETED_SUBSCRIPTION,
-  POST_COMMENT_DELETED_SUBSCRIPTION,
-  COMMENT_REACTION_CHANGED_SUBSCRIPTION,
+  // POST_CREATED_SUBSCRIPTION,
+  // REACTION_CHANGED_SUBSCRIPTION,
+  // COMMENT_CREATED_SUBSCRIPTION,
+  // POST_DELETED_SUBSCRIPTION,
+  // POST_COMMENT_DELETED_SUBSCRIPTION,
+  // COMMENT_REACTION_CHANGED_SUBSCRIPTION,
 } from "@/apolo/subscriptions";
 
 import { useStateContext } from "@/components/StateProvider";
 
 const POSTS_PER_PAGE = 5;
 
-export default function useUserChatSubscriptions(
-  currentPage: number | null = null,
-  setCurrentPage: ((page: number) => void) | null = null
-) {
+export default function useUserChatSubscriptions() {
+  // currentPage: number | null = null,
+  // setCurrentPage: ((page: number) => void) | null = null
   const { user, setUser } = useStateContext();
 
   // Пользователи: добавление
@@ -98,21 +97,20 @@ export default function useUserChatSubscriptions(
       }
 
       // Принудительно сбросить кеш
-      client.resetStore();
+      // client.resetStore();
 
       // Или можно вручную обновить кеш через refetch нужных запросов
       client.refetchQueries({
-        include: [GET_USERS, GET_ALL_CHATS, GET_ALL_POSTS],
+        include: [GET_USERS],
       });
     },
   });
 
-  // Создание чата
   useSubscription(CHAT_CREATED_SUBSCRIPTION, {
     onData: ({ client, data }) => {
       const newChat = data?.data?.chatCreated;
       if (!newChat) return;
-      client.cache.updateQuery({ query: GET_ALL_CHATS }, (oldData) => {
+      client.cache.updateQuery({ query: GET_USER_CHATS }, (oldData) => {
         if (!oldData || !oldData.chats) return { chats: [newChat] };
         const exists = oldData.chats.some((c: any) => c.id === newChat.id);
         if (exists) return oldData;
@@ -123,7 +121,6 @@ export default function useUserChatSubscriptions(
     },
   });
 
-  // Удаление чата
   useSubscription(CHAT_DELETED_SUBSCRIPTION, {
     onData: ({ client, data }) => {
       const deletedChatId = data?.data?.chatDeleted;
@@ -139,7 +136,6 @@ export default function useUserChatSubscriptions(
     },
   });
 
-  // Новое сообщение
   useSubscription(MESSAGE_SENT_SUBSCRIPTION, {
     onData: ({ client, data }) => {
       const newMessage = data?.data?.messageSent;
@@ -177,226 +173,226 @@ export default function useUserChatSubscriptions(
     },
   });
 
-  // --- Пост создан — добавляем в кэш первой страницы и переключаемся на первую страницу ---
-  useSubscription(POST_CREATED_SUBSCRIPTION, {
-    onData: ({ client, data }) => {
-      const newPost = data?.data?.postCreated;
-      if (!newPost) return;
+  // // --- Пост создан — добавляем в кэш первой страницы и переключаемся на первую страницу ---
+  // useSubscription(POST_CREATED_SUBSCRIPTION, {
+  //   onData: ({ client, data }) => {
+  //     const newPost = data?.data?.postCreated;
+  //     if (!newPost) return;
 
-      // Переключаемся на первую страницу (если еще не там)
-      if (currentPage !== 1) {
-        setCurrentPage(1);
-      }
+  //     // Переключаемся на первую страницу (если еще не там)
+  //     if (currentPage !== 1) {
+  //       setCurrentPage(1);
+  //     }
 
-      // Обновляем кэш — вставляем новый пост в первую страницу (skip=0, take=POSTS_PER_PAGE)
-      client.cache.updateQuery(
-        {
-          query: GET_ALL_POSTS,
-          variables: { skip: 0, take: POSTS_PER_PAGE },
-        },
-        (oldData) => {
-          if (!oldData || !oldData.posts || !oldData.posts.posts) {
-            return { posts: { posts: [newPost], totalCount: 1 } };
-          }
+  //     // Обновляем кэш — вставляем новый пост в первую страницу (skip=0, take=POSTS_PER_PAGE)
+  //     client.cache.updateQuery(
+  //       {
+  //         query: GET_ALL_POSTS,
+  //         variables: { skip: 0, take: POSTS_PER_PAGE },
+  //       },
+  //       (oldData) => {
+  //         if (!oldData || !oldData.posts || !oldData.posts.posts) {
+  //           return { posts: { posts: [newPost], totalCount: 1 } };
+  //         }
 
-          const exists = oldData.posts.posts.some(
-            (p: any) => p.id === newPost.id
-          );
-          if (exists) return oldData;
+  //         const exists = oldData.posts.posts.some(
+  //           (p: any) => p.id === newPost.id
+  //         );
+  //         if (exists) return oldData;
 
-          return {
-            posts: {
-              posts: [newPost, ...oldData.posts.posts].slice(0, POSTS_PER_PAGE),
-              totalCount: oldData.posts.totalCount + 1,
-            },
-          };
-        }
-      );
-    },
-  });
+  //         return {
+  //           posts: {
+  //             posts: [newPost, ...oldData.posts.posts].slice(0, POSTS_PER_PAGE),
+  //             totalCount: oldData.posts.totalCount + 1,
+  //           },
+  //         };
+  //       }
+  //     );
+  //   },
+  // });
 
-  // --- Пост удалён — очищаем кэш текущей страницы, обновляем totalCount и сбрасываем пагинацию на первую страницу ---
-  useSubscription(POST_DELETED_SUBSCRIPTION, {
-    onData: ({ client, data }) => {
-      const deletedPostId = data?.data?.postDeleted;
-      if (!deletedPostId) return;
+  // // --- Пост удалён — очищаем кэш текущей страницы, обновляем totalCount и сбрасываем пагинацию на первую страницу ---
+  // useSubscription(POST_DELETED_SUBSCRIPTION, {
+  //   onData: ({ client, data }) => {
+  //     const deletedPostId = data?.data?.postDeleted;
+  //     if (!deletedPostId) return;
 
-      // Сбрасываем страницу на первую
-      if (currentPage !== 1) {
-        setCurrentPage(1);
-      }
+  //     // Сбрасываем страницу на первую
+  //     if (currentPage !== 1) {
+  //       setCurrentPage(1);
+  //     }
 
-      // Очищаем кэш текущей страницы
-      client.cache.evict({
-        fieldName: "posts",
-        args: {
-          skip: (currentPage - 1) * POSTS_PER_PAGE,
-          take: POSTS_PER_PAGE,
-        },
-      });
+  //     // Очищаем кэш текущей страницы
+  //     client.cache.evict({
+  //       fieldName: "posts",
+  //       args: {
+  //         skip: (currentPage - 1) * POSTS_PER_PAGE,
+  //         take: POSTS_PER_PAGE,
+  //       },
+  //     });
 
-      // Обновляем кэш первой страницы и totalCount
-      client.cache.updateQuery(
-        {
-          query: GET_ALL_POSTS,
-          variables: { skip: 0, take: POSTS_PER_PAGE },
-        },
-        (oldData) => {
-          if (!oldData || !oldData.posts || !oldData.posts.posts) {
-            return { posts: { posts: [], totalCount: 0 } };
-          }
+  //     // Обновляем кэш первой страницы и totalCount
+  //     client.cache.updateQuery(
+  //       {
+  //         query: GET_ALL_POSTS,
+  //         variables: { skip: 0, take: POSTS_PER_PAGE },
+  //       },
+  //       (oldData) => {
+  //         if (!oldData || !oldData.posts || !oldData.posts.posts) {
+  //           return { posts: { posts: [], totalCount: 0 } };
+  //         }
 
-          const updatedPosts = oldData.posts.posts.filter(
-            (post: any) => post.id !== deletedPostId
-          );
+  //         const updatedPosts = oldData.posts.posts.filter(
+  //           (post: any) => post.id !== deletedPostId
+  //         );
 
-          // Устанавливаем totalCount на основе оставшихся постов или уменьшаем, но не ниже 0
-          const newTotalCount = Math.max(0, oldData.posts.totalCount - 1);
+  //         // Устанавливаем totalCount на основе оставшихся постов или уменьшаем, но не ниже 0
+  //         const newTotalCount = Math.max(0, oldData.posts.totalCount - 1);
 
-          return {
-            posts: {
-              posts: updatedPosts,
-              totalCount: newTotalCount,
-            },
-          };
-        }
-      );
+  //         return {
+  //           posts: {
+  //             posts: updatedPosts,
+  //             totalCount: newTotalCount,
+  //           },
+  //         };
+  //       }
+  //     );
 
-      client.cache.gc();
-    },
-  });
+  //     client.cache.gc();
+  //   },
+  // });
 
-  // Реакция на пост (лайк, дизлайк)
-  useSubscription(REACTION_CHANGED_SUBSCRIPTION, {
-    onData: ({ client, data }) => {
-      const reacted = data?.data?.reactionChanged;
-      if (!reacted) return;
-      client.cache.modify({
-        id: client.cache.identify({ __typename: "Post", id: reacted.postId }),
-        fields: {
-          likes() {
-            return reacted.likes;
-          },
-          dislikes() {
-            return reacted.dislikes;
-          },
-          currentUserReaction() {
-            return reacted.currentUserReaction;
-          },
-        },
-      });
-    },
-  });
+  // // Реакция на пост (лайк, дизлайк)
+  // useSubscription(REACTION_CHANGED_SUBSCRIPTION, {
+  //   onData: ({ client, data }) => {
+  //     const reacted = data?.data?.reactionChanged;
+  //     if (!reacted) return;
+  //     client.cache.modify({
+  //       id: client.cache.identify({ __typename: "Post", id: reacted.postId }),
+  //       fields: {
+  //         likes() {
+  //           return reacted.likes;
+  //         },
+  //         dislikes() {
+  //           return reacted.dislikes;
+  //         },
+  //         currentUserReaction() {
+  //           return reacted.currentUserReaction;
+  //         },
+  //       },
+  //     });
+  //   },
+  // });
 
-  // Комментарий создан
-  useSubscription(COMMENT_CREATED_SUBSCRIPTION, {
-    onData: ({ client, data }) => {
-      const newComment = data?.data?.commentCreated;
-      if (!newComment || !newComment.post?.id) {
-        console.warn(
-          "<===== 🚨 COMMENT_CREATED_SUBSCRIPTION: Invalid comment data =====>",
-          newComment
-        );
-        return;
-      }
-      console.log(
-        "<===== 📝 Subscribed to COMMENT_CREATED: =====>",
-        newComment
-      );
+  // // Комментарий создан
+  // useSubscription(COMMENT_CREATED_SUBSCRIPTION, {
+  //   onData: ({ client, data }) => {
+  //     const newComment = data?.data?.commentCreated;
+  //     if (!newComment || !newComment.post?.id) {
+  //       console.warn(
+  //         "<===== 🚨 COMMENT_CREATED_SUBSCRIPTION: Invalid comment data =====>",
+  //         newComment
+  //       );
+  //       return;
+  //     }
+  //     console.log(
+  //       "<===== 📝 Subscribed to COMMENT_CREATED: =====>",
+  //       newComment
+  //     );
 
-      // Обновляем кэш для текущей страницы
-      client.cache.updateQuery(
-        {
-          query: GET_ALL_POSTS,
-          variables: {
-            skip: (currentPage - 1) * POSTS_PER_PAGE,
-            take: POSTS_PER_PAGE,
-          },
-        },
-        (oldData) => {
-          if (!oldData || !oldData.posts || !oldData.posts.posts) {
-            console.warn(
-              "<===== 🚨 COMMENT_CREATED_SUBSCRIPTION: No posts in cache =====>",
-              oldData
-            );
-            return { posts: { posts: [], totalCount: 0 } };
-          }
+  //     // Обновляем кэш для текущей страницы
+  //     client.cache.updateQuery(
+  //       {
+  //         query: GET_ALL_POSTS,
+  //         variables: {
+  //           skip: (currentPage - 1) * POSTS_PER_PAGE,
+  //           take: POSTS_PER_PAGE,
+  //         },
+  //       },
+  //       (oldData) => {
+  //         if (!oldData || !oldData.posts || !oldData.posts.posts) {
+  //           console.warn(
+  //             "<===== 🚨 COMMENT_CREATED_SUBSCRIPTION: No posts in cache =====>",
+  //             oldData
+  //           );
+  //           return { posts: { posts: [], totalCount: 0 } };
+  //         }
 
-          const updatedPosts = oldData.posts.posts.map((post: any) =>
-            post.id === newComment.post.id
-              ? {
-                  ...post,
-                  comments: [
-                    ...(post.comments || []),
-                    {
-                      ...newComment,
-                      likesCount: newComment.likesCount ?? 0,
-                      dislikesCount: newComment.dislikesCount ?? 0,
-                      currentUserReaction:
-                        newComment.currentUserReaction ?? null,
-                    },
-                  ],
-                }
-              : post
-          );
+  //         const updatedPosts = oldData.posts.posts.map((post: any) =>
+  //           post.id === newComment.post.id
+  //             ? {
+  //                 ...post,
+  //                 comments: [
+  //                   ...(post.comments || []),
+  //                   {
+  //                     ...newComment,
+  //                     likesCount: newComment.likesCount ?? 0,
+  //                     dislikesCount: newComment.dislikesCount ?? 0,
+  //                     currentUserReaction:
+  //                       newComment.currentUserReaction ?? null,
+  //                   },
+  //                 ],
+  //               }
+  //             : post
+  //         );
 
-          return {
-            posts: {
-              posts: updatedPosts,
-              totalCount: oldData.posts.totalCount,
-            },
-          };
-        }
-      );
-    },
-  });
-  // Удаление комментария
-  useSubscription(POST_COMMENT_DELETED_SUBSCRIPTION, {
-    onData: ({ client, data }) => {
-      const deleted = data?.data?.postCommentDeleted;
-      if (!deleted?.commentId || !deleted?.postId) return;
+  //         return {
+  //           posts: {
+  //             posts: updatedPosts,
+  //             totalCount: oldData.posts.totalCount,
+  //           },
+  //         };
+  //       }
+  //     );
+  //   },
+  // });
+  // // Удаление комментария
+  // useSubscription(POST_COMMENT_DELETED_SUBSCRIPTION, {
+  //   onData: ({ client, data }) => {
+  //     const deleted = data?.data?.postCommentDeleted;
+  //     if (!deleted?.commentId || !deleted?.postId) return;
 
-      client.cache.modify({
-        id: client.cache.identify({ __typename: "Post", id: deleted.postId }),
-        fields: {
-          comments(existingRefs = [], { readField }) {
-            return existingRefs.filter(
-              (commentRef: any) =>
-                readField("id", commentRef) !== deleted.commentId
-            );
-          },
-        },
-      });
-    },
-    onError: (error) => {
-      console.error("POST_COMMENT_DELETED_SUBSCRIPTION error", error);
-    },
-  });
+  //     client.cache.modify({
+  //       id: client.cache.identify({ __typename: "Post", id: deleted.postId }),
+  //       fields: {
+  //         comments(existingRefs = [], { readField }) {
+  //           return existingRefs.filter(
+  //             (commentRef: any) =>
+  //               readField("id", commentRef) !== deleted.commentId
+  //           );
+  //         },
+  //       },
+  //     });
+  //   },
+  //   onError: (error) => {
+  //     console.error("POST_COMMENT_DELETED_SUBSCRIPTION error", error);
+  //   },
+  // });
 
-  // Реакция на комментарий
-  useSubscription(COMMENT_REACTION_CHANGED_SUBSCRIPTION, {
-    onData: ({ client, data }) => {
-      const updatedComment = data?.data?.commentReactionChanged;
-      if (!updatedComment?.id) return;
+  // // Реакция на комментарий
+  // useSubscription(COMMENT_REACTION_CHANGED_SUBSCRIPTION, {
+  //   onData: ({ client, data }) => {
+  //     const updatedComment = data?.data?.commentReactionChanged;
+  //     if (!updatedComment?.id) return;
 
-      client.cache.writeFragment({
-        id: client.cache.identify({
-          __typename: "PostComment",
-          id: updatedComment.id,
-        }),
-        fragment: gql`
-          fragment UpdatedComment on PostComment {
-            id
-            likesCount
-            dislikesCount
-            currentUserReaction
-          }
-        `,
-        data: updatedComment,
-      });
-    },
-    onError: (error) => {
-      console.error("COMMENT_REACTION_CHANGED_SUBSCRIPTION error", error);
-    },
-  });
+  //     client.cache.writeFragment({
+  //       id: client.cache.identify({
+  //         __typename: "PostComment",
+  //         id: updatedComment.id,
+  //       }),
+  //       fragment: gql`
+  //         fragment UpdatedComment on PostComment {
+  //           id
+  //           likesCount
+  //           dislikesCount
+  //           currentUserReaction
+  //         }
+  //       `,
+  //       data: updatedComment,
+  //     });
+  //   },
+  //   onError: (error) => {
+  //     console.error("COMMENT_REACTION_CHANGED_SUBSCRIPTION error", error);
+  //   },
+  // });
 }

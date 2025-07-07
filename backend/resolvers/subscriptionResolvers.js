@@ -7,15 +7,10 @@ import {
   CHAT_CREATED,
   CHAT_DELETED,
   MESSAGE_SENT,
-  POST_CREATED,
-  REACTION_CHANGED,
-  COMMENT_CREATED,
-  POST_DELETED,
-  POST_COMMENT_DELETED,
-  COMMENT_REACTION_CHANGED,
 } from "./../utils/pubsub.js";
 
 const Subscription = {
+  // User subscriptions
   userCreated: {
     subscribe: () => pubsub.asyncIterator(USER_CREATED),
   },
@@ -28,6 +23,8 @@ const Subscription = {
   userDeleted: {
     subscribe: () => pubsub.asyncIterator(USER_DELETED),
   },
+
+  // Chat subscriptions
   chatCreated: {
     subscribe: () => pubsub.asyncIterator(CHAT_CREATED),
   },
@@ -35,29 +32,9 @@ const Subscription = {
     subscribe: () => pubsub.asyncIterator(CHAT_DELETED),
   },
   messageSent: {
-    subscribe: () => pubsub.asyncIterator(MESSAGE_SENT),
-  },
-  postCreated: {
-    subscribe: () => pubsub.asyncIterator(POST_CREATED),
-  },
-
-  reactionChanged: {
-    subscribe: () => pubsub.asyncIterator(REACTION_CHANGED),
-  },
-
-  commentCreated: {
-    subscribe: () => pubsub.asyncIterator(COMMENT_CREATED),
-  },
-
-  postDeleted: {
-    subscribe: () => pubsub.asyncIterator(POST_DELETED),
-  },
-
-  postCommentDeleted: {
-    subscribe: () => pubsub.asyncIterator(POST_COMMENT_DELETED),
-  },
-  commentReactionChanged: {
-    subscribe: () => pubsub.asyncIterator(COMMENT_REACTION_CHANGED),
+    subscribe: (_, { chatId }) =>
+      pubsub.asyncIterator(`${MESSAGE_SENT}_${chatId}`),
+    resolve: (payload) => payload.messageSent,
   },
 };
 
