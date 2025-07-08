@@ -49,6 +49,7 @@ const typeDefs = `
     
     createChat( participantId: Int!): Chat!
     sendMessage(chatId: Int!, content: String!): Message!
+    deleteMessage(chatId: Int, messageId: Int!): Int!
     deleteChat(id: Int!): Chat!
   }
 
@@ -57,9 +58,11 @@ const typeDefs = `
     userLogin: User!
     userLoggedOut: User!
     userDeleted: User!
-    messageSent(chatId: Int!): Message!
     chatCreated: Chat!
     chatDeleted: ID!
+    
+    messageSent(chatId: Int!): Message!
+    messageDeleted(chatId: Int!): Int!
   }
 `;
 

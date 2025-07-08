@@ -48,7 +48,7 @@ const serverCleanup = useServer(
       const clientId =
         ctx.extra.request.headers["sec-websocket-key"] ||
         ctx.extra.request.socket.remoteAddress;
-      console.log(`⚠️ Client disconnected (${code}: ${reason})`);
+      console.log(`⚠️ Client disconnected (${reason})`);
       activeSubscriptions.delete(clientId);
     },
 

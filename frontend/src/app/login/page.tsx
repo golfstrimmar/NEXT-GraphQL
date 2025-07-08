@@ -133,7 +133,7 @@ export default function Login() {
       });
 
       showModal("Google login successful!");
-      setTimeout(() => router.push("/"), 2000);
+      setTimeout(() => router.push("/chats"), 2000);
     } catch (err) {
       console.error("Google login error:", err);
       showModal("Google login failed");

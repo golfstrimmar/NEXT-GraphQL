@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_USER_CHATS } from "@/apolo/queryes";
-import { DELETE_CHAT, SEND_MESSAGE } from "@/apolo/mutations";
+import { DELETE_CHAT, SEND_MESSAGE, DELETE_MESSAGE } from "@/apolo/mutations";
 import { useStateContext } from "@/components/StateProvider";
 import transformData from "@/hooks/useTransformData";
 import Image from "next/image";
@@ -16,10 +16,11 @@ const Chats = () => {
   const { user } = useStateContext();
   const [deleteChat] = useMutation(DELETE_CHAT);
   const [sendMessage] = useMutation(SEND_MESSAGE);
+  const [deleteMessage] = useMutation(DELETE_MESSAGE);
   const { showModal } = useStateContext();
-  useUserChatSubscriptions();
   const [texts, setTexts] = useState<Record<number, string>>({});
-
+  const [ChatId, setChatId] = useState<number>(null);
+  useUserChatSubscriptions(ChatId);
   // -----------------
   const {
     data: chatsData,
@@ -48,6 +49,10 @@ const Chats = () => {
     chatID: number
   ) => {
     e.preventDefault();
+    if (chatID) {
+      setChatId(chatID);
+    }
+
     const messageText = texts[chatID] || "";
     if (!messageText.trim()) {
       showModal("Text is required!");
@@ -65,12 +70,25 @@ const Chats = () => {
   };
 
   // ----------------
+  const handleDeleteMessage = async (chatid: number, id: number) => {
+    if (chatid) {
+      setChatId(chatid);
+    }
+    console.log("---> delete message id <---", chatid, id);
+    try {
+      await deleteMessage({ variables: { chatId: chatid, messageId: id } });
+    } catch (err) {
+      console.error("Mutation error:", err);
+      showModal("Failed to delete message");
+    }
+  };
+  // ----------------
 
   return (
     <div className="mt-[80px] ">
       <div className="container">
         <UsersList />
-        <div className="flex flex-col  gap-2 ">
+        <div className="flex flex-col mb-10  gap-2 ">
           {!user && (
             <p className="inline-block mt-6  bg-gray-200  border rounded p-2 text-center">
               <span className="bg-white p-1 rounded">
@@ -130,6 +148,20 @@ const Chats = () => {
                         <p className="text-[12px]">
                           {transformData(message.createdAt)}
                         </p>
+                        <button
+                          onClick={() =>
+                            handleDeleteMessage(chat.id, message.id)
+                          }
+                          type="button"
+                        >
+                          <Image
+                            src="/svg/cross.svg"
+                            alt="delete"
+                            width={20}
+                            height={20}
+                            className="cursor-pointer bg-white p-1 border hover:border-red-500 rounded-md transition-all duration-200"
+                          />
+                        </button>
                       </li>
                     ))}
                 </ul>

@@ -70,19 +70,25 @@ export const CHAT_DELETED_SUBSCRIPTION = gql`
 `;
 
 export const MESSAGE_SENT_SUBSCRIPTION = gql`
-  subscription messageSent {
-    messageSent {
+  subscription messageSent($chatId: Int!) {
+    messageSent(chatId: $chatId) {
       id
-      text
+      content
       createdAt
-      chat {
-        id
-      }
       sender {
         id
         name
       }
+      chat {
+        id
+      }
     }
+  }
+`;
+
+export const MESSAGE_DELETED_SUBSCRIPTION = gql`
+  subscription messageDeleted($chatId: Int!) {
+    messageDeleted(chatId: $chatId)
   }
 `;
 

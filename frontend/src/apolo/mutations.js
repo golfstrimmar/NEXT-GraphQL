@@ -76,7 +76,6 @@ export const CREATE_CHAT = gql`
         email
         name
       }
-     
     }
   }
 `;
@@ -105,6 +104,11 @@ export const SEND_MESSAGE = gql`
   }
 `;
 
+export const DELETE_MESSAGE = gql`
+  mutation deleteMessage($chatId: Int, $messageId: Int!) {
+    deleteMessage(chatId: $chatId, messageId: $messageId)
+  }
+`;
 // export const ADD_POST = gql`
 //   mutation addPost($category: String!, $title: String!, $text: String!) {
 //     addPost(category: $category, title: $title, text: $text) {

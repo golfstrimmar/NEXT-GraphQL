@@ -13,6 +13,7 @@ import {
   CHAT_CREATED,
   CHAT_DELETED,
   MESSAGE_SENT,
+  MESSAGE_DELETED,
   // POST_CREATED,
   // REACTION_CHANGED,
   // COMMENT_CREATED,
@@ -252,7 +253,6 @@ const Mutation = {
       throw new Error("Access denied");
     }
 
-    // Обновляем дату изменения чата
     await prisma.chat.update({
       where: { id: chatId },
       data: { updatedAt: new Date() },
@@ -271,9 +271,38 @@ const Mutation = {
     });
     console.log(" To subscribe  messageSent  🟢--> ");
     pubsub.publish(MESSAGE_SENT, { messageSent: message });
-    // pubsub.publish(`${MESSAGE_SENT}_${chatId}`, { messageSent: message });
     return message;
   },
+  deleteMessage: async (_, { chatId, messageId }, { userId }) => {
+    if (!userId) throw new Error("Not authenticated");
+    if (!chatId) throw new Error("Not found");
+
+    const chat = await prisma.chat.findUnique({
+      where: { id: chatId },
+      include: {
+        messages: {
+          where: { id: messageId },
+        },
+      },
+    });
+
+    if (!chat) throw new Error("Chat not found");
+
+    if (chat.creatorId !== userId && chat.participantId !== userId) {
+      throw new Error("You do not have permission to delete this message");
+    }
+
+    const message = chat.messages[0];
+    if (!message) throw new Error("Message not found in this chat");
+
+    await prisma.message.delete({ where: { id: messageId } });
+
+    console.log("🟢 To subscribe messageDeleted -->", chatId, messageId);
+    pubsub.publish(MESSAGE_DELETED, { messageDeleted: { messageId, chatId } });
+
+    return messageId;
+  },
+
   // addPost: async (_, { category, title, text }, { userId }) => {
   //   if (!userId) throw new Error("Not authenticated");
   //   console.log("<====🟢add Post🟢====> ", category, title, text, userId);

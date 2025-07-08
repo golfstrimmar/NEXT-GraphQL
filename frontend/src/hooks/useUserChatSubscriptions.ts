@@ -1,5 +1,5 @@
 import { useSubscription } from "@apollo/client";
-import { gql } from "@apollo/client";
+import { useState, useEffect } from "react";
 import { GET_USERS, GET_USER_CHATS, GET_ALL_POSTS } from "@/apolo/queryes";
 import {
   USER_CREATED_SUBSCRIPTION,
@@ -9,6 +9,7 @@ import {
   CHAT_CREATED_SUBSCRIPTION,
   CHAT_DELETED_SUBSCRIPTION,
   MESSAGE_SENT_SUBSCRIPTION,
+  MESSAGE_DELETED_SUBSCRIPTION,
   // POST_CREATED_SUBSCRIPTION,
   // REACTION_CHANGED_SUBSCRIPTION,
   // COMMENT_CREATED_SUBSCRIPTION,
@@ -20,10 +21,16 @@ import { useStateContext } from "@/components/StateProvider";
 
 const POSTS_PER_PAGE = 5;
 
-export default function useUserChatSubscriptions() {
+export default function useUserChatSubscriptions(chatId: number | undefined) {
   // currentPage: number | null = null,
   // setCurrentPage: ((page: number) => void) | null = null
   const { user, setUser, showModal } = useStateContext();
+
+  useEffect(() => {
+    if (chatId) {
+      console.log("<====chatId====>", chatId);
+    }
+  }, [chatId]);
 
   // Пользователи: добавление
   useSubscription(USER_CREATED_SUBSCRIPTION, {
@@ -83,7 +90,7 @@ export default function useUserChatSubscriptions() {
     onData: ({ client, data }) => {
       const deletedUserId = data?.data?.userDeleted?.id;
       if (!deletedUserId) return;
-      showModal("User deleted successfully.");
+      showModal("🗑️ User deleted successfully.");
       // Если текущий пользователь — удаленный, логаутим
       const currentUserLoggedIn = localStorage.getItem("user");
       if (currentUserLoggedIn) {
@@ -131,7 +138,7 @@ export default function useUserChatSubscriptions() {
     onData: ({ client, data }) => {
       const deletedChatId = data?.data?.chatDeleted;
       if (!deletedChatId) return;
-      showModal("💬 Chat deleted successfully!");
+      showModal("🗑️ Chat deleted successfully!");
       client.cache.updateQuery({ query: GET_USER_CHATS }, (oldData) => {
         if (!oldData) return { chats: [] };
         return {
@@ -142,10 +149,10 @@ export default function useUserChatSubscriptions() {
       });
     },
   });
-
   useSubscription(MESSAGE_SENT_SUBSCRIPTION, {
     variables: { chatId },
     onData: ({ client, data }) => {
+      console.log("<====newMessage====>", data?.data?.messageSent);
       const newMessage = data?.data?.messageSent;
       if (!newMessage) return;
       const chatId = newMessage.chat?.id;
@@ -154,37 +161,32 @@ export default function useUserChatSubscriptions() {
         id: String(chatId),
       });
       if (!chatCacheId) return;
-      showModal("💬 Message sent successfully!");
-      client.cache.modify({
-        id: chatCacheId,
-        fields: {
-          messages(existingMessages = []) {
-            return [
-              ...existingMessages,
-              client.cache.writeFragment({
-                data: newMessage,
-                fragment: gql`
-                  fragment NewMessage on Message {
-                    id
-                    content
-                    createdAt
-                    sender {
-                      id
-                      name
-                    }
-                    chat {
-                      id
-                    }
-                  }
-                `,
-              }),
-            ];
-          },
-        },
+      showModal("💬 Message recived successfully!");
+      client.refetchQueries({
+        include: [GET_USER_CHATS],
       });
     },
   });
 
+  useSubscription(MESSAGE_DELETED_SUBSCRIPTION, {
+    variables: { chatId },
+    onData: ({ client, data }) => {
+      console.log("💥 subscriptionData:", data);
+      showModal("🗑️ Message deleted successfully!");
+      client.refetchQueries({
+        include: [GET_USER_CHATS],
+      });
+    },
+  });
+
+  useSubscription(MESSAGE_DELETED_SUBSCRIPTION, {
+    variables: { chatId },
+    onData: ({ client, data }) => {
+      console.log("🔴 delete subscription data:", data.data.messageDeleted);
+      // можно обновить кэш:
+      client.refetchQueries({ include: [GET_USER_CHATS] });
+    },
+  });
   // // --- Пост создан — добавляем в кэш первой страницы и переключаемся на первую страницу ---
   // useSubscription(POST_CREATED_SUBSCRIPTION, {
   //   onData: ({ client, data }) => {
