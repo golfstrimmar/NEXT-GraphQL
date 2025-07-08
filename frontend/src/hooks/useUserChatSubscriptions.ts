@@ -16,7 +16,6 @@ import {
   // POST_COMMENT_DELETED_SUBSCRIPTION,
   // COMMENT_REACTION_CHANGED_SUBSCRIPTION,
 } from "@/apolo/subscriptions";
-
 import { useStateContext } from "@/components/StateProvider";
 
 const POSTS_PER_PAGE = 5;
@@ -24,7 +23,7 @@ const POSTS_PER_PAGE = 5;
 export default function useUserChatSubscriptions() {
   // currentPage: number | null = null,
   // setCurrentPage: ((page: number) => void) | null = null
-  const { user, setUser } = useStateContext();
+  const { user, setUser, showModal } = useStateContext();
 
   // Пользователи: добавление
   useSubscription(USER_CREATED_SUBSCRIPTION, {
@@ -84,7 +83,7 @@ export default function useUserChatSubscriptions() {
     onData: ({ client, data }) => {
       const deletedUserId = data?.data?.userDeleted?.id;
       if (!deletedUserId) return;
-
+      showModal("User deleted successfully.");
       // Если текущий пользователь — удаленный, логаутим
       const currentUserLoggedIn = localStorage.getItem("user");
       if (currentUserLoggedIn) {
@@ -110,12 +109,19 @@ export default function useUserChatSubscriptions() {
     onData: ({ client, data }) => {
       const newChat = data?.data?.chatCreated;
       if (!newChat) return;
+      showModal(`💬 Chat created successfully!`);
       client.cache.updateQuery({ query: GET_USER_CHATS }, (oldData) => {
-        if (!oldData || !oldData.chats) return { chats: [newChat] };
-        const exists = oldData.chats.some((c: any) => c.id === newChat.id);
+        if (!oldData || !oldData.userChats) return { userChats: [newChat] };
+        const exists = oldData.userChats.some((c: any) => c.id === newChat.id);
         if (exists) return oldData;
         return {
-          chats: [newChat, ...oldData.chats],
+          userChats: [
+            {
+              ...newChat,
+              messages: [],
+            },
+            ...oldData.userChats,
+          ],
         };
       });
     },
@@ -125,10 +131,11 @@ export default function useUserChatSubscriptions() {
     onData: ({ client, data }) => {
       const deletedChatId = data?.data?.chatDeleted;
       if (!deletedChatId) return;
-      client.cache.updateQuery({ query: GET_ALL_CHATS }, (oldData) => {
+      showModal("💬 Chat deleted successfully!");
+      client.cache.updateQuery({ query: GET_USER_CHATS }, (oldData) => {
         if (!oldData) return { chats: [] };
         return {
-          chats: oldData.chats.filter(
+          userChats: oldData.userChats.filter(
             (chat: any) => Number(chat.id) !== Number(deletedChatId)
           ),
         };
@@ -137,6 +144,7 @@ export default function useUserChatSubscriptions() {
   });
 
   useSubscription(MESSAGE_SENT_SUBSCRIPTION, {
+    variables: { chatId },
     onData: ({ client, data }) => {
       const newMessage = data?.data?.messageSent;
       if (!newMessage) return;
@@ -146,27 +154,31 @@ export default function useUserChatSubscriptions() {
         id: String(chatId),
       });
       if (!chatCacheId) return;
+      showModal("💬 Message sent successfully!");
       client.cache.modify({
         id: chatCacheId,
         fields: {
-          messages(existingMessages = [], { readField, toReference }) {
-            // Проверяем, есть ли сообщение с таким id в кеше
-            if (
-              existingMessages.some(
-                (ref) => readField("id", ref) === newMessage.id
-              )
-            ) {
-              return existingMessages; // если есть — возвращаем как есть
-            }
-
-            // Создаем ссылку на новое сообщение в кеше
-            const newMessageRef = toReference({
-              __typename: "Message",
-              id: newMessage.id,
-            });
-
-            // Добавляем ссылку в список сообщений
-            return [...existingMessages, newMessageRef];
+          messages(existingMessages = []) {
+            return [
+              ...existingMessages,
+              client.cache.writeFragment({
+                data: newMessage,
+                fragment: gql`
+                  fragment NewMessage on Message {
+                    id
+                    content
+                    createdAt
+                    sender {
+                      id
+                      name
+                    }
+                    chat {
+                      id
+                    }
+                  }
+                `,
+              }),
+            ];
           },
         },
       });

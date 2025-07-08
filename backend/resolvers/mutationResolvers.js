@@ -207,7 +207,7 @@ const Mutation = {
         participant: true,
       },
     });
-    console.log(" To subscribe  chatCreated  🟢--> ");
+    console.log("To subscribe chatCreated 🟢-->");
     pubsub.publish(CHAT_CREATED, { chatCreated: chat });
     return chat;
   },
@@ -228,19 +228,20 @@ const Mutation = {
       throw new Error("You do not have permission to delete this chat");
     }
 
-    // Удаляем сообщения (каскадное удаление должно работать автоматически)
-    // await prisma.message.deleteMany({ where: { chatId: id } });
+    // Удаляем сообщения (если не срабатывает каскад)
+    await prisma.message.deleteMany({ where: { chatId: id } });
 
-    // const deletedChat = await prisma.chat.delete({
-    //   where: { id },
-    //   include: {
-    //     creator: true,
-    //     participant: true,
-    //   },
-    // });
-    console.log(" To subscribe  chatDeleted  🟢--> ");
-    pubsub.publish(CHAT_DELETED, { chatDeleted: deletedChat });
-    return deletedChat; // Возвращаем полный объект чата
+    const deletedChat = await prisma.chat.delete({
+      where: { id },
+      include: {
+        creator: true,
+        participant: true,
+      },
+    });
+
+    console.log("🟢 To subscribe chatDeleted --> ", deletedChat.id);
+    pubsub.publish(CHAT_DELETED, { chatDeleted: deletedChat.id }); // ✅ тут id
+    return deletedChat;
   },
 
   sendMessage: async (_, { chatId, content }, { userId }) => {
@@ -259,7 +260,7 @@ const Mutation = {
 
     const message = await prisma.message.create({
       data: {
-        content, // Исправлено имя поля
+        content,
         senderId: userId,
         chatId,
       },

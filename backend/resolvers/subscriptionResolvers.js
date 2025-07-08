@@ -30,6 +30,7 @@ const Subscription = {
   },
   chatDeleted: {
     subscribe: () => pubsub.asyncIterator(CHAT_DELETED),
+    resolve: (payload) => payload.chatDeleted,
   },
   messageSent: {
     subscribe: (_, { chatId }) =>

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_USER_CHATS } from "@/apolo/queryes";
 import { DELETE_CHAT, SEND_MESSAGE } from "@/apolo/mutations";
@@ -10,42 +10,32 @@ import Input from "@/components/ui/Input/Input";
 import useUserChatSubscriptions from "@/hooks/useUserChatSubscriptions";
 import UsersList from "@/components/UsersList/UsersList";
 import "./chats.scss";
-
-type ChatType = {
-  id: number;
-  createdAt: string;
-  creator: { id: number; name: string };
-  participant: { id: number; name: string };
-  messages: {
-    id: number;
-    text: string;
-    sender: { id: number; name: string };
-  }[];
-};
+import { Chat } from "@/types/chat";
 
 const Chats = () => {
   const { user } = useStateContext();
-  const { loading, error, data } = useQuery(GET_USER_CHATS);
-
   const [deleteChat] = useMutation(DELETE_CHAT);
   const [sendMessage] = useMutation(SEND_MESSAGE);
   const { showModal } = useStateContext();
   useUserChatSubscriptions();
-
   const [texts, setTexts] = useState<Record<number, string>>({});
 
   // -----------------
-
-  useEffect(() => {
-    if (error) console.error("Chats query error:", error);
-    if (data) console.log("🟢🟢User chats data:", data.userChats);
-  }, [data, error]);
+  const {
+    data: chatsData,
+    loading: chatsLoading,
+    error: chatsError,
+  } = useQuery(GET_USER_CHATS, {
+    skip: !user,
+  });
+  const chats: Chat[] = useMemo(() => {
+    return chatsData?.userChats ?? [];
+  }, [chatsData]);
   // -----------------
   const handleDeleteChat = async (id: number) => {
     try {
       const { data } = await deleteChat({ variables: { id } });
-      console.log("<=====🟢 MUTATION deleteChat   =====>", data);
-      showModal("Chat deleted successfully!");
+      console.log("<=====🟢 MUTATION deleteChat =====>", data);
     } catch (err) {
       console.error("Mutation error:", err);
       showModal("Failed to delete chat");
@@ -64,7 +54,9 @@ const Chats = () => {
       return;
     }
     try {
-      await sendMessage({ variables: { chatId: chatID, text: messageText } });
+      await sendMessage({
+        variables: { chatId: chatID, content: messageText },
+      });
       setTexts((prev) => ({ ...prev, [chatID]: "" }));
     } catch (err) {
       console.error("Mutation error:", err);
@@ -88,8 +80,8 @@ const Chats = () => {
           )}
           {user && <h2 className="mt-4">Your Chats:</h2>}
 
-          {data?.userChats.length === 0 && <p>No chats found</p>}
-          {data?.userChats
+          {chats.length === 0 && <p>No chats found</p>}
+          {chats
             ?.filter(
               (chat) =>
                 chat.creator.id === user?.id || chat.participant.id === user?.id
@@ -133,7 +125,7 @@ const Chats = () => {
                           {message.sender.name}:
                         </h3>
                         <p className="text-black border border-gray-400 rounded p-1">
-                          {message.text}
+                          {message.content}
                         </p>
                         <p className="text-[12px]">
                           {transformData(message.createdAt)}

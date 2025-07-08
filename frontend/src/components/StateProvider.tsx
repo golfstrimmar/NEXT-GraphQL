@@ -1,5 +1,4 @@
 "use client";
-
 import {
   createContext,
   useContext,
@@ -19,6 +18,7 @@ interface StateContextType {
   showModal: (message: string, duration?: number) => void;
   modalMessage: string;
   isModalOpen: boolean;
+  chats: Chat[];
 }
 
 const StateContext = createContext<StateContextType | undefined>(undefined);

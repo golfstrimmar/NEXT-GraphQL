@@ -5,11 +5,11 @@ import { useQuery, useMutation } from "@apollo/client";
 import { GET_ALL_POSTS } from "@/apolo/queryes";
 import {
   ADD_POST,
-  TOGGLE_LIKE,
-  CREATE_COMMENT,
-  DELETE_POST,
-  DELETE_POST_COMMENT,
-  TOGGLE_COMMENT_REACTION,
+  // TOGGLE_LIKE,
+  // CREATE_COMMENT,
+  // DELETE_POST,
+  // DELETE_POST_COMMENT,
+  // TOGGLE_COMMENT_REACTION,
 } from "@/apolo/mutations";
 import useUserChatSubscriptions from "@/hooks/useUserChatSubscriptions";
 import { useStateContext } from "@/components/StateProvider";

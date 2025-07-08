@@ -8,50 +8,52 @@ import useUserChatSubscriptions from "@/hooks/useUserChatSubscriptions";
 import { useStateContext } from "@/components/StateProvider";
 import { GET_USERS, GET_USER_CHATS } from "@/apolo/queryes";
 import Loading from "@/components/Loading";
-
+import { Chat } from "@/types/chat";
 const UsersList = () => {
   const client = useApolloClient();
+  const { user, setUser, showModal } = useStateContext();
   const [deleteUser] = useMutation(DELETE_USER);
   const [createChat] = useMutation(CREATE_CHAT);
-  const { data: queryData } = useQuery(GET_USERS);
-  const { loading, error, data } = useQuery(GET_USER_CHATS);
-  const { user, setUser, showModal } = useStateContext();
+  const {
+    data: usersData,
+    error: usersError,
+    loading: usersLoading,
+  } = useQuery(GET_USERS);
+
+  const {
+    data: chatsData,
+    loading: chatsLoading,
+    error: chatsError,
+  } = useQuery(GET_USER_CHATS, {
+    skip: !user,
+  });
+
+  const users = useMemo(() => {
+    return usersData?.users ?? [];
+  }, [usersData]);
+
+  const chats = useMemo(() => {
+    return chatsData?.userChats ?? [];
+  }, [chatsData]);
 
   useUserChatSubscriptions();
-  useEffect(() => {
-    if (queryData?.users) {
-      console.log("<==== 🧑‍🤝‍🧑 users====>", queryData.users);
-    }
-  }, [queryData]);
 
-  // useEffect(() => {
-  //   if (!loading && queryData && Array.isArray(queryData.users)) {
-  //     if (queryData.users.length === 0) {
-  //       console.log("<==== all users =======>", queryData.users);
-  //       setUser(null);
-  //       localStorage.removeItem("token");
-  //       localStorage.removeItem("user");
-  //     }
-  //   }
-  // }, [queryData, loading, setUser]);
+  useEffect(() => {
+    if (!usersLoading && Array.isArray(users)) {
+      if (users.length === 0) {
+        console.log("<==== all users =======>", users);
+        setUser(null);
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      }
+    }
+  }, [users, usersLoading, setUser]);
 
   const handleDelete = async (id: number) => {
     try {
-      const { data } = await deleteUser({
+      await deleteUser({
         variables: { id },
       });
-
-      const deletedUser = data?.deleteUser;
-      if (deletedUser?.id) {
-        showModal(`User deleted successfully!`);
-        client.cache.updateQuery({ query: GET_USERS }, (oldData: any) => {
-          if (!oldData) return { users: [] };
-
-          return {
-            users: oldData.users.filter((u: any) => u.id !== deletedUser.id),
-          };
-        });
-      }
     } catch (error) {
       console.error("❌ Error deleting user:", error);
     }
@@ -62,15 +64,13 @@ const UsersList = () => {
         variables: { participantId },
       });
       console.log("🟢  Mutation to createChat:", data.createChat);
-
-      showModal(`💬 Chat created successfully!`);
     } catch (error: any) {
       showModal(error.message);
       console.error("❌ Error creating chat:", error);
     }
   };
 
-  const hasChatWithUser = (userId, chats) => {
+  const hasChatWithUser = (userId, chats: Chat[]) => {
     return chats?.some(
       (c) =>
         (c.creator.id === user?.id && c.participant.id === userId) ||
@@ -79,7 +79,6 @@ const UsersList = () => {
   };
 
   const renderCreateChatButton = ({ userId, handleCreateChat, userName }) => {
-    const chats = data?.userChats;
     const hasChat = hasChatWithUser(userId, chats);
     if (userId === user?.id || hasChat || !user?.id) return null;
 
@@ -96,9 +95,9 @@ const UsersList = () => {
 
   // --------------------------
   const userList = useMemo(() => {
-    if (!queryData?.users) return null;
+    if (!users) return null;
 
-    return queryData.users
+    return users
       .slice()
       .sort((a, b) => (a.id === user?.id ? -1 : b.id === user?.id ? 1 : 0))
       .map((foo) => (
@@ -173,14 +172,14 @@ const UsersList = () => {
           </div>
         </li>
       ));
-  }, [queryData?.users, user?.id, data?.userChats, handleDelete]);
+  }, [users, user, chats]);
   // --------------------------
 
   return (
     <div className="space-y-2 ">
-      {queryData?.users.length === 0 && <p>No users</p>}
+      {users.length === 0 && <p>No users</p>}
       <h2 className=" mb-4">Users:</h2>
-      {loading ? (
+      {usersLoading ? (
         <Loading />
       ) : (
         <ul className="flex flex-col gap-2">{userList}</ul>
