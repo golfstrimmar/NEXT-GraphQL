@@ -31,17 +31,32 @@ const Subscription = {
   chatCreated: {
     subscribe: () => pubsub.asyncIterator(CHAT_CREATED),
   },
+
   chatDeleted: {
     subscribe: () => pubsub.asyncIterator(CHAT_DELETED),
     resolve: (payload) => payload.chatDeleted,
   },
+
   messageSent: {
     subscribe: withFilter(
-      () => pubsub.asyncIterator([MESSAGE_SENT]),
-      (payload, variables) => payload.messageSent.chat.id === variables.chatId
+      (...args) => {
+        console.log("✅ [Server] subscribe() called for messageSent");
+        return pubsub.asyncIterator([MESSAGE_SENT]);
+      },
+      (payload, variables) => {
+        console.log(
+          "🔍 [Server] withFilter check:",
+          payload.messageSent.chat.id,
+          variables.chatId
+        );
+        return Number(payload.messageSent.chat.id) === Number(variables.chatId);
+      }
     ),
     resolve: (payload) => {
-      console.log("📨 messageSent payload", payload);
+      console.log(
+        "📦 [Server] resolve() called with payload:",
+        payload.messageSent.id
+      );
       return payload.messageSent;
     },
   },

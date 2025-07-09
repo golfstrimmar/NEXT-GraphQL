@@ -7,9 +7,7 @@ import {
   USER_LOGIN_SUBSCRIPTION,
   USER_LOGGEDOUT_SUBSCRIPTION,
   CHAT_CREATED_SUBSCRIPTION,
-  CHAT_DELETED_SUBSCRIPTION,
-  MESSAGE_SENT_SUBSCRIPTION,
-  MESSAGE_DELETED_SUBSCRIPTION,
+
   // POST_CREATED_SUBSCRIPTION,
   // REACTION_CHANGED_SUBSCRIPTION,
   // COMMENT_CREATED_SUBSCRIPTION,
@@ -18,19 +16,14 @@ import {
   // COMMENT_REACTION_CHANGED_SUBSCRIPTION,
 } from "@/apolo/subscriptions";
 import { useStateContext } from "@/components/StateProvider";
-
+import { gql } from "@apollo/client";
 const POSTS_PER_PAGE = 5;
 
-export default function useUserChatSubscriptions(chatId: number | undefined) {
+export default function useUserChatSubscriptions() {
   // currentPage: number | null = null,
   // setCurrentPage: ((page: number) => void) | null = null
-  const { user, setUser, showModal } = useStateContext();
 
-  useEffect(() => {
-    if (chatId) {
-      console.log("<====chatId====>", chatId);
-    }
-  }, [chatId]);
+  const { user, setUser, showModal } = useStateContext();
 
   // Пользователи: добавление
   useSubscription(USER_CREATED_SUBSCRIPTION, {
@@ -51,20 +44,22 @@ export default function useUserChatSubscriptions(chatId: number | undefined) {
   // Пользователь вошел в систему
   useSubscription(USER_LOGIN_SUBSCRIPTION, {
     onData: ({ client, data }) => {
-      const loggedInUser = data?.data?.userLogin;
-      if (!loggedInUser) return;
-      client.cache.updateQuery({ query: GET_USERS }, (oldData) => {
-        if (!oldData) return null;
-        return {
-          users: oldData.users.map((u: any) =>
-            u.id === loggedInUser.id ? { ...u, isLoggedIn: true } : u
-          ),
-        };
+      const newUserID = data?.data?.userLogin;
+      if (!newUserID) return;
+      console.log("<==== 👤 LOGIN SUCCESS====>", newUserID);
+      // const cacheId = newUserID;
+      const cacheId = client.cache.identify(newUserID);
+      client.cache.modify({
+        id: cacheId,
+        fields: {
+          isLoggedIn() {
+            return true;
+          },
+        },
       });
     },
   });
 
-  // Пользователь вышел из системы
   useSubscription(USER_LOGGEDOUT_SUBSCRIPTION, {
     onData: ({ client, data }) => {
       const userLoggedOut = data?.data?.userLoggedOut;
@@ -85,7 +80,6 @@ export default function useUserChatSubscriptions(chatId: number | undefined) {
     },
   });
 
-  // Пользователь удалён
   useSubscription(USER_DELETED_SUBSCRIPTION, {
     onData: ({ client, data }) => {
       const deletedUserId = data?.data?.userDeleted?.id;
@@ -107,7 +101,7 @@ export default function useUserChatSubscriptions(chatId: number | undefined) {
 
       // Или можно вручную обновить кеш через refetch нужных запросов
       client.refetchQueries({
-        include: [GET_USERS],
+        include: [GET_USERS, GET_USER_CHATS],
       });
     },
   });
@@ -116,7 +110,8 @@ export default function useUserChatSubscriptions(chatId: number | undefined) {
     onData: ({ client, data }) => {
       const newChat = data?.data?.chatCreated;
       if (!newChat) return;
-      showModal(`💬 Chat created successfully!`);
+      console.log("<===== 🟢 SUBSCRIPTION  chatCreated =======>", newChat);
+      showModal(`✅ Chat created successfully!`);
       client.cache.updateQuery({ query: GET_USER_CHATS }, (oldData) => {
         if (!oldData || !oldData.userChats) return { userChats: [newChat] };
         const exists = oldData.userChats.some((c: any) => c.id === newChat.id);
@@ -133,60 +128,95 @@ export default function useUserChatSubscriptions(chatId: number | undefined) {
       });
     },
   });
+  // chatIds.forEach((chatId) => {
+  //   useSubscription(MESSAGE_SENT_SUBSCRIPTION, {
+  //     variables: { chatId },
+  //     onData: ({ client, data }) => {
+  //       const newMessage = data?.data?.messageSent;
+  //       console.log(
+  //         "<==== ✅ 📤 SUBSCRIPTION  messageSent newMessage ====>",
+  //         chatId,
+  //         newMessage
+  //       );
+  //       if (!newMessage) return;
 
-  useSubscription(CHAT_DELETED_SUBSCRIPTION, {
-    onData: ({ client, data }) => {
-      const deletedChatId = data?.data?.chatDeleted;
-      if (!deletedChatId) return;
-      showModal("🗑️ Chat deleted successfully!");
-      client.cache.updateQuery({ query: GET_USER_CHATS }, (oldData) => {
-        if (!oldData) return { chats: [] };
-        return {
-          userChats: oldData.userChats.filter(
-            (chat: any) => Number(chat.id) !== Number(deletedChatId)
-          ),
-        };
-      });
-    },
-  });
-  useSubscription(MESSAGE_SENT_SUBSCRIPTION, {
-    variables: { chatId },
-    onData: ({ client, data }) => {
-      console.log("<====newMessage====>", data?.data?.messageSent);
-      const newMessage = data?.data?.messageSent;
-      if (!newMessage) return;
-      const chatId = newMessage.chat?.id;
-      const chatCacheId = client.cache.identify({
-        __typename: "Chat",
-        id: String(chatId),
-      });
-      if (!chatCacheId) return;
-      showModal("💬 Message recived successfully!");
-      client.refetchQueries({
-        include: [GET_USER_CHATS],
-      });
-    },
-  });
+  //       // 1. Найти чат в кеше
+  //       const chatCacheId = client.cache.identify({
+  //         __typename: "Chat",
+  //         id: newMessage.chat.id,
+  //       });
+  //       if (!chatCacheId) return;
 
-  useSubscription(MESSAGE_DELETED_SUBSCRIPTION, {
-    variables: { chatId },
-    onData: ({ client, data }) => {
-      console.log("💥 subscriptionData:", data);
-      showModal("🗑️ Message deleted successfully!");
-      client.refetchQueries({
-        include: [GET_USER_CHATS],
-      });
-    },
-  });
+  //       // 2. Добавить сообщение в поле messages чата
+  //       client.cache.modify({
+  //         id: chatCacheId,
+  //         fields: {
+  //           messages(existingRefs = []) {
+  //             const newRef = client.cache.writeFragment({
+  //               data: newMessage,
+  //               fragment: gql`
+  //                 fragment NewMessage on Message {
+  //                   id
+  //                   content
+  //                   createdAt
+  //                   sender {
+  //                     id
+  //                     name
+  //                   }
+  //                 }
+  //               `,
+  //             });
+  //             return [...existingRefs, newRef];
+  //           },
+  //         },
+  //       });
+  //     },
+  //   });
+  // });
 
-  useSubscription(MESSAGE_DELETED_SUBSCRIPTION, {
-    variables: { chatId },
-    onData: ({ client, data }) => {
-      console.log("🔴 delete subscription data:", data.data.messageDeleted);
-      // можно обновить кэш:
-      client.refetchQueries({ include: [GET_USER_CHATS] });
-    },
-  });
+  // const useSingleChatSubscription = (chatId: number) => {
+  //   useSubscription(MESSAGE_SENT_SUBSCRIPTION, {
+  //     variables: { chatId },
+  //     onData: ({ client, data }) => {
+  //       const newMessage = data?.data?.messageSent;
+  //       if (!newMessage) return;
+
+  //       console.log("📨 Message for chat", chatId, newMessage);
+
+  //       const chatCacheId = client.cache.identify({
+  //         __typename: "Chat",
+  //         id: newMessage.chat.id,
+  //       });
+
+  //       if (!chatCacheId) return;
+
+  //       client.cache.modify({
+  //         id: chatCacheId,
+  //         fields: {
+  //           messages(existingRefs = []) {
+  //             const newRef = client.cache.writeFragment({
+  //               data: newMessage,
+  //               fragment: gql`
+  //                 fragment NewMessage on Message {
+  //                   id
+  //                   content
+  //                   createdAt
+  //                   sender {
+  //                     id
+  //                     name
+  //                   }
+  //                 }
+  //               `,
+  //             });
+
+  //             return [...existingRefs, newRef];
+  //           },
+  //         },
+  //       });
+  //     },
+  //   });
+  // };
+
   // // --- Пост создан — добавляем в кэш первой страницы и переключаемся на первую страницу ---
   // useSubscription(POST_CREATED_SUBSCRIPTION, {
   //   onData: ({ client, data }) => {

@@ -4,7 +4,7 @@ import { useStateContext } from "@/components/StateProvider";
 import { LOGOUT_USER } from "@/apolo/mutations";
 import { useMutation } from "@apollo/client";
 
-const IDLE_TIMEOUT = 30 * 60 * 1000;
+const IDLE_TIMEOUT = 300 * 60 * 1000;
 let timer: ReturnType<typeof setTimeout>;
 
 const useIdleLogout = () => {

@@ -17,7 +17,7 @@ export default function Users() {
   const [logoutUser] = useMutation(LOGOUT_USER);
 
   // ===============================
-  useUserChatSubscriptions();
+  useUserChatSubscriptions(null);
 
   // ===============================
   const handleActivity = async () => {
@@ -42,7 +42,7 @@ export default function Users() {
       if (token && isTokenExpired(token)) {
         handleActivity();
       }
-    }, 60 * 1000);
+    }, 600 * 1000);
 
     return () => clearInterval(intervalId);
   }, []);

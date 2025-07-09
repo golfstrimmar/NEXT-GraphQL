@@ -36,7 +36,7 @@ const UsersList = () => {
     return chatsData?.userChats ?? [];
   }, [chatsData]);
 
-  useUserChatSubscriptions();
+  useUserChatSubscriptions(null);
 
   useEffect(() => {
     if (!usersLoading && Array.isArray(users)) {
@@ -63,7 +63,6 @@ const UsersList = () => {
       const { data } = await createChat({
         variables: { participantId },
       });
-      console.log("🟢  Mutation to createChat:", data.createChat);
     } catch (error: any) {
       showModal(error.message);
       console.error("❌ Error creating chat:", error);

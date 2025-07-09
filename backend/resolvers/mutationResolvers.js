@@ -247,7 +247,7 @@ const Mutation = {
 
   sendMessage: async (_, { chatId, content }, { userId }) => {
     if (!userId) throw new Error("Not authenticated");
-
+    console.log("<====🟢 chatId mutation sendMessage====>", chatId);
     const chat = await prisma.chat.findUnique({ where: { id: chatId } });
     if (!chat || (chat.creatorId !== userId && chat.participantId !== userId)) {
       throw new Error("Access denied");
@@ -269,6 +269,7 @@ const Mutation = {
         chat: true,
       },
     });
+    console.log("<====🟢 mutation message sent====>", message);
     console.log(" To subscribe  messageSent  🟢--> ");
     pubsub.publish(MESSAGE_SENT, { messageSent: message });
     return message;
