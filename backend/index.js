@@ -8,7 +8,8 @@ import { WebSocketServer } from "ws";
 import { useServer } from "graphql-ws/use/ws";
 import bodyParser from "body-parser";
 import cors from "cors";
-import { verifyToken } from "./utils/verifyToken.js";
+import jwt from "jsonwebtoken";
+// import { verifyToken } from "./utils/verifyToken.js";
 
 import resolvers from "./resolvers/index.js";
 import typeDefs from "./schema.js";
@@ -20,6 +21,7 @@ const activeSubscriptions = new Map();
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 const app = express();
 const httpServer = createServer(app);
+const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_here";
 
 const wsServer = new WebSocketServer({
   server: httpServer,
@@ -35,7 +37,8 @@ const serverCleanup = useServer(
       const token = authHeader.startsWith("Bearer ")
         ? authHeader.slice(7)
         : null;
-      const user = token ? verifyToken(token) : null;
+      // const user = token ? verifyToken(token) : null;
+      const user = token ? jwt.verify(token, JWT_SECRET) : null;
 
       return { user };
     },
@@ -62,7 +65,7 @@ const serverCleanup = useServer(
       const token = authHeader.startsWith("Bearer ")
         ? authHeader.slice(7)
         : null;
-      const user = token ? verifyToken(token) : null;
+      const user = token ? jwt.verify(token, JWT_SECRET) : null;
       const userId = user?.userId || "anonymous";
 
       if (!activeSubscriptions.has(clientId)) {
@@ -111,6 +114,7 @@ const server = new ApolloServer({
 });
 
 await server.start();
+
 app.use(
   "/graphql",
   cors(),
@@ -121,7 +125,7 @@ app.use(
       // console.log("🛡️ Authorization header:", auth); // <-- Лог заголовка
 
       const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
-      const decoded = token ? verifyToken(token) : null;
+      const decoded = token ? jwt.verify(token, JWT_SECRET) : null;
 
       // console.log("🧾 Decoded token payload:", decoded); // <-- Лог результата верификации
 

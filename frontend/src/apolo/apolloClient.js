@@ -24,7 +24,8 @@ const protectedOperations = [
   "sendMessage",
   "deleteMessage",
   "deleteChat",
-
+  "createPost",
+  "GetAllPosts",
   // "addPost",
   // "toggleLike",
   // "createComment",

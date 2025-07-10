@@ -15,7 +15,6 @@ const typeDefs = `
 
   type Chat {
     id: Int!
-   
     createdAt: String!
     updatedAt: String!
     isActive: Boolean!
@@ -32,11 +31,50 @@ const typeDefs = `
     sender: User!
   }
 
+  type Comment {
+    id: Int!
+    text: String!
+    createdAt: String!
+    user: User!
+    likesCount: Int!
+    dislikesCount: Int!
+    currentUserReaction: String
+  }
+
+  type Post {
+    id: Int!
+    title: String!
+    text: String!
+    category: String!
+    createdAt: String!
+    creator: User!
+    likesCount: Int!
+    dislikesCount: Int!
+    currentUserReaction: String
+    commentsCount: Int!
+    comments: [Comment!]!
+    likes: [String!]!     # список имён пользователей
+    dislikes: [String!]!
+  }
+
+  type Category {
+    name: String!
+  }
+
+type PostsResponse {
+  posts: [Post!]!
+  totalCount: Int!
+}
+
+
   type Query {
     users: [User!]!
     chats: [Chat!]!
     userChats: [Chat!]!
     messages(chatId: Int!): [Message!]!
+    post(id: Int!): Post
+   posts(skip: Int, take: Int): PostsResponse!
+    categories: [String!]!
   }
 
   type Mutation {
@@ -46,11 +84,13 @@ const typeDefs = `
     googleLogin(idToken: String!): User!
     logoutUser: Boolean!
     deleteUser(id: Int!): User!
-    
-    createChat( participantId: Int!): Chat!
+
+    createChat(participantId: Int!): Chat!
     sendMessage(chatId: Int!, content: String!): Message!
     deleteMessage(chatId: Int, messageId: Int!): Int!
     deleteChat(id: Int!): Chat!
+
+    createPost( category: String! , title: String!, text: String!): Post!
   }
 
   type Subscription {
@@ -60,7 +100,6 @@ const typeDefs = `
     userDeleted: User!
     chatCreated: Chat!
     chatDeleted: ID!
-    
     messageSent(chatId: Int!): Message!
     messageDeleted(chatId: Int!): Int!
   }

@@ -54,7 +54,6 @@ const Query = {
           },
           messages: {
             include: {
-              
               sender: {
                 select: {
                   id: true,
@@ -97,96 +96,124 @@ const Query = {
     });
   },
 
-  // posts: async (_, { skip = 0, take = 5 }, context) => {
-  //   const currentUserId = context?.userId || null;
-  //   const totalCount = await prisma.post.count();
-  //   const posts = await prisma.post.findMany({
-  //     skip,
-  //     take,
-  //     orderBy: { createdAt: "desc" }, // сортируем по дате, новые сверху
-  //     include: {
-  //       creator: true,
-  //       reactions: { include: { user: true } },
-  //       comments: {
-  //         include: {
-  //           user: true,
-  //           reactions: { include: { user: true } },
-  //         },
-  //       },
-  //     },
-  //   });
-  //   const formattedPosts = posts.map((post) => {
-  //     const likes = post.reactions
-  //       .filter((r) => r.reaction === "LIKE" && r.user)
-  //       .map((r) => r.user.name || "Аноним");
+  posts: async (_, { skip = 0, take = 5 }, { userId }) => {
+    console.log("=> Запрос posts");
+    if (!userId) {
+      console.error("Unauthorized attempt to access posts");
+      throw new Error("Not authenticated");
+    }
+    const currentUserId = userId || null;
 
-  //     const dislikes = post.reactions
-  //       .filter((r) => r.reaction === "DISLIKE" && r.user)
-  //       .map((r) => r.user.name || "Аноним");
+    const totalCount = await prisma.post.count();
 
-  //     const currentUserReaction = currentUserId
-  //       ? post.reactions.find((r) => r.userId === currentUserId)?.reaction ||
-  //         null
-  //       : null;
+    const posts = await prisma.post.findMany({
+      skip,
+      take,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        title: true,
+        text: true,
+        category: true,
+        createdAt: true,
+        creator: {
+          select: { id: true, name: true },
+        },
+        likes: {
+          include: {
+            user: { select: { id: true, name: true } },
+          },
+        },
+        dislikes: {
+          include: {
+            user: { select: { id: true, name: true } },
+          },
+        },
+        comments: {
+          include: {
+            user: { select: { id: true, name: true } },
+            likes: { include: { user: { select: { id: true } } } },
+            dislikes: { include: { user: { select: { id: true } } } },
+          },
+        },
+      },
+    });
 
-  //     const comments = post.comments.map((comment) => {
-  //       const commentLikesCount = comment.reactions.filter(
-  //         (r) => r.reaction === "LIKE"
-  //       ).length;
+    console.log(`---posts-----`, posts);
 
-  //       const commentDislikesCount = comment.reactions.filter(
-  //         (r) => r.reaction === "DISLIKE"
-  //       ).length;
+    const formattedPosts = posts.map((post) => {
+      const likes = post.likes.map((like) => like.user.name || "Аноним");
+      const dislikes = post.dislikes.map(
+        (dislike) => dislike.user.name || "Аноним"
+      );
 
-  //       const commentUserReaction = currentUserId
-  //         ? comment.reactions.find((r) => r.userId === currentUserId)
-  //             ?.reaction || null
-  //         : null;
+      const currentUserReaction = currentUserId
+        ? post.likes.some((like) => like.user.id === currentUserId)
+          ? "LIKE"
+          : post.dislikes.some((dislike) => dislike.user.id === currentUserId)
+          ? "DISLIKE"
+          : null
+        : null;
 
-  //       return {
-  //         id: comment.id,
-  //         text: comment.text,
-  //         createdAt: comment.createdAt,
-  //         user: comment.user,
-  //         likesCount: commentLikesCount,
-  //         dislikesCount: commentDislikesCount,
-  //         currentUserReaction: commentUserReaction,
-  //       };
-  //     });
+      const comments = post.comments.map((comment) => {
+        const commentLikesCount = comment.likes.length;
+        const commentDislikesCount = comment.dislikes.length;
 
-  //     return {
-  //       id: post.id,
-  //       title: post.title,
-  //       text: post.text,
-  //       category: post.category,
-  //       createdAt: post.createdAt,
-  //       creator: post.creator,
-  //       likesCount: likes.length,
-  //       dislikesCount: dislikes.length,
-  //       likes,
-  //       dislikes,
-  //       currentUserReaction,
-  //       commentsCount: comments.length,
-  //       comments,
-  //     };
-  //   });
+        const commentUserReaction = currentUserId
+          ? comment.likes.some((like) => like.user.id === currentUserId)
+            ? "LIKE"
+            : comment.dislikes.some(
+                (dislike) => dislike.user.id === currentUserId
+              )
+            ? "DISLIKE"
+            : null
+          : null;
 
-  //   return {
-  //     posts: formattedPosts,
-  //     totalCount,
-  //   };
-  // },
-  // categories: async () => {
-  //   const posts = await prisma.post.findMany({
-  //     distinct: ["category"],
-  //     select: {
-  //       category: true,
-  //     },
-  //   });
-  //   return posts.map((post) => {
-  //     return post.category;
-  //   });
-  // },
+        return {
+          id: comment.id,
+          text: comment.text,
+          createdAt: comment.createdAt,
+          user: comment.user,
+          likesCount: commentLikesCount,
+          dislikesCount: commentDislikesCount,
+          currentUserReaction: commentUserReaction,
+        };
+      });
+
+      return {
+        id: post.id,
+        title: post.title,
+        text: post.text,
+        category: post.category,
+        createdAt: post.createdAt,
+        creator: post.creator,
+        likesCount: likes.length,
+        dislikesCount: dislikes.length,
+        likes,
+        dislikes,
+        currentUserReaction,
+        commentsCount: comments.length,
+        comments,
+      };
+    });
+
+    return {
+      posts: formattedPosts,
+      totalCount,
+    };
+  },
+
+  categories: async () => {
+    const posts = await prisma.post.findMany({
+      distinct: ["category"],
+      select: {
+        category: true,
+      },
+    });
+    return posts.map((post) => {
+      return post.category;
+    });
+  },
 };
 
 export default Query;

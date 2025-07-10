@@ -109,21 +109,22 @@ export const DELETE_MESSAGE = gql`
     deleteMessage(chatId: $chatId, messageId: $messageId)
   }
 `;
-// export const ADD_POST = gql`
-//   mutation addPost($category: String!, $title: String!, $text: String!) {
-//     addPost(category: $category, title: $title, text: $text) {
-//       id
-//       category
-//       title
-//       text
-//       createdAt
-//       creator {
-//         id
-//         name
-//       }
-//     }
-//   }
-// `;
+
+export const CREATE_POST = gql`
+  mutation createPost($category: String!, $title: String!, $text: String!) {
+    createPost(category: $category, title: $title, text: $text) {
+      id
+      category
+      title
+      text
+      createdAt
+      creator {
+        id
+        name
+      }
+    }
+  }
+`;
 // export const TOGGLE_LIKE = gql`
 //   mutation toggleLike($postId: Int!, $reaction: ReactionType!) {
 //     toggleLike(postId: $postId, reaction: $reaction) {

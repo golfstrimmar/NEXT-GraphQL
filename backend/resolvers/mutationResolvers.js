@@ -304,25 +304,25 @@ const Mutation = {
     return messageId;
   },
 
-  // addPost: async (_, { category, title, text }, { userId }) => {
-  //   if (!userId) throw new Error("Not authenticated");
-  //   console.log("<====🟢add Post🟢====> ", category, title, text, userId);
-  //   const post = await prisma.post.create({
-  //     data: {
-  //       category,
-  //       title,
-  //       text,
-  //       creatorId: userId,
-  //     },
-  //     include: {
-  //       creator: true,
-  //     },
-  //   });
-  //   console.log(" To subscribe postCreated   🟢--> ");
-  //   pubsub.publish(POST_CREATED, { postCreated: post });
+  createPost: async (_, { category, title, text }, { userId }) => {
+    if (!userId) throw new Error("Not authenticated");
+    console.log("<====🟢add Post🟢====> ", category, title, text, userId);
+    const post = await prisma.post.create({
+      data: {
+        category,
+        title,
+        text,
+        creatorId: userId,
+      },
+      include: {
+        creator: true,
+      },
+    });
+    console.log(" To subscribe postCreated   🟢--> ");
+    // pubsub.publish(POST_CREATED, { postCreated: post });
 
-  //   return post;
-  // },
+    return post;
+  },
   // deletePost: async (_, { id }, { userId }) => {
   //   if (!userId) {
   //     throw new Error("Not authenticated");
