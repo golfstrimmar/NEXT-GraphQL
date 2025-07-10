@@ -14,7 +14,7 @@ import {
   CHAT_DELETED,
   MESSAGE_SENT,
   MESSAGE_DELETED,
-  // POST_CREATED,
+  POST_CREATED,
   // REACTION_CHANGED,
   // COMMENT_CREATED,
   // POST_DELETED,
@@ -319,7 +319,7 @@ const Mutation = {
       },
     });
     console.log(" To subscribe postCreated   🟢--> ");
-    // pubsub.publish(POST_CREATED, { postCreated: post });
+    pubsub.publish(POST_CREATED, { postCreated: post });
 
     return post;
   },

@@ -73,7 +73,7 @@ type PostsResponse {
     userChats: [Chat!]!
     messages(chatId: Int!): [Message!]!
     post(id: Int!): Post
-   posts(skip: Int, take: Int): PostsResponse!
+    posts(skip: Int, take: Int): PostsResponse!
     categories: [String!]!
   }
 
@@ -94,14 +94,18 @@ type PostsResponse {
   }
 
   type Subscription {
+  
     userCreated: User!
     userLogin: User!
     userLoggedOut: User!
     userDeleted: User!
+
     chatCreated: Chat!
     chatDeleted: ID!
     messageSent(chatId: Int!): Message!
     messageDeleted(chatId: Int!): Int!
+
+    postCreated: Post
   }
 `;
 

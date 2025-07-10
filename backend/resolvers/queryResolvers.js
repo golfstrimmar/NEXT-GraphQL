@@ -97,7 +97,7 @@ const Query = {
   },
 
   posts: async (_, { skip = 0, take = 5 }, { userId }) => {
-    console.log("=> Запрос posts");
+    console.log("=> Запрос posts", userId, skip, take);
     if (!userId) {
       console.error("Unauthorized attempt to access posts");
       throw new Error("Not authenticated");
@@ -138,8 +138,6 @@ const Query = {
         },
       },
     });
-
-    console.log(`---posts-----`, posts);
 
     const formattedPosts = posts.map((post) => {
       const likes = post.likes.map((like) => like.user.name || "Аноним");

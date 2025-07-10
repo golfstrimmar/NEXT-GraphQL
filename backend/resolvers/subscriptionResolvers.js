@@ -10,6 +10,7 @@ import {
   CHAT_DELETED,
   MESSAGE_SENT,
   MESSAGE_DELETED,
+  POST_CREATED,
 } from "./../utils/pubsub.js";
 
 const Subscription = {
@@ -80,6 +81,18 @@ const Subscription = {
         payload.messageDeleted.messageId
       );
       return payload.messageDeleted.messageId;
+    },
+  },
+
+  // Post subscriptions
+  postCreated: {
+    subscribe: () => {
+      console.log("📡 Новая подписка на postCreated");
+      return pubsub.asyncIterator(POST_CREATED);
+    },
+    resolve: (payload) => {
+      console.log("📨 postCreated payload на сервере:", payload);
+      return payload.postCreated.post;
     },
   },
 };

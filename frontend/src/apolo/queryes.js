@@ -42,7 +42,7 @@ export const GET_USER_CHATS = gql`
 
 export const GET_ALL_POSTS = gql`
   query GetAllPosts($skip: Int!, $take: Int!) {
-    posts(skip: 0, take: 5) {
+    posts(skip: $skip, take: $take) {
       posts {
         id
         title

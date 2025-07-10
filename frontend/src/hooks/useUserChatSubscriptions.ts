@@ -7,8 +7,7 @@ import {
   USER_LOGIN_SUBSCRIPTION,
   USER_LOGGEDOUT_SUBSCRIPTION,
   CHAT_CREATED_SUBSCRIPTION,
-
-  // POST_CREATED_SUBSCRIPTION,
+  POST_CREATED_SUBSCRIPTION,
   // REACTION_CHANGED_SUBSCRIPTION,
   // COMMENT_CREATED_SUBSCRIPTION,
   // POST_DELETED_SUBSCRIPTION,
@@ -19,10 +18,10 @@ import { useStateContext } from "@/components/StateProvider";
 import { gql } from "@apollo/client";
 const POSTS_PER_PAGE = 5;
 
-export default function useUserChatSubscriptions() {
-  // currentPage: number | null = null,
-  // setCurrentPage: ((page: number) => void) | null = null
-
+export default function useUserChatSubscriptions(
+  currentPage: number | null,
+  setCurrentPage: ((page: number) => void) | null
+) {
   const { user, setUser, showModal } = useStateContext();
 
   // Пользователи: добавление
@@ -128,6 +127,45 @@ export default function useUserChatSubscriptions() {
       });
     },
   });
+
+  // // --- Пост создан — добавляем в кэш первой страницы и переключаемся на первую страницу ---
+  useSubscription(POST_CREATED_SUBSCRIPTION, {
+    onData: ({ client, data }) => {
+      const newPost = data?.data?.postCreated;
+      if (!newPost) return;
+
+      // Переключаемся на первую страницу (если еще не там)
+      if (currentPage !== 1) {
+        setCurrentPage(1);
+      }
+
+      // Обновляем кэш — вставляем новый пост в первую страницу (skip=0, take=POSTS_PER_PAGE)
+      client.cache.updateQuery(
+        {
+          query: GET_ALL_POSTS,
+          variables: { skip: 0, take: POSTS_PER_PAGE },
+        },
+        (oldData) => {
+          if (!oldData || !oldData.posts || !oldData.posts.posts) {
+            return { posts: { posts: [newPost], totalCount: 1 } };
+          }
+
+          const exists = oldData.posts.posts.some(
+            (p: any) => p.id === newPost.id
+          );
+          if (exists) return oldData;
+
+          return {
+            posts: {
+              posts: [newPost, ...oldData.posts.posts].slice(0, POSTS_PER_PAGE),
+              totalCount: oldData.posts.totalCount + 1,
+            },
+          };
+        }
+      );
+    },
+  });
+
   // chatIds.forEach((chatId) => {
   //   useSubscription(MESSAGE_SENT_SUBSCRIPTION, {
   //     variables: { chatId },
@@ -216,44 +254,6 @@ export default function useUserChatSubscriptions() {
   //     },
   //   });
   // };
-
-  // // --- Пост создан — добавляем в кэш первой страницы и переключаемся на первую страницу ---
-  // useSubscription(POST_CREATED_SUBSCRIPTION, {
-  //   onData: ({ client, data }) => {
-  //     const newPost = data?.data?.postCreated;
-  //     if (!newPost) return;
-
-  //     // Переключаемся на первую страницу (если еще не там)
-  //     if (currentPage !== 1) {
-  //       setCurrentPage(1);
-  //     }
-
-  //     // Обновляем кэш — вставляем новый пост в первую страницу (skip=0, take=POSTS_PER_PAGE)
-  //     client.cache.updateQuery(
-  //       {
-  //         query: GET_ALL_POSTS,
-  //         variables: { skip: 0, take: POSTS_PER_PAGE },
-  //       },
-  //       (oldData) => {
-  //         if (!oldData || !oldData.posts || !oldData.posts.posts) {
-  //           return { posts: { posts: [newPost], totalCount: 1 } };
-  //         }
-
-  //         const exists = oldData.posts.posts.some(
-  //           (p: any) => p.id === newPost.id
-  //         );
-  //         if (exists) return oldData;
-
-  //         return {
-  //           posts: {
-  //             posts: [newPost, ...oldData.posts.posts].slice(0, POSTS_PER_PAGE),
-  //             totalCount: oldData.posts.totalCount + 1,
-  //           },
-  //         };
-  //       }
-  //     );
-  //   },
-  // });
 
   // // --- Пост удалён — очищаем кэш текущей страницы, обновляем totalCount и сбрасываем пагинацию на первую страницу ---
   // useSubscription(POST_DELETED_SUBSCRIPTION, {

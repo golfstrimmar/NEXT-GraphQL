@@ -2,16 +2,16 @@
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@apollo/client";
 import { GET_ALL_POSTS, GET_ALL_CATEGORIES } from "@/apolo/queryes";
-// import AddPostForm from "@/components/AddPostForm/AddPostForm";
+import AddPostForm from "@/components/AddPostForm/AddPostForm";
 import Loading from "@/components/Loading";
 import { useStateContext } from "@/components/StateProvider";
-
+import useUserChatSubscriptions from "@/hooks/useUserChatSubscriptions";
 const POSTS_PER_PAGE = 5;
 
 const Blog = () => {
   const { user, showModal } = useStateContext();
   const [currentPage, setCurrentPage] = useState(1);
-
+  useUserChatSubscriptions(currentPage, setCurrentPage);
   const { data: postsData, loading: postsLoading } = useQuery(GET_ALL_POSTS, {
     variables: {
       skip: (currentPage - 1) * POSTS_PER_PAGE,
@@ -29,16 +29,20 @@ const Blog = () => {
       console.log("<==== posts====>", posts);
     }
   }, [posts]);
+  // ----------------------------
 
+  // ----------------------------
+
+  // ----------------------------
   return (
     <section className="my-[80px] mx-auto blog w-full">
       <div className="container">
         <h2 className="text-2xl font-bold mb-4">📚 Blog</h2>
 
-        {/* <AddPostForm /> */}
+        <AddPostForm />
 
         <div className="my-4">
-          <h4 className="font-semibold">Категории:</h4>
+          <h4 className="font-semibold">Categories:</h4>
           <ul className="flex gap-2 flex-wrap mt-2">
             {categoriesData?.categories?.map((cat, idx) => (
               <li

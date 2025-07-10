@@ -92,21 +92,21 @@ export const MESSAGE_DELETED_SUBSCRIPTION = gql`
   }
 `;
 
-// export const POST_CREATED_SUBSCRIPTION = gql`
-//   subscription postCreated {
-//     postCreated {
-//       id
-//       text
-//       title
-//       category
-//       createdAt
-//       creator {
-//         id
-//         name
-//       }
-//     }
-//   }
-// `;
+export const POST_CREATED_SUBSCRIPTION = gql`
+  subscription postCreated {
+    postCreated {
+      id
+      text
+      title
+      category
+      createdAt
+      creator {
+        id
+        name
+      }
+    }
+  }
+`;
 
 // export const REACTION_CHANGED_SUBSCRIPTION = gql`
 //   subscription reactionChanged {
