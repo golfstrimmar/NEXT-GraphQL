@@ -11,6 +11,8 @@ import {
   MESSAGE_SENT,
   MESSAGE_DELETED,
   POST_CREATED,
+  POST_DELETED,
+  COMMENT_ADDED,
 } from "./../utils/pubsub.js";
 
 const Subscription = {
@@ -91,8 +93,40 @@ const Subscription = {
       return pubsub.asyncIterator(POST_CREATED);
     },
     resolve: (payload) => {
-      console.log("📨 postCreated payload на сервере:", payload);
-      return payload.postCreated.post;
+      console.log("<===== 📨 postCreated payload : =====> ", payload);
+      return payload.postCreated;
+    },
+  },
+  postDeleted: {
+    subscribe: () => {
+      console.log("📡 Новая подписка на postDeleted");
+      return pubsub.asyncIterator(POST_DELETED);
+    },
+    resolve: (payload) => {
+      console.log("<===== 📨 postDeleted payload : =====> ", payload);
+      return payload.postDeleted;
+    },
+  },
+  commentAdded: {
+    subscribe: withFilter(
+      () => {
+        console.log("📡 Новая подписка на commentAdded");
+        return pubsub.asyncIterator(COMMENT_ADDED);
+      },
+      (payload, variables) => {
+        console.log(
+          "🔍 Проверка фильтра commentAdded:",
+          payload.commentAdded.post.id,
+          variables.postId
+        );
+        return (
+          Number(payload.commentAdded.post.id) === Number(variables.postId)
+        );
+      }
+    ),
+    resolve: (payload) => {
+      console.log("📨 commentAdded payload :", payload.commentAdded);
+      return payload.commentAdded;
     },
   },
 };

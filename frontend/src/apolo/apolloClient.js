@@ -26,10 +26,10 @@ const protectedOperations = [
   "deleteChat",
   "createPost",
   "GetAllPosts",
-  
+  "deletePost",
   // "toggleLike",
   // "createComment",
-  // "deletePost",
+
   // "deleteComment",
   // "toggleCommentReaction",
 ];

@@ -1,6 +1,11 @@
 import { useSubscription } from "@apollo/client";
 import { useState, useEffect } from "react";
-import { GET_USERS, GET_USER_CHATS, GET_ALL_POSTS } from "@/apolo/queryes";
+import {
+  GET_USERS,
+  GET_USER_CHATS,
+  GET_ALL_POSTS,
+  GET_ALL_CATEGORIES,
+} from "@/apolo/queryes";
 import {
   USER_CREATED_SUBSCRIPTION,
   USER_DELETED_SUBSCRIPTION,
@@ -8,6 +13,7 @@ import {
   USER_LOGGEDOUT_SUBSCRIPTION,
   CHAT_CREATED_SUBSCRIPTION,
   POST_CREATED_SUBSCRIPTION,
+  POST_DELETED_SUBSCRIPTION,
   // REACTION_CHANGED_SUBSCRIPTION,
   // COMMENT_CREATED_SUBSCRIPTION,
   // POST_DELETED_SUBSCRIPTION,
@@ -128,18 +134,55 @@ export default function useUserChatSubscriptions(
     },
   });
 
-  // // --- Пост создан — добавляем в кэш первой страницы и переключаемся на первую страницу ---
   useSubscription(POST_CREATED_SUBSCRIPTION, {
     onData: ({ client, data }) => {
+      // исправляем: убираем лишний .data
       const newPost = data?.data?.postCreated;
+      console.log("<===== 🟢 SUBSCRIPTION postCreated =======>", newPost);
       if (!newPost) return;
 
-      // Переключаемся на первую страницу (если еще не там)
       if (currentPage !== 1) {
         setCurrentPage(1);
       }
 
-      // Обновляем кэш — вставляем новый пост в первую страницу (skip=0, take=POSTS_PER_PAGE)
+      const variables = { skip: 0, take: POSTS_PER_PAGE };
+
+      const existing = client.readQuery({
+        query: GET_ALL_POSTS,
+        variables,
+      });
+
+      if (existing?.posts?.posts) {
+        const exists = existing.posts.posts.some((p) => p.id === newPost.id);
+
+        if (!exists) {
+          client.refetchQueries({
+            include: [GET_ALL_POSTS, GET_ALL_CATEGORIES],
+          });
+        }
+      }
+    },
+  });
+  useSubscription(POST_DELETED_SUBSCRIPTION, {
+    onData: ({ client, data }) => {
+      const deletedPostId = data?.data?.postDeleted;
+      if (!deletedPostId) return;
+
+      // Сбрасываем страницу на первую
+      if (currentPage !== 1) {
+        setCurrentPage(1);
+      }
+
+      // Очищаем кэш текущей страницы
+      client.cache.evict({
+        fieldName: "posts",
+        args: {
+          skip: (currentPage - 1) * POSTS_PER_PAGE,
+          take: POSTS_PER_PAGE,
+        },
+      });
+
+      // Обновляем кэш первой страницы и totalCount
       client.cache.updateQuery(
         {
           query: GET_ALL_POSTS,
@@ -147,22 +190,26 @@ export default function useUserChatSubscriptions(
         },
         (oldData) => {
           if (!oldData || !oldData.posts || !oldData.posts.posts) {
-            return { posts: { posts: [newPost], totalCount: 1 } };
+            return { posts: { posts: [], totalCount: 0 } };
           }
 
-          const exists = oldData.posts.posts.some(
-            (p: any) => p.id === newPost.id
+          const updatedPosts = oldData.posts.posts.filter(
+            (post: any) => post.id !== deletedPostId
           );
-          if (exists) return oldData;
+
+          // Устанавливаем totalCount на основе оставшихся постов или уменьшаем, но не ниже 0
+          const newTotalCount = Math.max(0, oldData.posts.totalCount - 1);
 
           return {
             posts: {
-              posts: [newPost, ...oldData.posts.posts].slice(0, POSTS_PER_PAGE),
-              totalCount: oldData.posts.totalCount + 1,
+              posts: updatedPosts,
+              totalCount: newTotalCount,
             },
           };
         }
       );
+
+      client.cache.gc();
     },
   });
 
@@ -254,57 +301,6 @@ export default function useUserChatSubscriptions(
   //     },
   //   });
   // };
-
-  // // --- Пост удалён — очищаем кэш текущей страницы, обновляем totalCount и сбрасываем пагинацию на первую страницу ---
-  // useSubscription(POST_DELETED_SUBSCRIPTION, {
-  //   onData: ({ client, data }) => {
-  //     const deletedPostId = data?.data?.postDeleted;
-  //     if (!deletedPostId) return;
-
-  //     // Сбрасываем страницу на первую
-  //     if (currentPage !== 1) {
-  //       setCurrentPage(1);
-  //     }
-
-  //     // Очищаем кэш текущей страницы
-  //     client.cache.evict({
-  //       fieldName: "posts",
-  //       args: {
-  //         skip: (currentPage - 1) * POSTS_PER_PAGE,
-  //         take: POSTS_PER_PAGE,
-  //       },
-  //     });
-
-  //     // Обновляем кэш первой страницы и totalCount
-  //     client.cache.updateQuery(
-  //       {
-  //         query: GET_ALL_POSTS,
-  //         variables: { skip: 0, take: POSTS_PER_PAGE },
-  //       },
-  //       (oldData) => {
-  //         if (!oldData || !oldData.posts || !oldData.posts.posts) {
-  //           return { posts: { posts: [], totalCount: 0 } };
-  //         }
-
-  //         const updatedPosts = oldData.posts.posts.filter(
-  //           (post: any) => post.id !== deletedPostId
-  //         );
-
-  //         // Устанавливаем totalCount на основе оставшихся постов или уменьшаем, но не ниже 0
-  //         const newTotalCount = Math.max(0, oldData.posts.totalCount - 1);
-
-  //         return {
-  //           posts: {
-  //             posts: updatedPosts,
-  //             totalCount: newTotalCount,
-  //           },
-  //         };
-  //       }
-  //     );
-
-  //     client.cache.gc();
-  //   },
-  // });
 
   // // Реакция на пост (лайк, дизлайк)
   // useSubscription(REACTION_CHANGED_SUBSCRIPTION, {

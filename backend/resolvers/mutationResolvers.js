@@ -15,6 +15,7 @@ import {
   MESSAGE_SENT,
   MESSAGE_DELETED,
   POST_CREATED,
+  COMMENT_ADDED,
   // REACTION_CHANGED,
   // COMMENT_CREATED,
   // POST_DELETED,
@@ -318,24 +319,35 @@ const Mutation = {
         creator: true,
       },
     });
+    const postForReturn = {
+      ...post,
+      likesCount: 0,
+      dislikesCount: 0,
+      likes: [],
+      dislikes: [],
+    };
     console.log(" To subscribe postCreated   🟢--> ");
-    pubsub.publish(POST_CREATED, { postCreated: post });
 
-    return post;
+    pubsub.publish(POST_CREATED, {
+      postCreated: postForReturn,
+    });
+    return postForReturn;
   },
-  // deletePost: async (_, { id }, { userId }) => {
-  //   if (!userId) {
-  //     throw new Error("Not authenticated");
-  //   }
-  //   const post = await prisma.post.findUnique({ where: { id } });
-  //   if (!post || post.creatorId !== userId) {
-  //     throw new Error("Access denied");
-  //   }
-  //   await prisma.post.delete({ where: { id } });
-  //   console.log(" To subscribe postDeleted   🟢--> ");
-  //   pubsub.publish(POST_DELETED, { postDeleted: id });
-  //   return id;
-  // },
+
+  deletePost: async (_, { id }, { userId }) => {
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+    console.log("<==== 🟢 mut deletePost====>", id, userId);
+    const post = await prisma.post.findUnique({ where: { id } });
+    if (!post || post.creatorId !== userId) {
+      throw new Error("Access denied");
+    }
+    await prisma.post.delete({ where: { id } });
+    console.log(" To subscribe postDeleted   🟢--> ");
+    pubsub.publish(POST_DELETED, { postDeleted: id });
+    return id;
+  },
   // toggleLike: async (_, { postId, reaction }, { userId }) => {
   //   if (!userId) {
   //     throw new Error("Unauthorized");

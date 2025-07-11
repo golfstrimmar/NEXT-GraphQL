@@ -40,9 +40,23 @@ export const GET_USER_CHATS = gql`
   }
 `;
 
+// query GetPosts($skip: Int, $take: Int, $category: String) {
+//   posts(skip: $skip, take: $take, category: $category) {
+//     posts {
+//       id
+//       text
+//       category
+//       creator {
+//         name
+//       }
+//     }
+//     totalCount
+//   }
+// }
+
 export const GET_ALL_POSTS = gql`
-  query GetAllPosts($skip: Int!, $take: Int!) {
-    posts(skip: $skip, take: $take) {
+  query GetAllPosts($skip: Int!, $take: Int!, $category: String) {
+    posts(skip: $skip, take: $take, category: $category) {
       posts {
         id
         title
@@ -55,22 +69,8 @@ export const GET_ALL_POSTS = gql`
         }
         likesCount
         dislikesCount
-        currentUserReaction
-        commentsCount
         likes
         dislikes
-        comments {
-          id
-          text
-          createdAt
-          user {
-            id
-            name
-          }
-          likesCount
-          dislikesCount
-          currentUserReaction
-        }
       }
       totalCount
     }

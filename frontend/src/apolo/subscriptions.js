@@ -96,18 +96,27 @@ export const POST_CREATED_SUBSCRIPTION = gql`
   subscription postCreated {
     postCreated {
       id
-      text
       title
+      text
       category
       createdAt
       creator {
         id
         name
+        email
       }
+      likesCount
+      dislikesCount
+      likes
+      dislikes
     }
   }
 `;
-
+export const POST_DELETED_SUBSCRIPTION = gql`
+  subscription postDeleted {
+    postDeleted
+  }
+`;
 // export const REACTION_CHANGED_SUBSCRIPTION = gql`
 //   subscription reactionChanged {
 //     reactionChanged {
@@ -133,12 +142,6 @@ export const POST_CREATED_SUBSCRIPTION = gql`
 //         name
 //       }
 //     }
-//   }
-// `;
-
-// export const POST_DELETED_SUBSCRIPTION = gql`
-//   subscription postDeleted {
-//     postDeleted
 //   }
 // `;
 

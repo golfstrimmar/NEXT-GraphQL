@@ -24,9 +24,9 @@ const Query = {
       throw new Error("Ошибка при получении пользователей");
     }
   },
+
   userChats: async (_, __, { userId }) => {
     console.log("=> Запрос userChats ");
-    // Проверка аутентификации
     if (!userId) {
       console.error("Unauthorized attempt to access chats");
       throw new Error("Not authenticated");
@@ -78,6 +78,7 @@ const Query = {
       throw new Error("Failed to fetch chats");
     }
   },
+
   messages: async (_, { chatId }, { userId }) => {
     if (!userId) throw new Error("Not authenticated");
 
@@ -96,19 +97,22 @@ const Query = {
     });
   },
 
-  posts: async (_, { skip = 0, take = 5 }, { userId }) => {
-    console.log("=> Запрос posts", userId, skip, take);
+  posts: async (_, { skip = 0, take = 5, category = null }, { userId }) => {
+    console.log("=> Запрос posts", { userId, skip, take, category });
+
     if (!userId) {
       console.error("Unauthorized attempt to access posts");
       throw new Error("Not authenticated");
     }
-    const currentUserId = userId || null;
 
-    const totalCount = await prisma.post.count();
+    const where = category ? { category } : {};
+
+    const totalCount = await prisma.post.count({ where });
 
     const posts = await prisma.post.findMany({
       skip,
       take,
+      where,
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
@@ -117,23 +121,16 @@ const Query = {
         category: true,
         createdAt: true,
         creator: {
-          select: { id: true, name: true },
+          select: { id: true, name: true, email: true },
         },
         likes: {
-          include: {
-            user: { select: { id: true, name: true } },
+          select: {
+            user: { select: { name: true } },
           },
         },
         dislikes: {
-          include: {
-            user: { select: { id: true, name: true } },
-          },
-        },
-        comments: {
-          include: {
-            user: { select: { id: true, name: true } },
-            likes: { include: { user: { select: { id: true } } } },
-            dislikes: { include: { user: { select: { id: true } } } },
+          select: {
+            user: { select: { name: true } },
           },
         },
       },
@@ -144,39 +141,6 @@ const Query = {
       const dislikes = post.dislikes.map(
         (dislike) => dislike.user.name || "Аноним"
       );
-
-      const currentUserReaction = currentUserId
-        ? post.likes.some((like) => like.user.id === currentUserId)
-          ? "LIKE"
-          : post.dislikes.some((dislike) => dislike.user.id === currentUserId)
-          ? "DISLIKE"
-          : null
-        : null;
-
-      const comments = post.comments.map((comment) => {
-        const commentLikesCount = comment.likes.length;
-        const commentDislikesCount = comment.dislikes.length;
-
-        const commentUserReaction = currentUserId
-          ? comment.likes.some((like) => like.user.id === currentUserId)
-            ? "LIKE"
-            : comment.dislikes.some(
-                (dislike) => dislike.user.id === currentUserId
-              )
-            ? "DISLIKE"
-            : null
-          : null;
-
-        return {
-          id: comment.id,
-          text: comment.text,
-          createdAt: comment.createdAt,
-          user: comment.user,
-          likesCount: commentLikesCount,
-          dislikesCount: commentDislikesCount,
-          currentUserReaction: commentUserReaction,
-        };
-      });
 
       return {
         id: post.id,
@@ -189,11 +153,10 @@ const Query = {
         dislikesCount: dislikes.length,
         likes,
         dislikes,
-        currentUserReaction,
-        commentsCount: comments.length,
-        comments,
       };
     });
+
+    console.log("<===== 📋📋📋 query posts ====>", "totalCount", totalCount);
 
     return {
       posts: formattedPosts,
@@ -208,9 +171,7 @@ const Query = {
         category: true,
       },
     });
-    return posts.map((post) => {
-      return post.category;
-    });
+    return posts.map((post) => post.category);
   },
 };
 

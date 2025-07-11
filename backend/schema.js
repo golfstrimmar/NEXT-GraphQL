@@ -11,6 +11,7 @@ const typeDefs = `
     chatsCreated: [Chat!]!
     chatsParticipated: [Chat!]!
     messages: [Message!]!
+    comments: [Comment!]!
   }
 
   type Chat {
@@ -36,9 +37,9 @@ const typeDefs = `
     text: String!
     createdAt: String!
     user: User!
+    post: Post!
     likesCount: Int!
     dislikesCount: Int!
-    currentUserReaction: String
   }
 
   type Post {
@@ -50,10 +51,7 @@ const typeDefs = `
     creator: User!
     likesCount: Int!
     dislikesCount: Int!
-    currentUserReaction: String
-    commentsCount: Int!
-    comments: [Comment!]!
-    likes: [String!]!     # список имён пользователей
+    likes: [String!]!
     dislikes: [String!]!
   }
 
@@ -61,11 +59,10 @@ const typeDefs = `
     name: String!
   }
 
-type PostsResponse {
-  posts: [Post!]!
-  totalCount: Int!
-}
-
+  type PostsResponse {
+    posts: [Post!]!
+    totalCount: Int!
+  }
 
   type Query {
     users: [User!]!
@@ -73,8 +70,9 @@ type PostsResponse {
     userChats: [Chat!]!
     messages(chatId: Int!): [Message!]!
     post(id: Int!): Post
-    posts(skip: Int, take: Int): PostsResponse!
+    posts(skip: Int, take: Int, category: String): PostsResponse
     categories: [String!]!
+    comments(postId: Int!): [Comment!]!
   }
 
   type Mutation {
@@ -90,11 +88,14 @@ type PostsResponse {
     deleteMessage(chatId: Int, messageId: Int!): Int!
     deleteChat(id: Int!): Chat!
 
-    createPost( category: String! , title: String!, text: String!): Post!
+
+
+    createPost(category: String!, title: String!, text: String!): Post!
+    deletePost(id: Int!): Int!
+    addComment(postId: Int!, text: String!): Comment!
   }
 
   type Subscription {
-  
     userCreated: User!
     userLogin: User!
     userLoggedOut: User!
@@ -106,6 +107,9 @@ type PostsResponse {
     messageDeleted(chatId: Int!): Int!
 
     postCreated: Post
+    postDeleted: Post
+    commentAdded(postId: Int!): Comment!
+
   }
 `;
 

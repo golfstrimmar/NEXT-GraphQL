@@ -121,10 +121,22 @@ export const CREATE_POST = gql`
       creator {
         id
         name
+        email
       }
+      likesCount
+      dislikesCount
+      likes
+      dislikes
     }
   }
 `;
+
+export const DELETE_POST = gql`
+  mutation deletePost($id: Int!) {
+    deletePost(id: $id)
+  }
+`;
+
 // export const TOGGLE_LIKE = gql`
 //   mutation toggleLike($postId: Int!, $reaction: ReactionType!) {
 //     toggleLike(postId: $postId, reaction: $reaction) {
@@ -150,12 +162,6 @@ export const CREATE_POST = gql`
 //         id
 //       }
 //     }
-//   }
-// `;
-
-// export const DELETE_POST = gql`
-//   mutation deletePost($id: Int!) {
-//     deletePost(id: $id)
 //   }
 // `;
 
