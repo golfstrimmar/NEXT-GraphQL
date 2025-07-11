@@ -5,7 +5,7 @@ import { GET_ALL_CATEGORIES } from "@/apolo/queryes";
 import AddPostForm from "@/components/AddPostForm/AddPostForm";
 import Loading from "@/components/Loading";
 import { useStateContext } from "@/components/StateProvider";
-import useUserChatSubscriptions from "@/hooks/useUserChatSubscriptions";
+import useUserPostSubscriptions from "@/hooks/usePostsSubscription";
 import GetAllPostsQuery from "@/components/GetAllPosts";
 const POSTS_PER_PAGE = 5;
 import PostType from "@/types/post";
@@ -19,11 +19,17 @@ const Blog = () => {
   const [filteredPosts, setFilteredPosts] = useState<PostType[]>([]);
   const [postsLoading, setPostsLoading] = useState<boolean>(false);
   const [totalCount, setTotalCount] = useState<number>(0);
-
-  useUserChatSubscriptions(currentPage, setCurrentPage);
-
-  const { data: categoriesData } = useQuery(GET_ALL_CATEGORIES);
   const [catToFilter, setCatToFilter] = useState<string>("");
+  useUserPostSubscriptions(
+    setCurrentPage,
+    currentPage,
+    setTotalCount,
+    setPosts,
+    setPostsLoading,
+    catToFilter
+  );
+  const { data: categoriesData } = useQuery(GET_ALL_CATEGORIES);
+
   // ----------------------------
   useEffect(() => {
     if (categoriesData) {
@@ -117,69 +123,6 @@ const Blog = () => {
                 currentPage={currentPage}
                 setCurrentPage={setCurrentPage}
               />
-              // <li key={post.id} className="card p-4 bg-white rounded shadow">
-              //   <h4 className="font-semibold text-blue-600">{post.category}</h4>
-              //   <p className="text-black my-2">{post.text}</p>
-              //   <small className="text-gray-600">
-              //     Autor: {post.creator.name}
-              //   </small>
-              //   <small className="text-gray-600">
-              //     {new Date(post.createdAt).toLocaleString()}
-              //   </small>
-              //   emo
-              //   <div className="flex gap-4  mt-2">
-              //     <div className="text-amber-200">
-              //       <button >👍</button> {post.likesCount}
-              //     </div>
-              //     <div className="text-amber-200">
-              //       <button>👎</button> {post.dislikesCount}
-              //     </div>
-              //   </div>
-
-              //   <button  onClick={() => {handlerPostDeleted(post.id) }}>❌</button>
-              //   {/* <div className="flex gap-2 mt-2">
-              //     <button
-              //       className="px-3 py-1 rounded bg-[#30344c] text-white hover:bg-[#5b6496]"
-              //       onClick={() => {
-              //         showModal({
-              //           type: "editPost",
-              //           postId: post.id,
-              //           postText: post.text,
-              //           postCategory: post.category,
-              //         });
-              //       }}
-              //     >
-              //       Edit
-              //     </button>
-              //     <button
-              //       className="px-3 py-1 rounded bg-[#30344c] text-white hover:bg-[#5b6496]"
-              //       onClick={() => {
-              //         showModal({
-              //           type: "deletePost",
-              //           postId: post.id,
-              //         });
-              //       }}
-              //     >
-              //       Delete
-              //     </button>
-              //   </div>
-              //   {showModalData.type === "editPost" &&
-              //       showModalData.postId === post.id && (
-              //         <EditPostForm
-              //           postId={post.id}
-              //           postText={post.text}
-              //           postCategory={post.category}
-              //         />
-              //       )}
-              //   {showModalData.type === "deletePost" &&
-              //       showModalData.postId === post.id && (
-              //         <DeletePostForm postId={post.id} />
-              //       )}
-              //   {showModalData.type === "addComment" &&
-              //       showModalData.postId === post.id && (
-              //         <AddCommentForm postId={post.id} />
-              //       }} */}
-              // </li>
             ))}
           </ul>
         ) : (

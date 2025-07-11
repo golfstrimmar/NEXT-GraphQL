@@ -107,7 +107,7 @@ const typeDefs = `
     messageDeleted(chatId: Int!): Int!
 
     postCreated: Post
-    postDeleted: Post
+    postDeleted: Int!
     commentAdded(postId: Int!): Comment!
 
   }

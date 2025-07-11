@@ -16,6 +16,7 @@ import {
   MESSAGE_DELETED,
   POST_CREATED,
   COMMENT_ADDED,
+  POST_DELETED,
   // REACTION_CHANGED,
   // COMMENT_CREATED,
   // POST_DELETED,
@@ -338,10 +339,11 @@ const Mutation = {
     if (!userId) {
       throw new Error("Not authenticated");
     }
-    console.log("<==== 🟢 mut deletePost====>", id, userId);
     const post = await prisma.post.findUnique({ where: { id } });
+
+    console.log("<==== 🟢 mut deletePost====>", id, post.creatorId, userId);
     if (!post || post.creatorId !== userId) {
-      throw new Error("Access denied");
+      throw new Error("You have no permission to delete this post");
     }
     await prisma.post.delete({ where: { id } });
     console.log(" To subscribe postDeleted   🟢--> ");

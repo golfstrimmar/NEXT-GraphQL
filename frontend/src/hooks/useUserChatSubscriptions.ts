@@ -24,10 +24,7 @@ import { useStateContext } from "@/components/StateProvider";
 import { gql } from "@apollo/client";
 const POSTS_PER_PAGE = 5;
 
-export default function useUserChatSubscriptions(
-  currentPage: number | null,
-  setCurrentPage: ((page: number) => void) | null
-) {
+export default function useUserChatSubscriptions() {
   const { user, setUser, showModal } = useStateContext();
 
   // Пользователи: добавление
@@ -131,85 +128,6 @@ export default function useUserChatSubscriptions(
           ],
         };
       });
-    },
-  });
-
-  useSubscription(POST_CREATED_SUBSCRIPTION, {
-    onData: ({ client, data }) => {
-      // исправляем: убираем лишний .data
-      const newPost = data?.data?.postCreated;
-      console.log("<===== 🟢 SUBSCRIPTION postCreated =======>", newPost);
-      if (!newPost) return;
-
-      if (currentPage !== 1) {
-        setCurrentPage(1);
-      }
-
-      const variables = { skip: 0, take: POSTS_PER_PAGE };
-
-      const existing = client.readQuery({
-        query: GET_ALL_POSTS,
-        variables,
-      });
-
-      if (existing?.posts?.posts) {
-        const exists = existing.posts.posts.some((p) => p.id === newPost.id);
-
-        if (!exists) {
-          client.refetchQueries({
-            include: [GET_ALL_POSTS, GET_ALL_CATEGORIES],
-          });
-        }
-      }
-    },
-  });
-  useSubscription(POST_DELETED_SUBSCRIPTION, {
-    onData: ({ client, data }) => {
-      const deletedPostId = data?.data?.postDeleted;
-      if (!deletedPostId) return;
-
-      // Сбрасываем страницу на первую
-      if (currentPage !== 1) {
-        setCurrentPage(1);
-      }
-
-      // Очищаем кэш текущей страницы
-      client.cache.evict({
-        fieldName: "posts",
-        args: {
-          skip: (currentPage - 1) * POSTS_PER_PAGE,
-          take: POSTS_PER_PAGE,
-        },
-      });
-
-      // Обновляем кэш первой страницы и totalCount
-      client.cache.updateQuery(
-        {
-          query: GET_ALL_POSTS,
-          variables: { skip: 0, take: POSTS_PER_PAGE },
-        },
-        (oldData) => {
-          if (!oldData || !oldData.posts || !oldData.posts.posts) {
-            return { posts: { posts: [], totalCount: 0 } };
-          }
-
-          const updatedPosts = oldData.posts.posts.filter(
-            (post: any) => post.id !== deletedPostId
-          );
-
-          // Устанавливаем totalCount на основе оставшихся постов или уменьшаем, но не ниже 0
-          const newTotalCount = Math.max(0, oldData.posts.totalCount - 1);
-
-          return {
-            posts: {
-              posts: updatedPosts,
-              totalCount: newTotalCount,
-            },
-          };
-        }
-      );
-
-      client.cache.gc();
     },
   });
 
