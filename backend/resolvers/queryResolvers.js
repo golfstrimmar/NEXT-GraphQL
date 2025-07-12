@@ -190,7 +190,7 @@ const Query = {
       },
     });
 
-    console.log("<====== 📋📋📋 query comments =====>", comments);
+    console.log("<====== 📋📋📋 query comments =====>", comments.length);
     return comments;
   },
 };

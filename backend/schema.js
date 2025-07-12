@@ -98,6 +98,7 @@ const typeDefs = `
     dislikePost(postId: Int!): Post!
     
     addComment(postId: Int!, text: String!): Comment!
+    deleteComment(id: Int!): Comment!
   }
 
   type Subscription {
@@ -116,7 +117,7 @@ const typeDefs = `
     postLiked: Post!
     postDisliked: Post!
     commentAdded: Comment!
-
+    commentDeleted: Int!
   }
 `;
 

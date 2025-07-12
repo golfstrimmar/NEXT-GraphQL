@@ -29,6 +29,7 @@ const protectedOperations = [
   "likePost",
   "disLikePost",
   "addComment",
+  "deleteComment",
 ];
 
 // ✅ HTTP link

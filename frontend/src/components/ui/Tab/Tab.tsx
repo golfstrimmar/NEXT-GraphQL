@@ -52,11 +52,11 @@ const Tab: React.FC<TabProps> = ({ length, details }) => {
         <AnimatePresence>
           {isOpen && length > 0 && (
             <motion.div
-              initial={{ height: 0, opacity: 0, y: 0 }}
-              animate={{ height: "auto", opacity: 1, y: 0 }}
-              exit={{ height: 0, opacity: 0, y: 0 }}
-              transition={{ duration: 0.2, ease: "easeInOut" }}
-              className="absolute left-0 top-full bg-amber-100 text-amber-600 border border-gray-200 rounded-b-md shadow-md z-10 w-fit min-w-[150px] max-w-full"
+              initial={{ height: 0 }}
+              animate={{ height: "auto" }}
+              exit={{ height: 0 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+              className="absolute left-0 top-full bg-amber-100 text-amber-600 border border-gray-200 rounded-b-md shadow-md z-10 w-fit min-w-[150px] max-w-full overflow-hidden"
             >
               <div className="p-1 space-y-2">
                 {details.map((detail, index) => (

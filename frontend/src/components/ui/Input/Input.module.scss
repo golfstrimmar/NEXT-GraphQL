@@ -3,6 +3,7 @@
   transition: all 0.2s;
   width: 100%;
   min-height: 40px;
+  background: rgb(248, 244, 227);
 
   input[type="text"],
   input[type="email"],
@@ -84,9 +85,11 @@
       color: #007bff !important;
       font-size: 12px !important;
       z-index: 3 !important;
-      background-color: white !important;
+      background-color: inherit !important;
       padding: 0 5px !important;
-      transform: translateY(-160%) !important;
+      top: 0%;
+      border-radius: 5px;
+      transform: translateY(-50%) !important;
       z-index: 5 !important;
       left: 5px !important;
     }
@@ -100,9 +103,11 @@
       color: #007bff !important;
       font-size: 12px !important;
       z-index: 3 !important;
-      background-color: white !important;
+      background-color: inherit !important;
       padding: 0px 5px !important;
-      transform: translateY(-280%) !important;
+      top: 0%;
+      border-radius: 5px;
+      transform: translateY(-50%) !important;
       z-index: 5 !important;
       left: 5px !important;
     }

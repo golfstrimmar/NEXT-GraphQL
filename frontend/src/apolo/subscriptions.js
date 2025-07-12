@@ -173,3 +173,9 @@ export const COMMENT_CREATED_SUBSCRIPTION = gql`
     }
   }
 `;
+
+export const COMMENT_DELETED_SUBSCRIPTION = gql`
+  subscription commentDeleted {
+    commentDeleted
+  }
+`;

@@ -11,6 +11,7 @@ import {
   POST_LIKED_SUBSCRIPTION,
   POST_DISLIKED_SUBSCRIPTION,
   COMMENT_CREATED_SUBSCRIPTION,
+  COMMENT_DELETED_SUBSCRIPTION,
 } from "@/apolo/subscriptions";
 import { useStateContext } from "@/components/StateProvider";
 const POSTS_PER_PAGE = 5;
@@ -124,6 +125,22 @@ export default function useUserPostSubscriptions(
 
       console.log("<===== 🟢 SUBSCRIPTION commentCreated =======>", newComment);
       showModal(`✅ Comment created successfully!`);
+      client.refetchQueries({
+        include: [GET_ALL_COMMENTS],
+      });
+    },
+  });
+
+  useSubscription(COMMENT_DELETED_SUBSCRIPTION, {
+    onData: ({ client, data }) => {
+      const deletedCommentId = data?.data?.commentDeleted;
+      if (!deletedCommentId) return;
+
+      console.log(
+        "<===== 🟢 SUBSCRIPTION commentDeleted =======>",
+        deletedCommentId
+      );
+      showModal("🗑️ Comment deleted successfully.");
       client.refetchQueries({
         include: [GET_ALL_COMMENTS],
       });

@@ -15,15 +15,11 @@ import {
   MESSAGE_SENT,
   MESSAGE_DELETED,
   POST_CREATED,
-  COMMENT_ADDED,
   POST_DELETED,
   POST_LIKED,
   POST_DISLIKED,
-  // REACTION_CHANGED,
-  // COMMENT_CREATED,
-  // POST_DELETED,
-  // POST_COMMENT_DELETED,
-  // COMMENT_REACTION_CHANGED,
+  COMMENT_ADDED,
+  COMMENT_DELETED,
 } from "./../utils/pubsub.js";
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_here";
@@ -496,6 +492,15 @@ const Mutation = {
     console.log(" To subscribe commentAdded   🟢--> ");
     pubsub.publish(COMMENT_ADDED, { commentAdded: comment });
 
+    return comment;
+  },
+  deleteComment: async (_, { id }, { userId }) => {
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+    console.log("====> delete comment", id);
+    const comment = await prisma.comment.delete({ where: { id } });
+    pubsub.publish(COMMENT_DELETED, { commentDeleted: comment.id });
     return comment;
   },
 };

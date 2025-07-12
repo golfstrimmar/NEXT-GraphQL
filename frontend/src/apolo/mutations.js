@@ -173,56 +173,16 @@ export const ADD_COMMENT = gql`
   }
 `;
 
-// export const TOGGLE_LIKE = gql`
-//   mutation toggleLike($postId: Int!, $reaction: ReactionType!) {
-//     toggleLike(postId: $postId, reaction: $reaction) {
-//       postId
-//       likes
-//       dislikes
-//       currentUserReaction
-//     }
-//   }
-// `;
+export const DELETE_COMMENT = gql`
+  mutation deleteComment($id: Int!) {
+    deleteComment(id: $id) {
+      id
+    }
+  }
+`;
 
-// export const CREATE_COMMENT = gql`
-//   mutation createComment($postId: Int!, $text: String!) {
-//     createComment(postId: $postId, text: $text) {
-//       id
-//       text
-//       createdAt
-//       user {
-//         id
-//         name
-//       }
-//       post {
-//         id
-//       }
-//     }
-//   }
-// `;
-
-// export const DELETE_POST_COMMENT = gql`
-//   mutation deleteComment($postId: Int!, $commentId: Int!) {
-//     deleteComment(postId: $postId, commentId: $commentId)
-//   }
-// `;
-
-// export const TOGGLE_COMMENT_REACTION = gql`
-//   mutation toggleCommentReaction($commentId: Int!, $reaction: ReactionType!) {
-//     toggleCommentReaction(commentId: $commentId, reaction: $reaction) {
-//       id
-//       text
-//       createdAt
-//       user {
-//         id
-//         name
-//       }
-//       post {
-//         id
-//       }
-//       likesCount
-//       dislikesCount
-//       currentUserReaction
-//     }
+// export const UPDATE_COMMENT = gql`
+//   mutation updateComment($postId: Int!, $commentId: Int!, $text: String!) {
+//     updateComment(postId: $postId, commentId: $commentId, text: $text)
 //   }
 // `;

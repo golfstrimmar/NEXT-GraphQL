@@ -15,6 +15,7 @@ import {
   POST_LIKED,
   POST_DISLIKED,
   COMMENT_ADDED,
+  COMMENT_DELETED,
 } from "./../utils/pubsub.js";
 
 const Subscription = {
@@ -131,22 +132,6 @@ const Subscription = {
   },
   // === comments ==========
   commentAdded: {
-    // subscribe: withFilter(
-    //   () => {
-    //     console.log("📡 New subscribe commentAdded");
-    //     return pubsub.asyncIterator(COMMENT_ADDED);
-    //   },
-    //   (payload, variables) => {
-    //     console.log(
-    //       "🔍 Проверка фильтра commentAdded:",
-    //       payload.commentAdded.post.id,
-    //       variables.postId
-    //     );
-    //     return (
-    //       Number(payload.commentAdded.post.id) === Number(variables.postId)
-    //     );
-    //   }
-    // ),
     subscribe: () => {
       console.log("📡 New subscribe commentAdded");
       return pubsub.asyncIterator(COMMENT_ADDED);
@@ -154,6 +139,16 @@ const Subscription = {
     resolve: (payload) => {
       console.log("📨 commentAdded payload :", payload.commentAdded);
       return payload.commentAdded;
+    },
+  },
+  commentDeleted: {
+    subscribe: () => {
+      console.log("📡 New subscribe commentDeleted");
+      return pubsub.asyncIterator(COMMENT_DELETED);
+    },
+    resolve: (payload) => {
+      console.log("📨 commentDeleted payload :", payload);
+      return payload.commentDeleted; // уже id, без .id
     },
   },
 };
