@@ -118,9 +118,10 @@ await server.start();
 
 app.use(
   "/graphql",
-  // cors(),
   cors({
     origin: "*",
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   }),
   bodyParser.json(),
   expressMiddleware(server, {

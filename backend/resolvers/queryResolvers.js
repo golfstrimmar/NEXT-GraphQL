@@ -15,6 +15,7 @@ const Query = {
           createdAt: true,
           isLoggedIn: true,
           googleId: true,
+          picture: true,
         },
       });
       console.log(" Запрос users =>");
@@ -97,13 +98,8 @@ const Query = {
     });
   },
 
-  posts: async (_, { skip = 0, take = 5, category = null }, { userId }) => {
-    console.log("=> Запрос posts", { userId, skip, take, category });
-
-    if (!userId) {
-      console.error("Unauthorized attempt to access posts");
-      throw new Error("Not authenticated");
-    }
+  posts: async (_, { skip = 0, take = 5, category = null }) => {
+    console.log("=> Запрос posts", { skip, take, category });
 
     const where = category ? { category } : {};
 
@@ -156,7 +152,13 @@ const Query = {
       };
     });
 
-    console.log("<===== 📋📋📋 query posts ====>", "totalCount", totalCount);
+    console.log(
+      "<===== 📋📋📋 query posts ====>",
+      // "formattedPosts",
+      // formattedPosts,
+      "totalCount",
+      totalCount
+    );
 
     return {
       posts: formattedPosts,
@@ -172,6 +174,24 @@ const Query = {
       },
     });
     return posts.map((post) => post.category);
+  },
+
+  comments: async (_, { postId }) => {
+    const comments = await prisma.comment.findMany({
+      where: { postId },
+      select: {
+        user: {
+          select: { name: true },
+        },
+        postId: true,
+        text: true,
+        createdAt: true,
+        id: true,
+      },
+    });
+
+    console.log("<====== 📋📋📋 query comments =====>", comments);
+    return comments;
   },
 };
 

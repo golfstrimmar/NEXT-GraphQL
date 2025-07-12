@@ -17,6 +17,7 @@ export const USER_LOGIN_SUBSCRIPTION = gql`
       id
       email
       name
+      picture
       isLoggedIn
       createdAt
     }
@@ -117,59 +118,58 @@ export const POST_DELETED_SUBSCRIPTION = gql`
     postDeleted
   }
 `;
-// export const REACTION_CHANGED_SUBSCRIPTION = gql`
-//   subscription reactionChanged {
-//     reactionChanged {
-//       postId
-//       likes
-//       dislikes
-//       currentUserReaction
-//     }
-//   }
-// `;
 
-// export const COMMENT_CREATED_SUBSCRIPTION = gql`
-//   subscription commentCreated {
-//     commentCreated {
-//       id
-//       text
-//       createdAt
-//       post {
-//         id
-//       }
-//       user {
-//         id
-//         name
-//       }
-//     }
-//   }
-// `;
+export const POST_LIKED_SUBSCRIPTION = gql`
+  subscription postLiked {
+    postLiked {
+      id
+      title
+      text
+      category
+      createdAt
+      creator {
+        id
+        name
+        email
+      }
+      likesCount
+      dislikesCount
+      likes
+      dislikes
+    }
+  }
+`;
 
-// export const POST_COMMENT_DELETED_SUBSCRIPTION = gql`
-//   subscription postCommentDeleted {
-//     postCommentDeleted {
-//       commentId
-//       postId
-//     }
-//   }
-// `;
+export const POST_DISLIKED_SUBSCRIPTION = gql`
+  subscription postDisliked {
+    postDisliked {
+      id
+      title
+      text
+      category
+      createdAt
+      creator {
+        id
+        name
+        email
+      }
+      likesCount
+      dislikesCount
+      likes
+      dislikes
+    }
+  }
+`;
 
-// export const COMMENT_REACTION_CHANGED_SUBSCRIPTION = gql`
-//   subscription commentReactionChanged {
-//     commentReactionChanged {
-//       id
-//       text
-//       createdAt
-//       user {
-//         id
-//         name
-//       }
-//       post {
-//         id
-//       }
-//       likesCount
-//       dislikesCount
-//       currentUserReaction
-//     }
-//   }
-// `;
+export const COMMENT_CREATED_SUBSCRIPTION = gql`
+  subscription commentAdded {
+    commentAdded {
+      id
+      text
+      createdAt
+      user {
+        name
+      }
+    }
+  }
+`;

@@ -49,6 +49,7 @@ export const GOOGLE_LOGIN = gql`
       token
       isLoggedIn
       createdAt
+      picture
     }
   }
 `;
@@ -134,6 +135,41 @@ export const CREATE_POST = gql`
 export const DELETE_POST = gql`
   mutation deletePost($id: Int!) {
     deletePost(id: $id)
+  }
+`;
+
+export const LIKE_POST = gql`
+  mutation likePost($postId: Int!) {
+    likePost(postId: $postId) {
+      id
+      title
+      likes
+      dislikes
+      likesCount
+      dislikesCount
+    }
+  }
+`;
+
+export const DISLIKE_POST = gql`
+  mutation disLikePost($postId: Int!) {
+    dislikePost(postId: $postId) {
+      id
+      title
+      likes
+      dislikes
+      likesCount
+      dislikesCount
+    }
+  }
+`;
+
+export const ADD_COMMENT = gql`
+  mutation addComment($postId: Int!, $text: String!) {
+    addComment(postId: $postId, text: $text) {
+      postId
+      text
+    }
   }
 `;
 

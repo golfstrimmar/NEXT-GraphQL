@@ -112,6 +112,7 @@ export default function Login() {
       const newUser = { ...userWithoutToken };
       setUser(newUser);
       console.log("<====GOOGLE LOGIN token====>", token);
+      console.log("<====GOOGLE LOGIN userWithoutToken====>", userWithoutToken);
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(newUser));
 

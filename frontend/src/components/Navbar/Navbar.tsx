@@ -32,7 +32,7 @@ const Navbar: React.FC = () => {
         setUser(null);
         localStorage.removeItem("token");
         localStorage.removeItem("user");
-        router.push("/");
+        router.push("/chats");
       } else {
         console.log("Logout failed on server side.");
       }
@@ -128,6 +128,23 @@ const Navbar: React.FC = () => {
           ) : (
             <>
               <li className="flex items-center gap-2 text-white">
+                {user.picture ? (
+                  <Image
+                    src={user.picture}
+                    alt="User"
+                    width={25}
+                    height={25}
+                    className="rounded-full"
+                  />
+                ) : (
+                  <Image
+                    src="./svg/avatar.svg"
+                    alt="User"
+                    width={25}
+                    height={25}
+                    className="rounded-full"
+                  />
+                )}
                 <p>
                   Hello, <strong>{user.name || "User"}</strong>
                 </p>

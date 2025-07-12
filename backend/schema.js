@@ -8,6 +8,7 @@ const typeDefs = `
     createdAt: String!
     token: String
     isLoggedIn: Boolean
+    picture: String
     chatsCreated: [Chat!]!
     chatsParticipated: [Chat!]!
     messages: [Message!]!
@@ -37,7 +38,8 @@ const typeDefs = `
     text: String!
     createdAt: String!
     user: User!
-    post: Post!
+    userId: Int! 
+    postId: Int!
     likesCount: Int!
     dislikesCount: Int!
   }
@@ -92,6 +94,9 @@ const typeDefs = `
 
     createPost(category: String!, title: String!, text: String!): Post!
     deletePost(id: Int!): Int!
+    likePost(postId: Int!): Post!
+    dislikePost(postId: Int!): Post!
+    
     addComment(postId: Int!, text: String!): Comment!
   }
 
@@ -108,7 +113,9 @@ const typeDefs = `
 
     postCreated: Post
     postDeleted: Int!
-    commentAdded(postId: Int!): Comment!
+    postLiked: Post!
+    postDisliked: Post!
+    commentAdded: Comment!
 
   }
 `;

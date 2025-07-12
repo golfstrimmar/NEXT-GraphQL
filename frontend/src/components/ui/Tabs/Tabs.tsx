@@ -37,18 +37,16 @@ const Tabs: React.FC<TabsProps> = () => {
     <div className="tabs">
       <div>
         <ButtonTab refs={refs} name="test" />
+        <ButtonTab refs={refs} name="test1" />
+        <ButtonTab refs={refs} name="test2" />
         <div className="next-hidden">
-          <div className="next-hidden__wrap">
-            <ButtonTab refs={refs} name="test1" />
-            <div className="next-hidden">
-              <div className="next-hidden__wrap">
-                <ButtonTab refs={refs} name="test2" />
-                <div className="next-hidden">
-                  <div className="next-hidden__wrap">test2 content</div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <div className="next-hidden__wrap">test content</div>
+        </div>
+        <div className="next-hidden">
+          <div className="next-hidden__wrap">test1 content</div>
+        </div>
+        <div className="next-hidden">
+          <div className="next-hidden__wrap">test2 content</div>
         </div>
       </div>
     </div>

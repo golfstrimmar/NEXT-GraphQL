@@ -6,6 +6,7 @@ export const GET_USERS = gql`
       id
       email
       name
+      picture
       isLoggedIn
       createdAt
     }
@@ -40,20 +41,6 @@ export const GET_USER_CHATS = gql`
   }
 `;
 
-// query GetPosts($skip: Int, $take: Int, $category: String) {
-//   posts(skip: $skip, take: $take, category: $category) {
-//     posts {
-//       id
-//       text
-//       category
-//       creator {
-//         name
-//       }
-//     }
-//     totalCount
-//   }
-// }
-
 export const GET_ALL_POSTS = gql`
   query GetAllPosts($skip: Int!, $take: Int!, $category: String) {
     posts(skip: $skip, take: $take, category: $category) {
@@ -76,9 +63,27 @@ export const GET_ALL_POSTS = gql`
     }
   }
 `;
-
+// {
+//   "skip": 0,
+//   "take": 5,
+//   "category":null
+// }
 export const GET_ALL_CATEGORIES = gql`
   query GetAllCategories {
     categories
+  }
+`;
+
+export const GET_ALL_COMMENTS = gql`
+  query GetComments($postId: Int!) {
+    comments(postId: $postId) {
+      id
+      createdAt
+      text
+      postId
+      userName: user {
+        name
+      }
+    }
   }
 `;

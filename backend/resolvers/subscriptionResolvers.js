@@ -12,11 +12,13 @@ import {
   MESSAGE_DELETED,
   POST_CREATED,
   POST_DELETED,
+  POST_LIKED,
+  POST_DISLIKED,
   COMMENT_ADDED,
 } from "./../utils/pubsub.js";
 
 const Subscription = {
-  // User subscriptions
+  //=== User subscriptions
   userCreated: {
     subscribe: () => pubsub.asyncIterator(USER_CREATED),
   },
@@ -30,7 +32,7 @@ const Subscription = {
     subscribe: () => pubsub.asyncIterator(USER_DELETED),
   },
 
-  // Chat subscriptions
+  //===== Chat subscriptions
   chatCreated: {
     subscribe: () => pubsub.asyncIterator(CHAT_CREATED),
   },
@@ -86,10 +88,10 @@ const Subscription = {
     },
   },
 
-  // Post subscriptions
+  //===== Post subscriptions
   postCreated: {
     subscribe: () => {
-      console.log("📡 Новая подписка на postCreated");
+      console.log("📡 New subscribe postCreated");
       return pubsub.asyncIterator(POST_CREATED);
     },
     resolve: (payload) => {
@@ -99,7 +101,7 @@ const Subscription = {
   },
   postDeleted: {
     subscribe: () => {
-      console.log("📡 Новая подписка на postDeleted");
+      console.log("📡 New subscribe  postDeleted");
       return pubsub.asyncIterator(POST_DELETED);
     },
     resolve: (payload) => {
@@ -107,23 +109,48 @@ const Subscription = {
       return payload.postDeleted;
     },
   },
+  postLiked: {
+    subscribe: () => {
+      console.log("📡 New subscribe  postLiked");
+      return pubsub.asyncIterator(POST_LIKED);
+    },
+    resolve: (payload) => {
+      console.log("<===== 📨 post LIKED payload : =====> ", payload);
+      return payload.postLiked;
+    },
+  },
+  postDisliked: {
+    subscribe: () => {
+      console.log("📡 New subscribe  postDisliked");
+      return pubsub.asyncIterator(POST_DISLIKED);
+    },
+    resolve: (payload) => {
+      console.log("<===== 📨 post DISLIKED payload : =====> ", payload);
+      return payload.postDisliked;
+    },
+  },
+  // === comments ==========
   commentAdded: {
-    subscribe: withFilter(
-      () => {
-        console.log("📡 Новая подписка на commentAdded");
-        return pubsub.asyncIterator(COMMENT_ADDED);
-      },
-      (payload, variables) => {
-        console.log(
-          "🔍 Проверка фильтра commentAdded:",
-          payload.commentAdded.post.id,
-          variables.postId
-        );
-        return (
-          Number(payload.commentAdded.post.id) === Number(variables.postId)
-        );
-      }
-    ),
+    // subscribe: withFilter(
+    //   () => {
+    //     console.log("📡 New subscribe commentAdded");
+    //     return pubsub.asyncIterator(COMMENT_ADDED);
+    //   },
+    //   (payload, variables) => {
+    //     console.log(
+    //       "🔍 Проверка фильтра commentAdded:",
+    //       payload.commentAdded.post.id,
+    //       variables.postId
+    //     );
+    //     return (
+    //       Number(payload.commentAdded.post.id) === Number(variables.postId)
+    //     );
+    //   }
+    // ),
+    subscribe: () => {
+      console.log("📡 New subscribe commentAdded");
+      return pubsub.asyncIterator(COMMENT_ADDED);
+    },
     resolve: (payload) => {
       console.log("📨 commentAdded payload :", payload.commentAdded);
       return payload.commentAdded;

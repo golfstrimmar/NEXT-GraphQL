@@ -17,6 +17,8 @@ import {
   POST_CREATED,
   COMMENT_ADDED,
   POST_DELETED,
+  POST_LIKED,
+  POST_DISLIKED,
   // REACTION_CHANGED,
   // COMMENT_CREATED,
   // POST_DELETED,
@@ -102,8 +104,8 @@ const Mutation = {
         throw new Error("Invalid Google token");
       }
 
-      const { email, name, sub: googleId } = payload;
-
+      const { email, name, sub: googleId, picture } = payload;
+      console.log("<========>", picture);
       if (!email) {
         throw new Error("Email not provided by Google");
       }
@@ -119,6 +121,7 @@ const Mutation = {
             password: "", // Пустой пароль для Google-пользователя
             googleId,
             isLoggedIn: true,
+            picture: picture || "",
           },
         });
         pubsub.publish(USER_CREATED, { userCreated: user });
@@ -131,7 +134,8 @@ const Mutation = {
           data: {
             name: name || user.name,
             isLoggedIn: true,
-            googleId: user.googleId || googleId, // не перезаписываем, если уже есть
+            googleId: user.googleId || googleId,
+            picture: picture || "",
           },
         });
 
@@ -154,6 +158,7 @@ const Mutation = {
         name: user.name,
         createdAt: user.createdAt,
         isLoggedIn: true,
+        picture: picture || "",
         token,
       };
     } catch (err) {
@@ -341,7 +346,7 @@ const Mutation = {
     }
     const post = await prisma.post.findUnique({ where: { id } });
 
-    console.log("<==== 🟢 mut deletePost====>", id, post.creatorId, userId);
+    console.log("<==== 🟢 mut deletePost====>", post, userId);
     if (!post || post.creatorId !== userId) {
       throw new Error("You have no permission to delete this post");
     }
@@ -350,251 +355,149 @@ const Mutation = {
     pubsub.publish(POST_DELETED, { postDeleted: id });
     return id;
   },
-  // toggleLike: async (_, { postId, reaction }, { userId }) => {
-  //   if (!userId) {
-  //     throw new Error("Unauthorized");
-  //   }
 
-  //   console.log("🔵 toggleLike called", postId, reaction, userId);
+  likePost: async (_, { postId }, { userId }) => {
+    console.log("<====userId====>", userId);
+    if (!userId) {
+      throw new Error("Authentication required");
+    }
 
-  //   let existingReaction;
+    // Удаляем дизлайк, если был
+    await prisma.postDislike.deleteMany({
+      where: {
+        postId,
+        userId,
+      },
+    });
 
-  //   try {
-  //     existingReaction = await prisma.postReaction.findUnique({
-  //       where: {
-  //         userId_postId: {
-  //           userId,
-  //           postId: Number(postId),
-  //         },
-  //       },
-  //     });
-  //   } catch (err) {
-  //     console.error("❌ findUnique failed:", err);
-  //   }
+    // Добавляем лайк или ничего не делаем, если уже есть
+    try {
+      await prisma.postLike.create({
+        data: {
+          postId,
+          userId,
+        },
+      });
+    } catch (error) {
+      if (error.code === "P2002") {
+        console.log("Like already exists");
+      } else {
+        throw error;
+      }
+    }
 
-  //   let currentUserReaction;
+    // Загружаем пост с нужными связями
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      include: {
+        creator: true,
+        likes: { include: { user: true } },
+        dislikes: { include: { user: true } },
+      },
+    });
+    console.log(" To subscribe postLiked   🟢--> ");
 
-  //   if (existingReaction) {
-  //     if (existingReaction.reaction === reaction) {
-  //       // Удаляем реакцию
-  //       await prisma.postReaction.delete({
-  //         where: { id: existingReaction.id },
-  //       });
-  //       currentUserReaction = null;
-  //     } else {
-  //       // Обновляем реакцию
-  //       await prisma.postReaction.update({
-  //         where: { id: existingReaction.id },
-  //         data: { reaction },
-  //       });
-  //       currentUserReaction = reaction;
-  //     }
-  //   } else {
-  //     // Создаем новую реакцию
-  //     await prisma.postReaction.create({
-  //       data: {
-  //         userId,
-  //         postId: Number(postId),
-  //         reaction,
-  //       },
-  //     });
-  //     currentUserReaction = reaction;
-  //   }
+    const formattedPost = {
+      id: post.id,
+      title: post.title,
+      text: post.text,
+      category: post.category,
+      createdAt: post.createdAt,
+      creator: post.creator,
+      likesCount: post.likes.length,
+      dislikesCount: post.dislikes.length,
+      likes: post.likes.map((like) => like.user.name),
+      dislikes: post.dislikes.map((dislike) => dislike.user.name),
+    };
 
-  //   // Получаем реакции с пользователями
-  //   const postWithReactions = await prisma.post.findUnique({
-  //     where: { id: Number(postId) },
-  //     include: {
-  //       reactions: {
-  //         include: { user: true },
-  //       },
-  //     },
-  //   });
+    pubsub.publish(POST_LIKED, { postLiked: formattedPost });
 
-  //   const likes = postWithReactions.reactions
-  //     .filter((r) => r.reaction === "LIKE" && r.user)
-  //     .map((r) => r.user.name || "Аноним");
+    return formattedPost;
+  },
+  dislikePost: async (_, { postId }, { userId }) => {
+    if (!userId) {
+      throw new Error("Authentication required");
+    }
 
-  //   const dislikes = postWithReactions.reactions
-  //     .filter((r) => r.reaction === "DISLIKE" && r.user)
-  //     .map((r) => r.user.name || "Аноним");
+    // Удаляем дизлайк, если был
+    await prisma.postLike.deleteMany({
+      where: {
+        postId,
+        userId,
+      },
+    });
 
-  //   console.log("To subscribe reactionChanged   🟢--> ");
+    // Добавляем лайк или ничего не делаем, если уже есть
+    try {
+      await prisma.postDislike.create({
+        data: {
+          postId,
+          userId,
+        },
+      });
+    } catch (error) {
+      if (error.code === "P2002") {
+        console.log("Like already exists");
+      } else {
+        throw error;
+      }
+    }
 
-  //   // Отправка подписки
-  //   pubsub.publish(REACTION_CHANGED, {
-  //     reactionChanged: {
-  //       postId: Number(postId),
-  //       likes,
-  //       dislikes,
-  //       currentUserReaction,
-  //     },
-  //   });
+    // Загружаем пост с нужными связями
+    const post = await prisma.post.findUnique({
+      where: { id: postId },
+      include: {
+        creator: true,
+        likes: { include: { user: true } },
+        dislikes: { include: { user: true } },
+      },
+    });
 
-  //   // Возврат результата мутации
-  //   return {
-  //     postId: Number(postId),
-  //     likes,
-  //     dislikes,
-  //     currentUserReaction,
-  //   };
-  // },
+    console.log(" To subscribe postDisLiked   🟢--> ");
 
-  // createComment: async (_, { postId, text }, { userId }) => {
-  //   console.log("Creating comment", { postId, text, userId });
-  //   if (!userId) {
-  //     throw new Error("Unauthorized");
-  //   }
-  //   if (!text.trim()) {
-  //     throw new Error("Comment cannot be empty");
-  //   }
+    const formattedPost = {
+      id: post.id,
+      title: post.title,
+      text: post.text,
+      category: post.category,
+      createdAt: post.createdAt,
+      creator: post.creator,
+      likesCount: post.likes.length,
+      dislikesCount: post.dislikes.length,
+      likes: post.likes.map((like) => like.user.name),
+      dislikes: post.dislikes.map((dislike) => dislike.user.name),
+    };
 
-  //   const comment = await prisma.postComment.create({
-  //     data: {
-  //       postId: Number(postId),
-  //       text,
-  //       userId,
-  //     },
-  //     include: { user: true, post: true },
-  //   });
-  //   console.log(" To subscribe commentCreated   🟢--> ");
-  //   pubsub.publish(COMMENT_CREATED, {
-  //     commentCreated: comment,
-  //   });
-  //   return comment;
-  // },
-  // deleteComment: async (_, { postId, commentId }, { userId }) => {
-  //   if (!userId) {
-  //     throw new Error("Not authenticated");
-  //   }
+    pubsub.publish(POST_DISLIKED, { postDisliked: formattedPost });
 
-  //   const comment = await prisma.postComment.findUnique({
-  //     where: { id: commentId },
-  //   });
+    return formattedPost;
+  },
 
-  //   if (!comment) {
-  //     throw new Error("Comment not found");
-  //   }
+  addComment: async (_, { postId, text }, { userId }) => {
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
 
-  //   if (comment.userId !== userId) {
-  //     throw new Error("Access denied");
-  //   }
+    console.log("<=== addComment postId, text=====>", postId, text);
 
-  //   await prisma.postComment.delete({
-  //     where: { id: commentId },
-  //   });
+    const comment = await prisma.comment.create({
+      data: {
+        postId,
+        userId,
+        text,
+      },
+      include: {
+        user: {
+          select: { name: true },
+        },
+      },
+    });
 
-  //   console.log("To subscribe postCommentDeleted 🟢-->");
+    console.log(" To subscribe commentAdded   🟢--> ");
+    pubsub.publish(COMMENT_ADDED, { commentAdded: comment });
 
-  //   pubsub.publish(POST_COMMENT_DELETED, {
-  //     postCommentDeleted: {
-  //       commentId: commentId,
-  //       postId,
-  //     },
-  //   });
-
-  //   return commentId;
-  // },
-  // toggleCommentReaction: async (_, { commentId, reaction }, { userId }) => {
-  //   if (!userId) throw new Error("Not authenticated");
-
-  //   // Проверяем, есть ли уже реакция
-  //   const existing = await prisma.postCommentReaction.findUnique({
-  //     where: {
-  //       userId_commentId: {
-  //         userId,
-  //         commentId,
-  //       },
-  //     },
-  //   });
-
-  //   let currentUserReaction;
-
-  //   if (existing) {
-  //     if (existing.reaction === reaction) {
-  //       // Если реакция та же — удалить
-  //       await prisma.postCommentReaction.delete({
-  //         where: {
-  //           userId_commentId: {
-  //             userId,
-  //             commentId,
-  //           },
-  //         },
-  //       });
-  //       currentUserReaction = null;
-  //     } else {
-  //       // Иначе — обновить реакцию
-  //       await prisma.postCommentReaction.update({
-  //         where: {
-  //           userId_commentId: {
-  //             userId,
-  //             commentId,
-  //           },
-  //         },
-  //         data: {
-  //           reaction,
-  //         },
-  //       });
-  //       currentUserReaction = reaction;
-  //     }
-  //   } else {
-  //     // Если не было — создать
-  //     await prisma.postCommentReaction.create({
-  //       data: {
-  //         userId,
-  //         commentId,
-  //         reaction,
-  //       },
-  //     });
-  //     currentUserReaction = reaction;
-  //   }
-
-  //   // Получаем все реакции для пересчёта
-  //   const updatedComment = await prisma.postComment.findUnique({
-  //     where: { id: commentId },
-  //     include: {
-  //       reactions: {
-  //         include: {
-  //           user: true,
-  //         },
-  //       },
-  //       user: true,
-  //     },
-  //   });
-
-  //   const likesCount = updatedComment.reactions.filter(
-  //     (r) => r.reaction === "LIKE"
-  //   ).length;
-
-  //   const dislikesCount = updatedComment.reactions.filter(
-  //     (r) => r.reaction === "DISLIKE"
-  //   ).length;
-
-  //   console.log("To subscribe commentReactionChanged 🟢-->");
-
-  //   pubsub.publish(COMMENT_REACTION_CHANGED, {
-  //     commentReactionChanged: {
-  //       id: updatedComment.id,
-  //       text: updatedComment.text,
-  //       createdAt: updatedComment.createdAt,
-  //       user: updatedComment.user,
-  //       post: { id: updatedComment.postId },
-  //       likesCount,
-  //       dislikesCount,
-  //       currentUserReaction,
-  //     },
-  //   });
-  //   return {
-  //     id: updatedComment.id,
-  //     text: updatedComment.text,
-  //     createdAt: updatedComment.createdAt,
-  //     user: updatedComment.user,
-  //     post: { id: updatedComment.postId }, // минимально, если надо больше — включи post
-  //     likesCount,
-  //     dislikesCount,
-  //     currentUserReaction,
-  //   };
-  // },
+    return comment;
+  },
 };
 
 export default Mutation;

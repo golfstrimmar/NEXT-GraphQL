@@ -5,13 +5,13 @@ import { useMutation } from "@apollo/client";
 import { CREATE_POST } from "@/apolo/mutations";
 import Input from "../ui/Input/Input";
 import Button from "../ui/Button/Button";
-import { GET_USER_POSTS } from "@/apolo/queryes";
+import { GET_ALL_POSTS } from "@/apolo/queryes";
 import { useStateContext } from "@/components/StateProvider";
 
 const AddPostForm = () => {
   const { user, showModal } = useStateContext();
   const [addPost, { loading: addLoading }] = useMutation(CREATE_POST, {
-    refetchQueries: [{ query: GET_USER_POSTS }],
+    refetchQueries: [{ query: GET_ALL_POSTS }],
   });
   const [text, setText] = useState("");
   const [title, setTitle] = useState("");

@@ -36,6 +36,12 @@ const UsersList = () => {
     return chatsData?.userChats ?? [];
   }, [chatsData]);
 
+  useEffect(() => {
+    if (users) {
+      console.log("<==== users====>", users);
+    }
+  }, [users]);
+
   useUserChatSubscriptions(null);
 
   useEffect(() => {
@@ -116,12 +122,21 @@ const UsersList = () => {
                 }
                 `}
             >
+              {foo.picture && (
+                <Image
+                  src={foo.picture}
+                  alt="user"
+                  width={30}
+                  height={30}
+                  className="rounded-full my-1"
+                />
+              )}
               {foo.name && (
                 <h2
                   className={`
                     ${
                       user?.id === foo.id && foo.isLoggedIn
-                        ? "text-green-900"
+                        ? "text-green-200"
                         : "text-gray-500"
                     }
                     ${
@@ -149,15 +164,17 @@ const UsersList = () => {
               handleCreateChat,
               userName: foo.name,
             })}
-            <button onClick={() => handleDelete(foo.id)}>
-              <Image
-                src="/svg/cross.svg"
-                alt="delete"
-                width={20}
-                height={20}
-                className="cursor-pointer bg-white p-1 hover:border hover:border-red-500 rounded-md transition-all duration-200"
-              />
-            </button>
+            {user?.name === "Victor Yushin" && (
+              <button onClick={() => handleDelete(foo.id)}>
+                <Image
+                  src="/svg/cross.svg"
+                  alt="delete"
+                  width={20}
+                  height={20}
+                  className="cursor-pointer bg-white p-1 hover:border hover:border-red-500 rounded-md transition-all duration-200"
+                />
+              </button>
+            )}
           </div>
 
           <div className="flex flex-col p-2 rounded-2xl mt-3 text-[12px] bg-white text-gray-500">

@@ -1,7 +1,7 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@apollo/client";
-import { GET_ALL_CATEGORIES } from "@/apolo/queryes";
+import { GET_ALL_CATEGORIES, GET_ALL_POSTS } from "@/apolo/queryes";
 import AddPostForm from "@/components/AddPostForm/AddPostForm";
 import Loading from "@/components/Loading";
 import { useStateContext } from "@/components/StateProvider";
@@ -20,6 +20,7 @@ const Blog = () => {
   const [postsLoading, setPostsLoading] = useState<boolean>(false);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [catToFilter, setCatToFilter] = useState<string>("");
+
   useUserPostSubscriptions(
     setCurrentPage,
     currentPage,
@@ -28,13 +29,29 @@ const Blog = () => {
     setPostsLoading,
     catToFilter
   );
+
   const { data: categoriesData } = useQuery(GET_ALL_CATEGORIES);
 
-  // ----------------------------
+  const { data, loading, error } = useQuery(GET_ALL_POSTS, {
+    variables: {
+      skip: 0,
+      take: 5,
+      category: null,
+    },
+  });
+
   useEffect(() => {
-    if (categoriesData) {
-      console.log("<==== data: categoriesData====>", categoriesData.categories);
+    if (data) {
+      console.log("<==== posts====>", data?.posts?.posts);
+      console.log("<====totalCount====>", data?.posts?.totalCount);
+      setPosts(data?.posts?.posts);
+      setTotalCount(data?.posts?.totalCount);
     }
+  }, [data]);
+
+  // ----------------------------
+  const categories = useMemo(() => {
+    return categoriesData?.categories ?? [];
   }, [categoriesData]);
   // ----------------------------
 
@@ -44,7 +61,7 @@ const Blog = () => {
       setFilteredPosts(posts);
     }
   }, [posts]);
-  // ----------------------------
+
   useEffect(() => {
     if (catToFilter) {
       const newPosts = [...posts];
@@ -54,7 +71,6 @@ const Blog = () => {
     }
   }, [catToFilter]);
   // ----------------------------
-
   // ----------------------------
   return (
     <section className="my-[80px] mx-auto blog w-full ">
@@ -73,8 +89,8 @@ const Blog = () => {
         <AddPostForm />
         <div className="my-4 blog">
           <h4 className="font-semibold">Categories:</h4>
-          {categoriesData?.categories.length > 0 ? (
-            <>
+          {categories.length > 0 ? (
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => {
                   setCatToFilter("");
@@ -87,8 +103,8 @@ const Blog = () => {
               >
                 All
               </button>
-              <ul className="flex gap-2 flex-wrap mt-2">
-                {categoriesData?.categories?.map((cat, idx) => (
+              <ul className="flex gap-2 flex-wrap ">
+                {categories.map((cat, idx) => (
                   <li key={idx}>
                     <button
                       onClick={() => {
@@ -105,7 +121,7 @@ const Blog = () => {
                   </li>
                 ))}
               </ul>
-            </>
+            </div>
           ) : (
             <p className="text-gray-600">No categories found.</p>
           )}
@@ -135,7 +151,7 @@ const Blog = () => {
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="px-3 py-1 rounded bg-[#30344c] text-white hover:bg-[#5b6496] disabled:opacity-50"
+              className="px-3 py-1 rounded bg-[#30344c] text-white hover:bg-[#5b6496] disabled:opacity-50 cursor-pointer"
             >
               ← Prev
             </button>
@@ -151,7 +167,7 @@ const Blog = () => {
                 )
               }
               disabled={currentPage >= Math.ceil(totalCount / POSTS_PER_PAGE)}
-              className="px-3 py-1 rounded bg-[#30344c] text-white hover:bg-[#5b6496] disabled:opacity-50"
+              className="px-3 py-1 rounded bg-[#30344c] text-white hover:bg-[#5b6496] disabled:opacity-50 cursor-pointer"
             >
               Next →
             </button>

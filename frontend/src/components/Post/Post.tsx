@@ -1,11 +1,21 @@
 "use client";
-import React, { FC, useEffect } from "react";
-import useUserChatSubscriptions from "@/hooks/useUserChatSubscriptions";
+import React, { FC, useEffect, useRef, useState } from "react";
+
 import { PostType } from "@/types/post";
 import transformData from "@/hooks/useTransformData";
-import { useMutation } from "@apollo/client";
-import { DELETE_POST } from "@/apolo/mutations";
+import { useMutation, useQuery } from "@apollo/client";
+import { GET_ALL_COMMENTS } from "@/apolo/queryes";
+import {
+  DELETE_POST,
+  LIKE_POST,
+  DISLIKE_POST,
+  ADD_COMMENT,
+} from "@/apolo/mutations";
 import { useStateContext } from "@/components/StateProvider";
+import Tab from "@/components/ui/Tab/Tab";
+import Image from "next/image";
+import { div } from "framer-motion/m";
+import Input from "../ui/Input/Input";
 
 interface PostProps {
   post: PostType;
@@ -13,16 +23,26 @@ interface PostProps {
   setCurrentPage: (page: number) => void;
 }
 const Post: FC<PostProps> = ({ post, currentPage, setCurrentPage }) => {
-  useUserChatSubscriptions(currentPage, setCurrentPage);
-  const [deletePost, { loading: deleteLoading }] = useMutation(DELETE_POST);
+  const { user } = useStateContext();
+  const [deletePost] = useMutation(DELETE_POST);
+  const [likePost] = useMutation(LIKE_POST);
+  const [dislikePost] = useMutation(DISLIKE_POST);
+  const { data: comments } = useQuery(GET_ALL_COMMENTS, {
+    variables: { postId: post.id },
+  });
+  const [addComment] = useMutation(ADD_COMMENT);
   const { showModal } = useStateContext();
+  const [commentText, setCommentText] = useState<string>("");
+  // --------
+
   // --------
 
   useEffect(() => {
-    if (post) {
-      console.log("<==== post====>", post);
+    if (comments) {
+      console.log("<==== post comments====>", comments.comments);
     }
-  }, [post]);
+  }, [comments]);
+
   const handlerPostDeleted = async (id: number) => {
     try {
       await deletePost({
@@ -34,31 +54,140 @@ const Post: FC<PostProps> = ({ post, currentPage, setCurrentPage }) => {
     }
   };
   // --------
+  const handleLikePost = async (id) => {
+    try {
+      await likePost({
+        variables: { postId: id },
+      });
+    } catch (err) {
+      console.log("------Failed to like post.-------", err);
+      showModal(err?.message);
+    }
+  };
+  const handleDislikePost = (id) => {
+    try {
+      dislikePost({
+        variables: { postId: id },
+      });
+    } catch (err) {
+      console.log("------Failed to dislikePost -------", err);
+      showModal(err?.message);
+    }
+  };
+  // --------
+  const handlerAddComment = async (e, id) => {
+    e.preventDefault();
+    console.log("<====comment====>", id, commentText);
+    try {
+      const { data } = await addComment({
+        variables: { postId: id, text: commentText },
+      });
+      setCommentText("");
+    } catch (err) {
+      console.log("------Failed to add comment -------", err);
+      showModal(err?.message);
+    }
+  };
+  // --------
 
   return (
-    <li className="card p-4 bg-white rounded shadow flex flex-col gap-2">
-      <h3 className="font-semibold text-red-700">{post.id}</h3>
-      <h4 className="font-semibold text-red-700">{post.category}</h4>
+    <li className="card p-4 bg-white rounded shadow flex flex-col gap-1">
+      <div className="flex justify-between">
+        <h3 className="font-semibold text-red-400">{post.id}</h3>
+        {post?.creator?.id === user?.id && (
+          <button
+            onClick={() => {
+              handlerPostDeleted(post.id);
+            }}
+            className="border-transparent rounded border hover:border-red-500 transition duration-300 ease-in-out cursor-pointer"
+          >
+            ❌
+          </button>
+        )}
+      </div>
+      <h4 className="">
+        <small className="text-indigo-400">Category: </small>
+        {post.category}
+      </h4>
+      <h4 className="">
+        <small className="text-indigo-400">Autor: </small>
+        {post.creator.name}
+      </h4>
       <p className="text-black my-2">{post.text}</p>
-      <small className="text-indigo-400">Autor: {post.creator.name}</small>
       <small className="text-gray-400 ">
         Created: {transformData(post.createdAt)}
       </small>
       <div className="flex gap-4  mt-2">
-        <div className="text-amber-200">
-          <button>👍</button> {post.likesCount}
+        <div className="relative flex items-center gap-2">
+          <button
+            onClick={() => {
+              handleLikePost(post.id);
+            }}
+            className="cursor-pointer"
+          >
+            👍
+          </button>
+          <Tab length={post.likesCount} details={post.likes} />
         </div>
-        <div className="text-amber-200">
-          <button>👎</button> {post.dislikesCount}
+        <div className="relative flex items-center gap-2">
+          <button
+            onClick={() => {
+              handleDislikePost(post.id);
+            }}
+            className="cursor-pointer"
+          >
+            👎
+          </button>
+          <Tab length={post.dislikesCount} details={post.dislikes} />
         </div>
-        <button
-          onClick={() => {
-            handlerPostDeleted(post.id);
-          }}
-          className="border-transparent rounded border hover:border-red-500 transition duration-300 ease-in-out cursor-pointer"
-        >
-          ❌
-        </button>
+      </div>
+      <button>
+        <Image src="./svg/comment.svg" alt="comment" width={30} height={30} />
+      </button>
+      <div className=" flex flex-col items-center gap-2 w-full">
+        {comments?.comments &&
+          comments?.comments.map((comment) => (
+            <div key={comment.id} className="bg-slate-200 p-2 w-full rounded">
+              <small className="text-[12px] text-blue-800">
+                {comment.userName.name}
+              </small>
+              <small className="text-[12px] ml-4">
+                {transformData(comment.createdAt)}
+              </small>
+              <div className="bg-slate-100 p-2 w-full rounded">
+                {comment.text}
+              </div>
+            </div>
+          ))}
+        {user && (
+          <form
+            onSubmit={(e) => {
+              handlerAddComment(e, post.id);
+            }}
+            className="relative w-full bg-amber-50 rounded"
+          >
+            <Input
+              typeInput="text"
+              name="comment"
+              data="Add comment here ..."
+              value={commentText}
+              onChange={(e) => {
+                setCommentText(e.target.value);
+              }}
+            />
+            <button
+              type="submit"
+              className="cursor-pointer absolute right-2 top-1/2 transform -translate-y-1/2 z-10 p-1 border hover:border-blue-500 rounded-md transition-all duration-200"
+            >
+              <Image
+                src="/svg/envelope.svg"
+                alt="send"
+                width={20}
+                height={20}
+              />
+            </button>
+          </form>
+        )}
       </div>
       {/* <div className="flex gap-2 mt-2">
                      <button

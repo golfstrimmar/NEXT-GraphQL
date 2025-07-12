@@ -1,11 +1,11 @@
 export type PostType = {
   id: string;
+  title: string;
   text: string;
   category: string;
   createdAt: string;
-  likes: number;
-  dislikes: number;
-  currentUserReaction: "LIKE" | "DISLIKE" | null;
+  likes: string[];
+  dislikes: string[];
   creator: {
     id: string;
     name: string;

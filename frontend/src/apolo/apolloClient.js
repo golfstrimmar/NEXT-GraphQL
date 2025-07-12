@@ -25,13 +25,10 @@ const protectedOperations = [
   "deleteMessage",
   "deleteChat",
   "createPost",
-  "GetAllPosts",
   "deletePost",
-  // "toggleLike",
-  // "createComment",
-
-  // "deleteComment",
-  // "toggleCommentReaction",
+  "likePost",
+  "disLikePost",
+  "addComment",
 ];
 
 // ✅ HTTP link

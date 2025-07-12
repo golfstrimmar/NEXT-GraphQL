@@ -16,6 +16,7 @@ model User {
   googleId   String?  
   createdAt  DateTime  @default(now())
   isLoggedIn Boolean   @default(false)
+  picture    String?    
   posts             Post[]
   comments          Comment[]
   postLikes         PostLike[]

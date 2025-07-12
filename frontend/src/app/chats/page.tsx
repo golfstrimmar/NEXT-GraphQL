@@ -150,31 +150,45 @@ const Chats = () => {
                       chat.messages?.map((message) => (
                         <li
                           key={message.id}
-                          className="text-black bg-white rounded p-1"
+                          // className="text-black bg-slate-400 rounded p-1"
+                          className={`text-black  rounded p-1 ${
+                            message.sender.name === user?.name ?? ""
+                              ? "bg-slate-300  ml-4"
+                              : "bg-slate-400"
+                          } text-black rounded p-1`}
                         >
-                          <h3 className="text-black font-bold  text-[16px] ">
-                            {message.id} {message.sender.name}:
-                          </h3>
-                          <p className="text-black border border-gray-400 rounded p-1">
+                          <div className="flex">
+                            <h3 className="text-black font-bold  text-[16px] ">
+                              {message.id}{" "}
+                              {message.sender.name === user?.name ?? ""
+                                ? "You"
+                                : message.sender.name}
+                              :
+                            </h3>
+                            {message.sender.name === user?.name && (
+                              <button
+                                onClick={() =>
+                                  handleDeleteMessage(chat.id, message.id)
+                                }
+                                type="button"
+                                className="ml-auto"
+                              >
+                                <Image
+                                  src="/svg/cross.svg"
+                                  alt="delete"
+                                  width={20}
+                                  height={20}
+                                  className="cursor-pointer bg-white p-1 border hover:border-red-500 rounded-md transition-all duration-200"
+                                />
+                              </button>
+                            )}
+                          </div>
+                          <p className="text-black border border-gray-400 rounded p-1 bg-white">
                             {message.content}
                           </p>
                           <p className="text-[12px]">
                             {transformData(message.createdAt)}
                           </p>
-                          <button
-                            onClick={() =>
-                              handleDeleteMessage(chat.id, message.id)
-                            }
-                            type="button"
-                          >
-                            <Image
-                              src="/svg/cross.svg"
-                              alt="delete"
-                              width={20}
-                              height={20}
-                              className="cursor-pointer bg-white p-1 border hover:border-red-500 rounded-md transition-all duration-200"
-                            />
-                          </button>
                         </li>
                       ))}
                   </ul>
