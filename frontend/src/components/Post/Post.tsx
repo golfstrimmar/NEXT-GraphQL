@@ -203,37 +203,67 @@ const Post: FC<PostProps> = ({ post, currentPage, setCurrentPage }) => {
           >
             {comments?.comments &&
               comments?.comments.map((comment) => (
-                <div
-                  key={comment.id}
-                  className="bg-slate-200 p-2 w-full rounded"
-                >
-                  <small className="text-[12px] text-blue-800">
-                    {comment.userName.name}
-                  </small>
-                  <small className="text-[12px] ml-4">
-                    {transformData(comment.createdAt)}
-                  </small>
-                  <div className="bg-slate-100 p-2 w-full rounded">
-                    {comment.text}
+                  <div
+                      key={comment.id}
+                      className="bg-slate-200 p-2 w-full rounded"
+                  >
+                   <div className="flex mb-2">
+                    <small className="text-[12px] text-blue-800">
+                      {comment.userName.name}
+                    </small>
+                    <small className="text-[12px] ml-4">
+                      {transformData(comment.createdAt)}
+                    </small>
+                    {comment.userName.name === user?.name && (
+                        <button
+                            onClick={() => {
+                              handlerDeleteComment(comment?.id);
+                            }}
+                            className="ml-auto border-transparent rounded border hover:border-red-500 transition duration-300 ease-in-out cursor-pointer"
+                        >
+                          ❌
+                        </button>
+                    )}
                   </div>
-                  {comment.userName.name === user?.name && (
+                    <div className="bg-slate-100 p-2 w-full rounded !leading-normal">
+                      {comment.text}
+                    </div>
+                   {/*--------------------------------------------------------------------*/}
+                   <div className="flex mt-2">
                     <button
-                      onClick={() => {
-                        handlerDeleteComment(comment?.id);
-                      }}
-                      className="border-transparent rounded border hover:border-red-500 transition duration-300 ease-in-out cursor-pointer"
+                        // onClick={() => {
+                        //   handleLikeComment(post.id);
+                        // }}
+                        className="cursor-pointer"
                     >
-                      ❌
+                      👍
                     </button>
-                  )}
-                </div>
+                    <small className="text-[12px] text-blue-800">
+                      {comment.commentLikes.length}
+                    </small>
+
+                    <button
+                        // onClick={() => {
+                        //   handleLikeComment(post.id);
+                        // }}
+                        className="cursor-pointer ml-4"
+                    >
+                      👎
+                    </button>
+                    <small className="text-[12px] text-blue-800">
+                      {comment.commentDislikes.length}
+                    </small>
+                   </div>
+                    {/*--------------------------------------------------------------------*/}
+
+                  </div>
               ))}
             {user && (
-              <form
-                onSubmit={(e) => {
-                  handlerAddComment(e, post.id);
-                }}
-                className="relative w-full bg-amber-50 rounded mt-6"
+                <form
+                    onSubmit={(e) => {
+                      handlerAddComment(e, post.id);
+                    }}
+                    className="relative w-full bg-amber-50 rounded mt-6"
               >
                 <Input
                   typeInput="text"

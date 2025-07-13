@@ -181,8 +181,50 @@ export const DELETE_COMMENT = gql`
   }
 `;
 
-// export const UPDATE_COMMENT = gql`
-//   mutation updateComment($postId: Int!, $commentId: Int!, $text: String!) {
-//     updateComment(postId: $postId, commentId: $commentId, text: $text)
-//   }
-// `;
+export const LIKE_COMMENT = gql`
+  mutation likeComment($commentId: Int!) {
+    likeComment(commentId: $commentId) {
+      id
+      text
+      createdAt
+      commentLikes {
+        id
+        user {
+          id
+          name
+        }
+      }
+        commentDislikes {
+            id
+            user {
+                id
+                name
+            }
+        }
+    }
+  }
+`;
+
+export const DISLIKE_COMMENT = gql`
+  mutation disLikeComment($commentId: Int!) {
+    dislikeComment(commentId: $commentId) {
+        id
+        text
+        createdAt
+        commentLikes {
+            id
+            user {
+                id
+                name
+            }
+        }
+        commentDislikes {
+            id
+            user {
+                id
+                name
+            }
+        }
+      }
+    }
+`;

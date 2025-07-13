@@ -7,62 +7,47 @@ generator client {
   provider = "prisma-client-js"
 }
 
-
 model User {
-  id         Int       @id @default(autoincrement())
-  email      String    @unique
-  name       String
-  password   String?  
-  googleId   String?  
-  createdAt  DateTime  @default(now())
-  isLoggedIn Boolean   @default(false)
-  picture    String?    
+  id                Int             @id @default(autoincrement())
+  email             String          @unique
+  name              String
+  password          String?  
+  googleId          String?  
+  createdAt         DateTime        @default(now())
+  isLoggedIn        Boolean         @default(false)
+  picture           String?    
   posts             Post[]
   comments          Comment[]
   postLikes         PostLike[]
   postDislikes      PostDislike[]
   commentLikes      CommentLike[]
   commentDislikes   CommentDislike[]
-
-  chatsCreated Chat[]   @relation("ChatCreator")
-  chatsParticipated Chat[] @relation("ChatParticipant")
-  
-  
-  messages Message[]    @relation("UserMessages")
-
+  chatsCreated      Chat[]          @relation("ChatCreator")
+  chatsParticipated Chat[]          @relation("ChatParticipant")
+  messages          Message[]       @relation("UserMessages")
 }
 
 model Chat {
-  id          Int       @id @default(autoincrement())
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  isActive    Boolean   @default(true)
-  
-  // Связи с пользователями (каскадное удаление здесь)
-  creatorId   Int
-  creator     User      @relation("ChatCreator", fields: [creatorId], references: [id], onDelete: Cascade)
-  
+  id            Int       @id @default(autoincrement())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  isActive      Boolean   @default(true)
+  creatorId     Int
+  creator       User      @relation("ChatCreator", fields: [creatorId], references: [id], onDelete: Cascade)
   participantId Int
-  participant   User    @relation("ChatParticipant", fields: [participantId], references: [id], onDelete: Cascade)
-  
-  // Связь с сообщениями
-  messages    Message[] 
+  participant   User      @relation("ChatParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  messages      Message[]
 }
 
 model Message {
   id        Int      @id @default(autoincrement())
   content   String
   createdAt DateTime @default(now())
-  
-  // Связь с чатом (каскадное удаление здесь)
   chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
   chatId    Int
-  
-  // Связь с отправителем (каскадное удаление здесь)
   sender    User     @relation("UserMessages", fields: [senderId], references: [id], onDelete: Cascade)
   senderId  Int
 }
-
 
 model Post {
   id         Int        @id @default(autoincrement())
@@ -70,35 +55,23 @@ model Post {
   text       String
   category   String
   createdAt  DateTime   @default(now())
-
-  // Автор поста
   creatorId  Int
   creator    User       @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-
-  // Комментарии
   comments   Comment[]
-
-  // Оценки поста
   likes      PostLike[]
   dislikes   PostDislike[]
 }
 
 model Comment {
-  id         Int        @id @default(autoincrement())
+  id         Int          @id @default(autoincrement())
   text       String
-  createdAt  DateTime   @default(now())
-
-  // Автор комментария
+  createdAt  DateTime     @default(now())
   userId     Int
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // Принадлежность посту
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   postId     Int
-  post       Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
-
-  // Оценки комментария
-  likes      CommentLike[]
-  dislikes   CommentDislike[]
+  post       Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  commentLikes CommentLike[]
+  commentDislikes CommentDislike[]
 }
 
 model PostLike {
@@ -108,7 +81,7 @@ model PostLike {
   user    User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId  Int
 
-  @@unique([postId, userId]) // один пользователь — один лайк
+  @@unique([postId, userId])
 }
 
 model PostDislike {
@@ -122,21 +95,21 @@ model PostDislike {
 }
 
 model CommentLike {
-  id        Int     @id @default(autoincrement())
-  comment   Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
-  commentId Int
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    Int
+  id         Int      @id @default(autoincrement())
+  comment    Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  commentId  Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     Int
 
   @@unique([commentId, userId])
 }
 
 model CommentDislike {
-  id        Int     @id @default(autoincrement())
-  comment   Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
-  commentId Int
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    Int
+  id         Int      @id @default(autoincrement())
+  comment    Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  commentId  Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     Int
 
   @@unique([commentId, userId])
 }

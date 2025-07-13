@@ -1,4 +1,3 @@
-// queryResolvers.js
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -180,15 +179,31 @@ const Query = {
     const comments = await prisma.comment.findMany({
       where: { postId },
       select: {
-        user: {
-          select: { name: true },
-        },
-        postId: true,
-        text: true,
-        createdAt: true,
         id: true,
+        createdAt: true,
+        text: true,
+        postId: true,
+        user: {
+          select: { id: true, name: true },
+        },
+        commentLikes: {
+          select: {
+            id: true,
+            user: {
+              select: { id: true, name: true },
+            },
+          },
+        },
+        commentDislikes: {
+          select: {
+            id: true,
+            user: {
+              select: { id: true, name: true },
+            },
+          },
+        },
       },
-    });
+  });
 
     console.log("<====== 📋📋📋 query comments =====>", comments.length);
     return comments;

@@ -84,6 +84,20 @@ export const GET_ALL_COMMENTS = gql`
       userName: user {
         name
       }
+      commentLikes {
+        id
+        user {
+          id
+          name
+        }
+      }
+      commentDislikes {
+        id
+        user {
+          id
+          name
+        }
+      }
     }
   }
 `;

@@ -16,6 +16,8 @@ import {
   POST_DISLIKED,
   COMMENT_ADDED,
   COMMENT_DELETED,
+  COMMENT_LIKED,
+  COMMENT_DISLIKED,
 } from "./../utils/pubsub.js";
 
 const Subscription = {
@@ -149,6 +151,29 @@ const Subscription = {
     resolve: (payload) => {
       console.log("📨 commentDeleted payload :", payload);
       return payload.commentDeleted; // уже id, без .id
+    },
+  },
+  // === comment likes/dislikes ==========
+
+  commentLiked: {
+    subscribe: () => {
+      console.log("📡 New subscribe commentLiked");
+      return pubsub.asyncIterator(COMMENT_LIKED);
+    },
+    resolve: (payload) => {
+      console.log("📨 commentLiked payload:", payload.commentLiked);
+      return payload.commentLiked;
+    },
+  },
+
+  commentDisliked: {
+    subscribe: () => {
+      console.log("📡 New subscribe commentDisliked");
+      return pubsub.asyncIterator(COMMENT_DISLIKED);
+    },
+    resolve: (payload) => {
+      console.log("📨 commentDisliked payload:", payload.commentDisliked);
+      return payload.commentDisliked;
     },
   },
 };

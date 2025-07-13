@@ -33,16 +33,24 @@ const typeDefs = `
     sender: User!
   }
 
-  type Comment {
-    id: Int!
-    text: String!
-    createdAt: String!
-    user: User!
-    userId: Int! 
-    postId: Int!
-    likesCount: Int!
-    dislikesCount: Int!
-  }
+type Comment {
+  id: Int!
+  createdAt: String!
+  text: String!
+  postId: Int!
+  user: User!
+  commentLikes: [CommentLike!]!
+  commentDislikes: [CommentDislike!]!
+  }  
+type CommentLike {
+  id: Int!
+  user: User!
+}
+
+type CommentDislike {
+  id: Int!
+  user: User!
+}
 
   type Post {
     id: Int!
@@ -99,6 +107,8 @@ const typeDefs = `
     
     addComment(postId: Int!, text: String!): Comment!
     deleteComment(id: Int!): Comment!
+    likeComment(commentId: Int!): Comment!
+    dislikeComment(commentId: Int!): Comment!
   }
 
   type Subscription {
@@ -118,6 +128,8 @@ const typeDefs = `
     postDisliked: Post!
     commentAdded: Comment!
     commentDeleted: Int!
+    commentLiked: Comment!
+    commentDisliked: Comment!
   }
 `;
 
