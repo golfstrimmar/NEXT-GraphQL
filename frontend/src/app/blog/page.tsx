@@ -25,6 +25,7 @@ const Blog = () => {
   const [postToEdit, setPostToEdit] = useState<PostType>(null);
   const [sortOrder, setSortOrder] = useState("decr");
   const [searchTerm, setSearchTerm] = useState("");
+  const [mathCount, setMathCount] = useState<number>(0);
   useUserPostSubscriptions(
     setCurrentPage,
     currentPage,
@@ -49,8 +50,9 @@ const Blog = () => {
 
   useEffect(() => {
     if (data) {
-      console.log("<==== posts====>", data?.posts?.posts);
-      console.log("<====totalCount====>", data?.posts?.totalCount);
+      console.log("<==== posts data====>", data?.posts?.posts);
+      console.log("<====totalCount data====>", data?.posts?.totalCount);
+      setMathCount(data?.posts?.totalCount);
       setPosts(data?.posts?.posts);
       setTotalCount(data?.posts?.totalCount);
     }
@@ -93,6 +95,16 @@ const Blog = () => {
       });
   }, [posts, searchTerm, catToFilter, sortOrder]);
 
+  // ----------------------------
+  useEffect(() => {
+    setMathCount(filteredAndSortedPosts.length);
+  }, [filteredAndSortedPosts]);
+
+  // useEffect(() => {
+  //   if (totalCount) {
+  //     console.log("<==== totalCount====>", totalCount);
+  //   }
+  // }, [totalCount]);
   // ----------------------------
   return (
     <section className="my-[80px] mx-auto blog w-full ">
@@ -223,18 +235,13 @@ const Blog = () => {
               />{" "}
             </button>
             <span className="">
-              <strong>{currentPage}</strong> /{" "}
-              <small>{Math.ceil(totalCount / POSTS_PER_PAGE)}</small>
+              <strong>{currentPage}</strong> / <small>{mathCount}</small>
             </span>
             <button
               onClick={() =>
-                setCurrentPage((prev) =>
-                  prev < Math.ceil(totalCount / POSTS_PER_PAGE)
-                    ? prev + 1
-                    : prev
-                )
+                setCurrentPage((prev) => (prev < mathCount ? prev + 1 : prev))
               }
-              disabled={currentPage >= Math.ceil(totalCount / POSTS_PER_PAGE)}
+              disabled={currentPage >= mathCount}
               className={`p-1 rounded-full bg-slate-400  hover:bg-slate-600 transition-all duration-200  ${
                 currentPage >= Math.ceil(totalCount / POSTS_PER_PAGE)
                   ? "opacity-20 cursor-not-allowed"
