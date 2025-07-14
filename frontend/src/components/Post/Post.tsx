@@ -319,7 +319,7 @@ const Post: FC<PostProps> = ({
                 onSubmit={(e) => {
                   handlerAddComment(e, post.id);
                 }}
-                className="relative w-full bg-amber-50 rounded mt-6"
+                className="relative w-full bg-amber-50 rounded mt-6 "
               >
                 <Input
                   typeInput="text"

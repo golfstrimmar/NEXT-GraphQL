@@ -196,7 +196,7 @@ const Chats = () => {
                   </ul>
                   {/* --------------------------------- */}
                   <form
-                    className="mt-2 relative"
+                    className="mt-2 relative  overflow-hidden rounded-[5px]"
                     onSubmit={(e) => handleSendMessage(e, chat.id)}
                   >
                     <Input
@@ -207,7 +207,7 @@ const Chats = () => {
                     />
                     <button
                       type="submit"
-                      className="cursor-pointer absolute right-2 top-1/2 transform -translate-y-1/2 z-10 p-1 border hover:border-blue-500 rounded-md transition-all duration-200"
+                      className="cursor-pointer absolute right-2 top-1/2 transform -translate-y-1/2 z-10 p-1 border hover:border-blue-500  transition-all duration-200"
                     >
                       <Image
                         src="/svg/envelope.svg"
