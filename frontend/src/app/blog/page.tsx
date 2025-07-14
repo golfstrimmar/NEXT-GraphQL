@@ -204,12 +204,23 @@ const Blog = () => {
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="px-3 py-1 rounded bg-[#30344c] text-white hover:bg-[#5b6496] disabled:opacity-50 cursor-pointer"
+              className={`p-1 rounded-full bg-slate-400  hover:bg-slate-600 transition-all duration-200  ${
+                currentPage === 1
+                  ? "opacity-20 cursor-not-allowed"
+                  : "cursor-pointer "
+              }`}
             >
-              ← Prev
+              <Image
+                src="./svg/chevron-left.svg"
+                alt="prev"
+                width={15}
+                height={15}
+                className="w-[15px] h-[15px]"
+              />{" "}
             </button>
-            <span>
-              Page {currentPage} of {Math.ceil(totalCount / POSTS_PER_PAGE)}
+            <span className="">
+              <strong>{currentPage}</strong> /{" "}
+              <small>{Math.ceil(totalCount / POSTS_PER_PAGE)}</small>
             </span>
             <button
               onClick={() =>
@@ -220,9 +231,19 @@ const Blog = () => {
                 )
               }
               disabled={currentPage >= Math.ceil(totalCount / POSTS_PER_PAGE)}
-              className="px-3 py-1 rounded bg-[#30344c] text-white hover:bg-[#5b6496] disabled:opacity-50 cursor-pointer"
+              className={`p-1 rounded-full bg-slate-400  hover:bg-slate-600 transition-all duration-200  ${
+                currentPage >= Math.ceil(totalCount / POSTS_PER_PAGE)
+                  ? "opacity-20 cursor-not-allowed"
+                  : "cursor-pointer "
+              }`}
             >
-              Next →
+              <Image
+                src="./svg/chevron-right.svg"
+                alt="prev"
+                width={20}
+                height={20}
+                className="w-[15px] h-[15px]"
+              />
             </button>
           </div>
         )}
