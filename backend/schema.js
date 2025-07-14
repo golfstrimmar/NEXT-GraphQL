@@ -98,12 +98,11 @@ type CommentDislike {
     deleteMessage(chatId: Int, messageId: Int!): Int!
     deleteChat(id: Int!): Chat!
 
-
-
     createPost(category: String!, title: String!, text: String!): Post!
     deletePost(id: Int!): Int!
     likePost(postId: Int!): Post!
     dislikePost(postId: Int!): Post!
+    updatePost(id: Int!, category: String!, title: String!, text: String!): Post!
     
     addComment(postId: Int!, text: String!): Comment!
     deleteComment(id: Int!): Comment!
@@ -126,6 +125,8 @@ type CommentDislike {
     postDeleted: Int!
     postLiked: Post!
     postDisliked: Post!
+    postUpdated: Post!
+
     commentAdded: Comment!
     commentDeleted: Int!
     commentLiked: Comment!

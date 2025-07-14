@@ -14,6 +14,7 @@ import {
   POST_DELETED,
   POST_LIKED,
   POST_DISLIKED,
+  POST_UPDATED,
   COMMENT_ADDED,
   COMMENT_DELETED,
   COMMENT_LIKED,
@@ -174,6 +175,17 @@ const Subscription = {
     resolve: (payload) => {
       console.log("📨 commentDisliked payload:", payload.commentDisliked);
       return payload.commentDisliked;
+    },
+  },
+
+  postUpdated: {
+    subscribe: () => {
+      console.log("📡 New subscribe postUpdated");
+      return pubsub.asyncIterator(POST_UPDATED);
+    },
+    resolve: (payload) => {
+      console.log("📨 postUpdated payload:", payload.postUpdated);
+      return payload.postUpdated;
     },
   },
 };

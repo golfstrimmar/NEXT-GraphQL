@@ -11,6 +11,8 @@ import {
   DISLIKE_POST,
   ADD_COMMENT,
   DELETE_COMMENT,
+  LIKE_COMMENT,
+  DISLIKE_COMMENT,
 } from "@/apolo/mutations";
 import { useStateContext } from "@/components/StateProvider";
 import Tab from "@/components/ui/Tab/Tab";
@@ -18,17 +20,24 @@ import Image from "next/image";
 import { div } from "framer-motion/m";
 import Input from "../ui/Input/Input";
 import { motion, AnimatePresence } from "framer-motion";
-
+import CommentType from "@/types/comment";
 interface PostProps {
   post: PostType;
   currentPage: number;
   setCurrentPage: (page: number) => void;
 }
-const Post: FC<PostProps> = ({ post, currentPage, setCurrentPage }) => {
+const Post: FC<PostProps> = ({
+  post,
+  currentPage,
+  setCurrentPage,
+  PostToEdit,
+}) => {
   const { user } = useStateContext();
   const [deletePost] = useMutation(DELETE_POST);
   const [likePost] = useMutation(LIKE_POST);
   const [dislikePost] = useMutation(DISLIKE_POST);
+  const [likeComment] = useMutation(LIKE_COMMENT);
+  const [dislikeComment] = useMutation(DISLIKE_COMMENT);
   const { data: comments } = useQuery(GET_ALL_COMMENTS, {
     variables: { postId: post.id },
   });
@@ -48,7 +57,7 @@ const Post: FC<PostProps> = ({ post, currentPage, setCurrentPage }) => {
       console.log("<==== post comments====>", comments.comments);
     }
   }, [comments]);
-
+  // --------
   const handlerPostDeleted = async (id: number) => {
     try {
       await deletePost({
@@ -120,6 +129,27 @@ const Post: FC<PostProps> = ({ post, currentPage, setCurrentPage }) => {
     };
   }, []);
   // --------
+  const handleLikeComment = async (id) => {
+    try {
+      await likeComment({
+        variables: { commentId: id },
+      });
+    } catch (err) {
+      console.log("------Failed to like post.-------", err);
+      showModal(err?.message);
+    }
+  };
+  const handleDislikeComment = async (id) => {
+    try {
+      await dislikeComment({
+        variables: { commentId: id },
+      });
+    } catch (err) {
+      console.log("------Failed to dislike post -------", err);
+      showModal(err?.message);
+    }
+  };
+  // --------
 
   return (
     <li className="card p-4 bg-white rounded shadow  " ref={tabRef}>
@@ -172,11 +202,33 @@ const Post: FC<PostProps> = ({ post, currentPage, setCurrentPage }) => {
           </button>
           <Tab length={post.dislikesCount} details={post.dislikes} />
         </div>
+        {user && post.creator.id === user?.id && (
+          <button
+            onClick={() => {
+              PostToEdit(post);
+            }}
+            className="cursor-pointer "
+          >
+            <Image
+              src="./svg/edit-white.svg"
+              alt="edit"
+              width={15}
+              height={15}
+              className="ml-6"
+            />
+          </button>
+        )}
       </div>
 
       <button
         onClick={() => {
-          setCommentsIsOpen((prev) => !commentsIsOpen);
+          if (!user && !comments?.comments.length) {
+            showModal(
+              "No comments yet. To add a comment, you must be logged in."
+            );
+          } else {
+            setCommentsIsOpen((prev) => !commentsIsOpen);
+          }
         }}
         className="relative inline-flex  items-center gap-2 cursor-pointer "
       >
@@ -202,12 +254,12 @@ const Post: FC<PostProps> = ({ post, currentPage, setCurrentPage }) => {
             className="flex flex-col items-center gap-2 w-full overflow-hidden"
           >
             {comments?.comments &&
-              comments?.comments.map((comment) => (
-                  <div
-                      key={comment.id}
-                      className="bg-slate-200 p-2 w-full rounded"
-                  >
-                   <div className="flex mb-2">
+              comments?.comments.map((comment: CommentType) => (
+                <div
+                  key={comment.id}
+                  className="bg-slate-200 p-2 w-full rounded"
+                >
+                  <div className="flex mb-2">
                     <small className="text-[12px] text-blue-800">
                       {comment.userName.name}
                     </small>
@@ -215,26 +267,26 @@ const Post: FC<PostProps> = ({ post, currentPage, setCurrentPage }) => {
                       {transformData(comment.createdAt)}
                     </small>
                     {comment.userName.name === user?.name && (
-                        <button
-                            onClick={() => {
-                              handlerDeleteComment(comment?.id);
-                            }}
-                            className="ml-auto border-transparent rounded border hover:border-red-500 transition duration-300 ease-in-out cursor-pointer"
-                        >
-                          ❌
-                        </button>
+                      <button
+                        onClick={() => {
+                          handlerDeleteComment(comment?.id);
+                        }}
+                        className="ml-auto border-transparent rounded border hover:border-red-500 transition duration-300 ease-in-out cursor-pointer"
+                      >
+                        ❌
+                      </button>
                     )}
                   </div>
-                    <div className="bg-slate-100 p-2 w-full rounded !leading-normal">
-                      {comment.text}
-                    </div>
-                   {/*--------------------------------------------------------------------*/}
-                   <div className="flex mt-2">
+                  <div className="bg-slate-100 p-2 w-full rounded !leading-normal">
+                    {comment.text}
+                  </div>
+                  {/*--------------------------------------------------------------------*/}
+                  <div className="flex mt-2">
                     <button
-                        // onClick={() => {
-                        //   handleLikeComment(post.id);
-                        // }}
-                        className="cursor-pointer"
+                      onClick={() => {
+                        handleLikeComment(comment.id);
+                      }}
+                      className="cursor-pointer"
                     >
                       👍
                     </button>
@@ -243,27 +295,28 @@ const Post: FC<PostProps> = ({ post, currentPage, setCurrentPage }) => {
                     </small>
 
                     <button
-                        // onClick={() => {
-                        //   handleLikeComment(post.id);
-                        // }}
-                        className="cursor-pointer ml-4"
+                      onClick={() => {
+                        handleDislikeComment(comment.id);
+                      }}
+                      className="cursor-pointer ml-4"
                     >
                       👎
                     </button>
                     <small className="text-[12px] text-blue-800">
                       {comment.commentDislikes.length}
                     </small>
-                   </div>
-                    {/*--------------------------------------------------------------------*/}
-
                   </div>
+                  {/*--------------------------------------------------------------------*/}
+
+                  {/*--------------------------------------------------------------------*/}
+                </div>
               ))}
             {user && (
-                <form
-                    onSubmit={(e) => {
-                      handlerAddComment(e, post.id);
-                    }}
-                    className="relative w-full bg-amber-50 rounded mt-6"
+              <form
+                onSubmit={(e) => {
+                  handlerAddComment(e, post.id);
+                }}
+                className="relative w-full bg-amber-50 rounded mt-6"
               >
                 <Input
                   typeInput="text"
@@ -290,49 +343,6 @@ const Post: FC<PostProps> = ({ post, currentPage, setCurrentPage }) => {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* <div className="flex gap-2 mt-2">
-                     <button
-                       className="px-3 py-1 rounded bg-[#30344c] text-white hover:bg-[#5b6496]"
-                       onClick={() => {
-                         showModal({
-                           type: "editPost",
-                           postId: post.id,
-                           postText: post.text,
-                           postCategory: post.category,
-                         });
-                       }}
-                     >
-                       Edit
-                     </button>
-                     <button
-                       className="px-3 py-1 rounded bg-[#30344c] text-white hover:bg-[#5b6496]"
-                       onClick={() => {
-                         showModal({
-                           type: "deletePost",
-                           postId: post.id,
-                         });
-                       }}
-                     >
-                       Delete
-                     </button>
-                   </div>
-                   {showModalData.type === "editPost" &&
-                       showModalData.postId === post.id && (
-                         <EditPostForm
-                           postId={post.id}
-                           postText={post.text}
-                           postCategory={post.category}
-                         />
-                       )}
-                   {showModalData.type === "deletePost" &&
-                       showModalData.postId === post.id && (
-                         <DeletePostForm postId={post.id} />
-                       )}
-                   {showModalData.type === "addComment" &&
-                       showModalData.postId === post.id && (
-                         <AddCommentForm postId={post.id} />
-                       }} */}
     </li>
   );
 };

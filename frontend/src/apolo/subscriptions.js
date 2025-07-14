@@ -179,3 +179,57 @@ export const COMMENT_DELETED_SUBSCRIPTION = gql`
     commentDeleted
   }
 `;
+
+export const COMMENT_LIKED_SUBSCRIPTION = gql`
+  subscription commentLiked {
+    commentLiked {
+      id
+      text
+      createdAt
+      commentLikes {
+        id
+        user {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+
+export const COMMENT_DISLIKED_SUBSCRIPTION = gql`
+  subscription commentDisliked {
+    commentDisliked {
+      id
+      text
+      createdAt
+      commentDislikes {
+        id
+        user {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+
+export const POST_UPDATED_SUBSCRIPTION = gql`
+  subscription postUpdated {
+    postUpdated {
+      id
+      title
+      text
+      category
+      createdAt
+      creator {
+        id
+        name
+      }
+      likesCount
+      dislikesCount
+      likes
+      dislikes
+    }
+  }
+`;

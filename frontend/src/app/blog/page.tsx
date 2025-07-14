@@ -12,6 +12,9 @@ import PostType from "@/types/post";
 import { button } from "framer-motion/m";
 import "./Blog.scss";
 import Post from "@/components/Post/Post";
+import Select from "@/components/ui/Select/Select";
+import Image from "next/image";
+
 const Blog = () => {
   const { user, showModal } = useStateContext();
   const [currentPage, setCurrentPage] = useState(1);
@@ -20,7 +23,9 @@ const Blog = () => {
   const [postsLoading, setPostsLoading] = useState<boolean>(false);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [catToFilter, setCatToFilter] = useState<string>("");
-
+  const [postToEdit, setPostToEdit] = useState<PostType>(null);
+  const [sortOrder, setSortOrder] = useState("decr");
+  const [searchTerm, setSearchTerm] = useState("");
   useUserPostSubscriptions(
     setCurrentPage,
     currentPage,
@@ -54,28 +59,43 @@ const Blog = () => {
     return categoriesData?.categories ?? [];
   }, [categoriesData]);
   // ----------------------------
-
   useEffect(() => {
-    if (posts) {
-      console.log("<==== posts====>", posts);
-      setFilteredPosts(posts);
+    if (postToEdit) {
+      console.log("<==== postToEdit====>", postToEdit);
     }
-  }, [posts]);
+  }, [postToEdit]);
 
-  useEffect(() => {
-    if (catToFilter) {
-      const newPosts = [...posts];
-      setFilteredPosts((prev) =>
-        newPosts.filter((post) => post.category === catToFilter)
-      );
-    }
-  }, [catToFilter]);
   // ----------------------------
+  const handleSortChange = (e) => {
+    setSortOrder(e.target.value);
+  };
+
+  const filteredAndSortedPosts = useMemo(() => {
+    return [...posts]
+      .filter((post) => {
+        const matchesCategory = catToFilter
+          ? post.category === catToFilter
+          : true;
+        const matchesSearch =
+          post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          post.text.toLowerCase().includes(searchTerm.toLowerCase());
+
+        return matchesCategory && matchesSearch;
+      })
+      .sort((a, b) => {
+        const dateA = new Date(Number(a.createdAt));
+        const dateB = new Date(Number(b.createdAt));
+        return sortOrder === "acr"
+          ? dateA.getTime() - dateB.getTime()
+          : dateB.getTime() - dateA.getTime();
+      });
+  }, [posts, searchTerm, catToFilter, sortOrder]);
+
   // ----------------------------
   return (
     <section className="my-[80px] mx-auto blog w-full ">
       <div className="container">
-        <h2 className="text-2xl font-bold mb-4">📚 Blog</h2>
+        <h2 className="!text-3xl font-bold mb-4">📚 Blog</h2>
         {user && (
           <GetAllPostsQuery
             currentPage={currentPage}
@@ -86,11 +106,12 @@ const Blog = () => {
             setTotalCount={setTotalCount}
           />
         )}
-        <AddPostForm />
-        <div className="my-4 blog">
-          <h4 className="font-semibold">Categories:</h4>
+        <AddPostForm post={postToEdit} setPostToEdit={setPostToEdit} />
+        {/* ====Categories======= */}
+        <div className="mt-6">
+          <h4 className="font-semibold">📂 Categories:</h4>
           {categories.length > 0 ? (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 my-2">
               <button
                 onClick={() => {
                   setCatToFilter("");
@@ -126,27 +147,59 @@ const Blog = () => {
             <p className="text-gray-600">No categories found.</p>
           )}
         </div>
+        {/* =============== */}
+        <div className="mt-6">
+          <h4 className="font-semibold">🔄 Sort by Date created :</h4>
+          <Select
+            selectItems={[
+              { value: "acr", name: "Oldest to Newest" },
+              { value: "decr", name: "Newest to Oldest" },
+            ]}
+            value={sortOrder}
+            onChange={handleSortChange}
+          />
+        </div>
+        <div className="mt-6 relative">
+          <h4 className="font-semibold">🔍 Search posts:</h4>
+          <input
+            type="text"
+            placeholder="Search posts..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="border p-2 rounded mb-4 w-full !bg-[#f8f4e3]"
+          />
+          <button
+            onClick={() => {
+              setSearchTerm("");
+            }}
+            className="absolute right-4 top-1/2 transform -translate-y-1/2 cursor-pointer"
+          >
+            <Image src="./svg/reset.svg" alt="clear" width={20} height={20} />
+          </button>
+        </div>
         {/* ===========Posts=========== */}
-        <h4 className="font-semibold">Posts({totalCount}):</h4>
-        {postsLoading ? (
-          <Loading />
-        ) : filteredPosts.length > 0 ? (
-          <ul className="flex flex-col gap-4 mt-6">
-            {filteredPosts.map((post) => (
-              <Post
-                key={post.id}
-                post={post}
-                currentPage={currentPage}
-                setCurrentPage={setCurrentPage}
-              />
-            ))}
-          </ul>
-        ) : (
-          <p className="text-gray-600">No posts found.</p>
-        )}
-
+        <div className="mt-6">
+          <h4 className="font-semibold ">📝 Posts({totalCount}):</h4>
+          {postsLoading ? (
+            <Loading />
+          ) : filteredAndSortedPosts.length > 0 ? (
+            <ul className="flex flex-col gap-4 mt-2">
+              {filteredAndSortedPosts.map((post) => (
+                <Post
+                  key={post.id}
+                  post={post}
+                  currentPage={currentPage}
+                  setCurrentPage={setCurrentPage}
+                  PostToEdit={setPostToEdit}
+                />
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-600">No posts found.</p>
+          )}
+        </div>
         {/* ========= PAGINATION ========= */}
-        {filteredPosts.length > 0 && (
+        {filteredAndSortedPosts.length > 0 && (
           <div className="flex justify-center items-center gap-4 mt-6">
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}

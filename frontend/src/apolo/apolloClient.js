@@ -32,6 +32,7 @@ const protectedOperations = [
   "deleteComment",
   "likeComment",
   "dislikeComment",
+  "updatePost",
 ];
 
 // ✅ HTTP link
@@ -56,18 +57,6 @@ const authLink = setContext((operation, { headers }) => {
 });
 
 // ✅ WebSocket client (graphql-ws)
-// const wsClient = createClient({
-//   url: WS_URI,
-//   connectionParams: () => {
-//     const token = localStorage.getItem("token");
-//     return token ? { headers: { Authorization: `Bearer ${token}` } } : {};
-//   },
-//   on: {
-//     connected: () => console.log("✅ [WebSocket] Connected successfully"),
-//     closed: (event) =>
-//       console.log(`⚠️ [WebSocket] Disconnected (${event.code})`),
-//   },
-// });
 const wsClient = createClient({
   url: WS_URI,
   connectionParams: () => {

@@ -107,9 +107,9 @@ const UsersList = () => {
       .sort((a, b) => (a.id === user?.id ? -1 : b.id === user?.id ? 1 : 0))
       .map((foo) => (
         <li key={foo.id} className={`p-2 border rounded bg-gray-200`}>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center  gap-2">
             <div
-              className={`flex items-center gap-2 font-bold text-[16px] px-2 rounded-2xl 
+              className={`flex items-center flex-wrap gap-2 font-bold text-[16px] px-2 rounded-2xl 
                 ${
                   user?.id === foo.id && foo.isLoggedIn
                     ? "bg-green-600 "
@@ -159,11 +159,7 @@ const UsersList = () => {
                 </p>
               )}
             </div>
-            {renderCreateChatButton({
-              userId: foo.id,
-              handleCreateChat,
-              userName: foo.name,
-            })}
+
             {user?.name === "Victor Yushin" && (
               <button onClick={() => handleDelete(foo.id)}>
                 <Image
@@ -176,7 +172,13 @@ const UsersList = () => {
               </button>
             )}
           </div>
-
+          <div className="mt-2">
+            {renderCreateChatButton({
+              userId: foo.id,
+              handleCreateChat,
+              userName: foo.name,
+            })}
+          </div>
           <div className="flex flex-col p-2 rounded-2xl mt-3 text-[12px] bg-white text-gray-500">
             {foo.email && <p>Email: {foo.email}</p>}
             {foo.createdAt && (
@@ -194,7 +196,8 @@ const UsersList = () => {
   return (
     <div className="space-y-2 ">
       {users.length === 0 && <p>No users</p>}
-      <h2 className=" mb-4">Users:</h2>
+
+      <h2 className="!text-3xl font-bold mb-4">🧑‍🤝‍🧑 Users:</h2>
       {usersLoading ? (
         <Loading />
       ) : (

@@ -146,7 +146,10 @@ const Navbar: React.FC = () => {
                   />
                 )}
                 <p>
-                  Hello, <strong>{user.name || "User"}</strong>
+                  Hello,{" "}
+                  <Link href="/profile">
+                    <strong>{user.name || "User"}</strong>
+                  </Link>
                 </p>
               </li>
               <li>

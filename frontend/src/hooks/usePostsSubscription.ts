@@ -12,6 +12,9 @@ import {
   POST_DISLIKED_SUBSCRIPTION,
   COMMENT_CREATED_SUBSCRIPTION,
   COMMENT_DELETED_SUBSCRIPTION,
+  COMMENT_LIKED_SUBSCRIPTION,
+  COMMENT_DISLIKED_SUBSCRIPTION,
+  POST_UPDATED_SUBSCRIPTION,
 } from "@/apolo/subscriptions";
 import { useStateContext } from "@/components/StateProvider";
 const POSTS_PER_PAGE = 5;
@@ -143,6 +146,48 @@ export default function useUserPostSubscriptions(
       showModal("🗑️ Comment deleted successfully.");
       client.refetchQueries({
         include: [GET_ALL_COMMENTS],
+      });
+    },
+  });
+
+  useSubscription(COMMENT_LIKED_SUBSCRIPTION, {
+    onData: ({ client, data }) => {
+      const newComment = data?.data?.commentLiked;
+      if (!newComment) return;
+
+      console.log("<===== 🟢 SUBSCRIPTION commentLiked =======>", newComment);
+      showModal(`✅ Comment liked!`);
+      client.refetchQueries({
+        include: [GET_ALL_COMMENTS],
+      });
+    },
+  });
+
+  useSubscription(COMMENT_DISLIKED_SUBSCRIPTION, {
+    onData: ({ client, data }) => {
+      const newComment = data?.data?.commentDisliked;
+      if (!newComment) return;
+
+      console.log(
+        "<===== 🟢 SUBSCRIPTION commentDisliked =======>",
+        newComment
+      );
+      showModal(`✅ Comment disliked!`);
+      client.refetchQueries({
+        include: [GET_ALL_COMMENTS],
+      });
+    },
+  });
+
+  useSubscription(POST_UPDATED_SUBSCRIPTION, {
+    onData: ({ client, data }) => {
+      const newPost = data?.data?.postUpdated;
+      if (!newPost) return;
+
+      console.log("<===== 🟢 SUBSCRIPTION POST_UPDATED =======>", newPost);
+      showModal(`✅ Post updated!`);
+      client.refetchQueries({
+        include: [GET_ALL_POSTS],
       });
     },
   });

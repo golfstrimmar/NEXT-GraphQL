@@ -16,6 +16,7 @@ import { addComment } from "./mutations/addComment.js";
 import { deleteComment } from "./mutations/deleteComment.js";
 import { likeComment } from "./mutations/likeComment.js";
 import { dislikeComment } from "./mutations/dislikeComment.js";
+import { updatePost } from "./mutations/updatePost.js";
 
 const Mutation = {
   addUser,
@@ -36,6 +37,7 @@ const Mutation = {
   deleteComment,
   likeComment,
   dislikeComment,
+  updatePost,
 };
 
 export default Mutation;
