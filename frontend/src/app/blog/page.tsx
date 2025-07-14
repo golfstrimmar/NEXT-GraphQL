@@ -19,7 +19,6 @@ const Blog = () => {
   const { user, showModal } = useStateContext();
   const [currentPage, setCurrentPage] = useState(1);
   const [posts, setPosts] = useState<PostType[]>([]);
-  const [filteredPosts, setFilteredPosts] = useState<PostType[]>([]);
   const [postsLoading, setPostsLoading] = useState<boolean>(false);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [catToFilter, setCatToFilter] = useState<string>("");
@@ -96,16 +95,16 @@ const Blog = () => {
     <section className="my-[80px] mx-auto blog w-full ">
       <div className="container">
         <h2 className="!text-3xl font-bold mb-4">📚 Blog</h2>
-        {user && (
-          <GetAllPostsQuery
-            currentPage={currentPage}
-            POSTS_PER_PAGE={POSTS_PER_PAGE}
-            catToFilter={catToFilter}
-            setPosts={setPosts}
-            setPostsLoading={setPostsLoading}
-            setTotalCount={setTotalCount}
-          />
-        )}
+
+        <GetAllPostsQuery
+          currentPage={currentPage}
+          POSTS_PER_PAGE={POSTS_PER_PAGE}
+          catToFilter={catToFilter}
+          setPosts={setPosts}
+          setPostsLoading={setPostsLoading}
+          setTotalCount={setTotalCount}
+        />
+
         <AddPostForm post={postToEdit} setPostToEdit={setPostToEdit} />
         {/* ====Categories======= */}
         <div className="mt-6">
