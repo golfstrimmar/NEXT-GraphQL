@@ -236,6 +236,9 @@ const Post: FC<PostProps> = ({
         className="relative inline-flex  items-center gap-2 cursor-pointer "
       >
         <Image src="./svg/comment.svg" alt="comment" width={25} height={25} />
+        <small className="text-[12px] text-blue-200">
+          ({comments?.comments.length})
+        </small>
         <Image
           src="./svg/click-darck.svg"
           alt="arrow-down"

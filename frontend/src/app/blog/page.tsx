@@ -146,7 +146,7 @@ const Blog = () => {
             <p className="text-gray-600">No categories found.</p>
           )}
         </div>
-        {/* =============== */}
+        {/* =======Sort======== */}
         <div className="mt-6">
           <h4 className="font-semibold">🔄 Sort by Date created :</h4>
           <Select
