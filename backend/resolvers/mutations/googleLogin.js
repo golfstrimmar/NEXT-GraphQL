@@ -55,7 +55,7 @@ export const googleLogin = async (_, { idToken }) => {
     }
 
     const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, {
-      expiresIn: "1h",
+      expiresIn: "10h",
     });
 
     console.log("To subscribe userLogin  🟢-->");
