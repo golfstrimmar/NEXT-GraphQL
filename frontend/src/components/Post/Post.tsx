@@ -1,9 +1,8 @@
 "use client";
 import React, { FC, useEffect, useRef, useState } from "react";
-
 import { PostType } from "@/types/post";
 import transformData from "@/hooks/useTransformData";
-import { useMutation, useQuery } from "@apollo/client";
+import { useApolloClient, useMutation, useQuery } from "@apollo/client";
 import { GET_ALL_COMMENTS } from "@/apolo/queryes";
 import {
   DELETE_POST,
@@ -17,7 +16,6 @@ import {
 import { useStateContext } from "@/components/StateProvider";
 import Tab from "@/components/ui/Tab/Tab";
 import Image from "next/image";
-import { div } from "framer-motion/m";
 import Input from "../ui/Input/Input";
 import { motion, AnimatePresence } from "framer-motion";
 import CommentType from "@/types/comment";
@@ -26,38 +24,45 @@ interface PostProps {
   post: PostType;
   currentPage: number;
   setCurrentPage: (page: number) => void;
+  PostToEdit: (post: PostType) => void; // Добавить сюда
 }
-
 const Post: FC<PostProps> = ({
   post,
   currentPage,
   setCurrentPage,
   PostToEdit,
+  openCommentsPostId,
+  setOpenCommentsPostId,
 }) => {
   const { user } = useStateContext();
+  const client = useApolloClient();
   const [deletePost] = useMutation(DELETE_POST);
   const [likePost] = useMutation(LIKE_POST);
   const [dislikePost] = useMutation(DISLIKE_POST);
   const [likeComment] = useMutation(LIKE_COMMENT);
   const [dislikeComment] = useMutation(DISLIKE_COMMENT);
-  const { data: comments } = useQuery(GET_ALL_COMMENTS, {
-    variables: { postId: post.id },
-  });
+
   const [addComment] = useMutation(ADD_COMMENT);
   const [deleteComment] = useMutation(DELETE_COMMENT);
 
   const { showModal } = useStateContext();
   const [commentText, setCommentText] = useState<string>("");
-  const [commentsIsOpen, setCommentsIsOpen] = useState<boolean>(false);
   const tabRef = useRef<HTMLDivElement>(null);
-  // --------
+
+  const [comments, setComments] = useState([]);
+  const isOpen = openCommentsPostId === post.id;
 
   // --------
+  const { data, loading, error } = useQuery(GET_ALL_COMMENTS, {
+    variables: { postId: post.id },
+    skip: !isOpen,
+  });
+  // --------
   useEffect(() => {
-    if (comments) {
-      console.log("<==== post comments====>", comments.comments);
+    if (data?.comments) {
+      setComments(data?.comments);
     }
-  }, [comments]);
+  }, [data?.comments]);
   // --------
   const handlerPostDeleted = async (id: number) => {
     try {
@@ -119,11 +124,13 @@ const Post: FC<PostProps> = ({
   // --------
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (tabRef.current && !tabRef.current.contains(event.target as Node)) {
-        setCommentsIsOpen(false);
+      if (
+        !event.target.closest(".comments-button") &&
+        !event.target.closest(".comments-container")
+      ) {
+        setOpenCommentsPostId(null);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
@@ -150,6 +157,8 @@ const Post: FC<PostProps> = ({
       showModal(err?.message);
     }
   };
+  // --------
+
   // --------
   return (
     <li className="card p-2 bg-white rounded shadow  relative" ref={tabRef}>
@@ -222,45 +231,26 @@ const Post: FC<PostProps> = ({
           </button>
         )}
       </div>
-
       <button
         onClick={() => {
-          if (!user && !comments?.comments.length) {
-            showModal(
-              "No comments yet. To add a comment, you must be logged in."
-            );
-          } else {
-            setCommentsIsOpen((prev) => !commentsIsOpen);
-          }
+          setOpenCommentsPostId(isOpen ? null : post.id);
         }}
-        className="relative inline-flex  items-center gap-2 cursor-pointer "
+        className="relative inline-flex  items-center gap-2 cursor-pointer comments-button"
       >
         <Image src="./svg/comment.svg" alt="comment" width={25} height={25} />
-        <small className="text-[12px] text-blue-200">
-          ({comments?.comments.length})
-        </small>
-        <Image
-          src="./svg/click-darck.svg"
-          alt="arrow-down"
-          width={15}
-          height={15}
-          className={`${
-            commentsIsOpen ? "rotate-180" : ""
-          }  transition-transform duration-300 ease-in-out `}
-        />
       </button>
 
       <AnimatePresence>
-        {commentsIsOpen && (
+        {isOpen && (
           <motion.div
             initial={{ height: 0 }}
             animate={{ height: "auto" }}
             exit={{ height: 0 }}
             transition={{ duration: 0.4, ease: "easeInOut" }}
-            className="flex flex-col items-center gap-2 w-full overflow-hidden"
+            className="flex flex-col items-center gap-2 w-full overflow-hidden comments-container"
           >
-            {comments?.comments &&
-              comments?.comments.map((comment: CommentType) => (
+            {comments &&
+              comments.map((comment: CommentType) => (
                 <div
                   key={comment.id}
                   className="bg-slate-200 p-2 w-full rounded"

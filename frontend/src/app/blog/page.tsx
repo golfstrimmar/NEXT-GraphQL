@@ -33,6 +33,9 @@ const Blog = () => {
     setPostsLoading,
     catToFilter
   );
+  const [openCommentsPostId, setOpenCommentsPostId] = useState<number | null>(
+    null
+  );
 
   const { data: categoriesData } = useQuery(GET_ALL_CATEGORIES);
 
@@ -190,6 +193,8 @@ const Blog = () => {
                   currentPage={currentPage}
                   setCurrentPage={setCurrentPage}
                   PostToEdit={setPostToEdit}
+                  openCommentsPostId={openCommentsPostId}
+                  setOpenCommentsPostId={setOpenCommentsPostId}
                 />
               ))}
             </ul>
