@@ -122,10 +122,12 @@ const Chats = () => {
                   key={chat.id}
                   className="p-2 w-full mb-2 border rounded bg-white chat"
                 >
-                  <div className="flex items-start justify-between">
+                  <div className="grid grid-cols-[1fr_auto] gap-2 items-start justify-between">
                     <div>
+                      <p>📢</p>
                       <p>
-                        {chat.id} 📢 <strong>{chat.creator.name}</strong> ↔{" "}
+                        <strong>{chat.creator.name}</strong>
+                        <p> ↔ </p>
                         <strong>{chat.participant.name}</strong>
                       </p>
                       <p className="text-[12px] text-gray-200">
@@ -145,6 +147,7 @@ const Chats = () => {
                       />
                     </button>
                   </div>
+                  {/* ----------messag---------- */}
                   <ul className="flex flex-col gap-2  my-4  ">
                     {chat.messages &&
                       chat.messages?.map((message) => (
@@ -159,7 +162,6 @@ const Chats = () => {
                         >
                           <div className="flex">
                             <h3 className="text-black font-bold  text-[16px] ">
-                              {message.id}{" "}
                               {message.sender.name === user?.name ?? ""
                                 ? "You"
                                 : message.sender.name}

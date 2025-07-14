@@ -109,7 +109,7 @@ const UsersList = () => {
         <li key={foo.id} className={`p-2 border rounded bg-gray-200`}>
           <div className="flex items-center  gap-2">
             <div
-              className={`flex items-center flex-wrap gap-2 font-bold text-[16px] px-2 rounded-2xl 
+              className={`flex items-center flex-wrap gap-2 font-bold text-[16px] p-2  rounded-2xl 
                 ${
                   user?.id === foo.id && foo.isLoggedIn
                     ? "bg-green-600 "
@@ -186,7 +186,6 @@ const UsersList = () => {
                 🕒 <span>{transformData(foo.createdAt)}</span>
               </p>
             )}
-            <p>id: {foo.id}</p>
           </div>
         </li>
       ));

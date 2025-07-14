@@ -145,12 +145,9 @@ const Navbar: React.FC = () => {
                     className="rounded-full"
                   />
                 )}
-                <p>
-                  Hello,{" "}
-                  <Link href="/profile">
-                    <strong>{user.name || "User"}</strong>
-                  </Link>
-                </p>
+                <Link href="/profile" onClick={() => setIsOpen(false)}>
+                  Hello, <strong>{user.name || "User"}</strong>
+                </Link>
               </li>
               <li>
                 <button

@@ -21,11 +21,13 @@ import { div } from "framer-motion/m";
 import Input from "../ui/Input/Input";
 import { motion, AnimatePresence } from "framer-motion";
 import CommentType from "@/types/comment";
+
 interface PostProps {
   post: PostType;
   currentPage: number;
   setCurrentPage: (page: number) => void;
 }
+
 const Post: FC<PostProps> = ({
   post,
   currentPage,
@@ -51,7 +53,6 @@ const Post: FC<PostProps> = ({
   // --------
 
   // --------
-
   useEffect(() => {
     if (comments) {
       console.log("<==== post comments====>", comments.comments);
@@ -150,24 +151,25 @@ const Post: FC<PostProps> = ({
     }
   };
   // --------
-
   return (
-    <li className="card p-4 bg-white rounded shadow  " ref={tabRef}>
-      <div className="flex justify-between">
-        <h3 className="font-semibold text-red-400">{post.id}</h3>
+    <li className="card p-2 bg-white rounded shadow  relative" ref={tabRef}>
+      <div className="absolute top-[5px] right-[5px]">
         {post?.creator?.id === user?.id && (
           <button
             onClick={() => {
               handlerPostDeleted(post.id);
             }}
-            className="border-transparent rounded border hover:border-red-500 transition duration-300 ease-in-out cursor-pointer"
+            className=" border-transparent rounded border hover:border-red-500 transition duration-300 ease-in-out cursor-pointer"
           >
             ❌
           </button>
         )}
       </div>
-
-      <h4 className="mt-4">
+      <h4 className="">
+        <small className="text-indigo-400">Title: </small>
+        {post.title}
+      </h4>
+      <h4>
         <small className="text-indigo-400">Category: </small>
         {post.category}
       </h4>
@@ -206,6 +208,7 @@ const Post: FC<PostProps> = ({
           <button
             onClick={() => {
               PostToEdit(post);
+              window.scrollTo({ top: 0, behavior: "smooth" });
             }}
             className="cursor-pointer "
           >
@@ -214,7 +217,7 @@ const Post: FC<PostProps> = ({
               alt="edit"
               width={15}
               height={15}
-              className="ml-6"
+              className="ml-2"
             />
           </button>
         )}
