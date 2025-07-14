@@ -40,7 +40,7 @@ const Input: React.FC<InputProps> = ({
   activ,
 }) => {
   return (
-    <div className={styles["input-field"]}>
+    <div className={styles["input-field"] }>
       {typeInput === "textarea" ? (
         <textarea
           id={id}
