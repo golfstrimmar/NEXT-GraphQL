@@ -10,14 +10,18 @@ type PostsResponse = {
   };
 };
 
-const GetAllPostsQuery = ({
+const GetAllPosts = ({
   POSTS_PER_PAGE = 5,
   currentPage = 1,
   setPosts,
   setPostsLoading,
   setTotalCount,
   catToFilter,
+  sortOrder,
+  searchTerm,
 }) => {
+  console.log("<===на запрос=====>", catToFilter, sortOrder, searchTerm);
+
   const { data: postsData, loading: postsLoading } = useQuery<PostsResponse>(
     GET_ALL_POSTS,
     {
@@ -25,7 +29,10 @@ const GetAllPostsQuery = ({
         skip: (currentPage - 1) * POSTS_PER_PAGE,
         take: POSTS_PER_PAGE,
         category: catToFilter,
+        sortOrder: sortOrder,
+        searchTerm: searchTerm,
       },
+      fetchPolicy: "network-only",
     }
   );
 
@@ -41,4 +48,4 @@ const GetAllPostsQuery = ({
   return null;
 };
 
-export default GetAllPostsQuery;
+export default GetAllPosts;

@@ -42,8 +42,20 @@ export const GET_USER_CHATS = gql`
 `;
 
 export const GET_ALL_POSTS = gql`
-  query GetAllPosts($skip: Int!, $take: Int!, $category: String) {
-    posts(skip: $skip, take: $take, category: $category) {
+  query GetAllPosts(
+    $skip: Int!
+    $take: Int!
+    $category: String
+    $sortOrder: String
+    $searchTerm: String
+  ) {
+    posts(
+      skip: $skip
+      take: $take
+      category: $category
+      sortOrder: $sortOrder
+      searchTerm: $searchTerm
+    ) {
       posts {
         id
         title

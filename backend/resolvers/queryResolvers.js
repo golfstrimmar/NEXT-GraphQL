@@ -97,18 +97,24 @@ const Query = {
     });
   },
 
-  posts: async (_, { skip = 0, take = 5, category = null }) => {
-    console.log("=> Запрос posts", { skip, take, category });
+  posts: async (
+    _,
+    { skip = 0, take = 5, category = null, sortOrder = "decr", searchTerm = "" }
+  ) => {
+    console.log("=> Запрос posts", {
+      skip,
+      take,
+      category,
+      sortOrder,
+      searchTerm,
+    });
 
     const where = category ? { category } : {};
 
     const totalCount = await prisma.post.count({ where });
 
     const posts = await prisma.post.findMany({
-      skip,
-      take,
       where,
-      orderBy: { createdAt: "desc" },
       select: {
         id: true,
         title: true,
@@ -131,37 +137,46 @@ const Query = {
       },
     });
 
-    const formattedPosts = posts.map((post) => {
-      const likes = post.likes.map((like) => like.user.name || "Аноним");
-      const dislikes = post.dislikes.map(
-        (dislike) => dislike.user.name || "Аноним"
-      );
+    const formattedPosts = posts
+      .map((post) => {
+        const likes = post.likes.map((like) => like.user.name || "Аноним");
+        const dislikes = post.dislikes.map(
+          (dislike) => dislike.user.name || "Аноним"
+        );
 
-      return {
-        id: post.id,
-        title: post.title,
-        text: post.text,
-        category: post.category,
-        createdAt: post.createdAt,
-        creator: post.creator,
-        likesCount: likes.length,
-        dislikesCount: dislikes.length,
-        likes,
-        dislikes,
-      };
-    });
+        return {
+          id: post.id,
+          title: post.title,
+          text: post.text,
+          category: post.category,
+          createdAt: post.createdAt,
+          creator: post.creator,
+          likesCount: likes.length,
+          dislikesCount: dislikes.length,
+          likes,
+          dislikes,
+        };
+      })
+      .filter((post) => {
+        const matchesSearch =
+          post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          post.text.toLowerCase().includes(searchTerm.toLowerCase());
+        return matchesSearch;
+      })
+      .sort((a, b) => {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return sortOrder === "acr" ? dateA - dateB : dateB - dateA;
+      });
 
-    console.log(
-      "<===== 📋📋📋 query posts ====>",
-      // "formattedPosts",
-      // formattedPosts,
-      "totalCount",
-      totalCount
-    );
+    // Применяем skip и take после фильтрации и сортировки
+    const paginatedPosts = formattedPosts.slice(skip, skip + take);
+
+    console.log("<===== 📋📋📋 query posts ====>", "totalCount", totalCount);
 
     return {
-      posts: formattedPosts,
-      totalCount,
+      posts: paginatedPosts,
+      totalCount: formattedPosts.length, // чтобы учитывалось с учётом фильтрации
     };
   },
 
@@ -203,7 +218,7 @@ const Query = {
           },
         },
       },
-  });
+    });
 
     console.log("<====== 📋📋📋 query comments =====>", comments.length);
     return comments;

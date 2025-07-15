@@ -80,7 +80,7 @@ type CommentDislike {
     userChats: [Chat!]!
     messages(chatId: Int!): [Message!]!
     post(id: Int!): Post
-    posts(skip: Int, take: Int, category: String): PostsResponse
+    posts(skip: Int, take: Int, category: String, sortOrder: String, searchTerm: String): PostsResponse
     categories: [String!]!
     comments(postId: Int!): [Comment!]!
   }

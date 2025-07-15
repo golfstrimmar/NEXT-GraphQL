@@ -6,7 +6,7 @@ import AddPostForm from "@/components/AddPostForm/AddPostForm";
 import Loading from "@/components/Loading";
 import { useStateContext } from "@/components/StateProvider";
 import useUserPostSubscriptions from "@/hooks/usePostsSubscription";
-import GetAllPostsQuery from "@/components/GetAllPosts";
+import GetAllPosts from "@/components/GetAllPosts";
 const POSTS_PER_PAGE = 5;
 import PostType from "@/types/post";
 import { button } from "framer-motion/m";
@@ -26,6 +26,9 @@ const Blog = () => {
   const [sortOrder, setSortOrder] = useState("decr");
   const [searchTerm, setSearchTerm] = useState("");
   const [mathCount, setMathCount] = useState<number>(0);
+  const [openCommentsPostId, setOpenCommentsPostId] = useState<number | null>(
+    null
+  );
   useUserPostSubscriptions(
     setCurrentPage,
     currentPage,
@@ -34,87 +37,49 @@ const Blog = () => {
     setPostsLoading,
     catToFilter
   );
-  const [openCommentsPostId, setOpenCommentsPostId] = useState<number | null>(
-    null
-  );
 
   const { data: categoriesData } = useQuery(GET_ALL_CATEGORIES);
-
-  const { data, loading, error } = useQuery(GET_ALL_POSTS, {
-    variables: {
-      skip: 0,
-      take: 5,
-      category: null,
-    },
-  });
-
-  useEffect(() => {
-    if (data) {
-      console.log("<==== posts data====>", data?.posts?.posts);
-      console.log("<====totalCount data====>", data?.posts?.totalCount);
-      setMathCount(data?.posts?.totalCount);
-      setPosts(data?.posts?.posts);
-      setTotalCount(data?.posts?.totalCount);
-    }
-  }, [data]);
 
   // ----------------------------
   const categories = useMemo(() => {
     return categoriesData?.categories ?? [];
   }, [categoriesData]);
   // ----------------------------
-  useEffect(() => {
-    if (postToEdit) {
-      console.log("<==== postToEdit====>", postToEdit);
-    }
-  }, [postToEdit]);
 
   // ----------------------------
   const handleSortChange = (e) => {
     setSortOrder(e.target.value);
   };
 
-  const filteredAndSortedPosts = useMemo(() => {
-    return [...posts]
-      .filter((post) => {
-        const matchesCategory = catToFilter
-          ? post.category === catToFilter
-          : true;
-        const matchesSearch =
-          post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          post.text.toLowerCase().includes(searchTerm.toLowerCase());
-
-        return matchesCategory && matchesSearch;
-      })
-      .sort((a, b) => {
-        const dateA = new Date(Number(a.createdAt));
-        const dateB = new Date(Number(b.createdAt));
-        return sortOrder === "acr"
-          ? dateA.getTime() - dateB.getTime()
-          : dateB.getTime() - dateA.getTime();
-      });
-  }, [posts, searchTerm, catToFilter, sortOrder]);
+  useEffect(() => {
+    if (sortOrder) {
+      console.log("<==== sortOrder====>", sortOrder);
+    }
+  }, [sortOrder]);
 
   // ----------------------------
   useEffect(() => {
-    setMathCount(filteredAndSortedPosts.length);
-  }, [filteredAndSortedPosts]);
+    setMathCount(Math.ceil(totalCount / POSTS_PER_PAGE));
+  }, [posts]);
 
-  // useEffect(() => {
-  //   if (totalCount) {
-  //     console.log("<==== totalCount====>", totalCount);
-  //   }
-  // }, [totalCount]);
+  useEffect(() => {
+    if (mathCount) {
+      console.log("<====📦 totalCount====>", totalCount);
+      console.log("<====📦 currentPage====>", currentPage);
+    }
+  }, [posts, totalCount, currentPage]);
   // ----------------------------
   return (
     <section className="my-[80px] mx-auto blog w-full ">
       <div className="container">
         <h2 className="!text-3xl font-bold mb-4">📚 Blog</h2>
 
-        <GetAllPostsQuery
+        <GetAllPosts
           currentPage={currentPage}
           POSTS_PER_PAGE={POSTS_PER_PAGE}
           catToFilter={catToFilter}
+          sortOrder={sortOrder}
+          searchTerm={searchTerm}
           setPosts={setPosts}
           setPostsLoading={setPostsLoading}
           setTotalCount={setTotalCount}
@@ -196,9 +161,9 @@ const Blog = () => {
           <h4 className="font-semibold ">📝 Posts({totalCount}):</h4>
           {postsLoading ? (
             <Loading />
-          ) : filteredAndSortedPosts.length > 0 ? (
+          ) : posts.length > 0 ? (
             <ul className="flex flex-col gap-4 mt-2">
-              {filteredAndSortedPosts.map((post) => (
+              {posts.map((post) => (
                 <Post
                   key={post.id}
                   post={post}
@@ -215,7 +180,7 @@ const Blog = () => {
           )}
         </div>
         {/* ========= PAGINATION ========= */}
-        {filteredAndSortedPosts.length > 0 && (
+        {posts.length > 0 && (
           <div className="flex justify-center items-center gap-4 mt-6">
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
@@ -243,7 +208,7 @@ const Blog = () => {
               }
               disabled={currentPage >= mathCount}
               className={`p-1 rounded-full bg-slate-400  hover:bg-slate-600 transition-all duration-200  ${
-                currentPage >= Math.ceil(totalCount / POSTS_PER_PAGE)
+                currentPage >= mathCount
                   ? "opacity-20 cursor-not-allowed"
                   : "cursor-pointer "
               }`}
