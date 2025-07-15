@@ -24,7 +24,9 @@ interface PostProps {
   post: PostType;
   currentPage: number;
   setCurrentPage: (page: number) => void;
-  PostToEdit: (post: PostType) => void; // Добавить сюда
+  PostToEdit: (post: PostType) => void;
+  openCommentsPostId: number | null;
+  setOpenCommentsPostId: (id: number | null) => void;
 }
 const Post: FC<PostProps> = ({
   post,
@@ -65,10 +67,12 @@ const Post: FC<PostProps> = ({
   }, [data?.comments]);
 
   useEffect(() => {
-    if (isOpen && comments?.length === 0 && !user) {
-      showModal("No comments yet. To add a comment, you must be logged in.");
+    if (openCommentsPostId === post.id && !loading && !error) {
+      if (data?.comments?.length === 0) {
+        showModal("No comments yet.");
+      }
     }
-  }, [isOpen, comments, user]);
+  }, [openCommentsPostId, data?.comments?.length, loading]);
   // --------
   const handlerPostDeleted = async (id: number) => {
     try {
@@ -91,9 +95,9 @@ const Post: FC<PostProps> = ({
       showModal(err?.message);
     }
   };
-  const handleDislikePost = (id) => {
+  const handleDislikePost = async (id) => {
     try {
-      dislikePost({
+      await dislikePost({
         variables: { postId: id },
       });
     } catch (err) {
