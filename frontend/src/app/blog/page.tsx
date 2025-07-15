@@ -51,23 +51,11 @@ const Blog = () => {
     setSortOrder(e.target.value);
   };
 
-  useEffect(() => {
-    if (sortOrder) {
-      console.log("<==== sortOrder====>", sortOrder);
-    }
-  }, [sortOrder]);
-
   // ----------------------------
   useEffect(() => {
     setMathCount(Math.ceil(totalCount / POSTS_PER_PAGE));
   }, [posts]);
 
-  useEffect(() => {
-    if (mathCount) {
-      console.log("<====📦 totalCount====>", totalCount);
-      console.log("<====📦 currentPage====>", currentPage);
-    }
-  }, [posts, totalCount, currentPage]);
   // ----------------------------
   return (
     <section className="my-[80px] mx-auto blog w-full ">

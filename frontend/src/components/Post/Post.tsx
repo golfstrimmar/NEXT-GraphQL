@@ -63,6 +63,12 @@ const Post: FC<PostProps> = ({
       setComments(data?.comments);
     }
   }, [data?.comments]);
+
+  useEffect(() => {
+    if (isOpen && comments?.length === 0 && !user) {
+      showModal("No comments yet. To add a comment, you must be logged in.");
+    }
+  }, [isOpen, comments, user]);
   // --------
   const handlerPostDeleted = async (id: number) => {
     try {

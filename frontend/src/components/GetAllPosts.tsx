@@ -20,8 +20,6 @@ const GetAllPosts = ({
   sortOrder,
   searchTerm,
 }) => {
-  console.log("<===на запрос=====>", catToFilter, sortOrder, searchTerm);
-
   const { data: postsData, loading: postsLoading } = useQuery<PostsResponse>(
     GET_ALL_POSTS,
     {
