@@ -14,7 +14,6 @@ import "./Blog.scss";
 import Post from "@/components/Post/Post";
 import Select from "@/components/ui/Select/Select";
 import Image from "next/image";
-import { AnimatePresence, motion } from "framer-motion";
 
 const Blog = () => {
   const { user, showModal } = useStateContext();
@@ -30,6 +29,8 @@ const Blog = () => {
   const [openCommentsPostId, setOpenCommentsPostId] = useState<number | null>(
     null
   );
+  const [addOpen, setAddOpen] = useState<boolean>(false);
+
   useUserPostSubscriptions(
     setCurrentPage,
     currentPage,
@@ -58,6 +59,14 @@ const Blog = () => {
   }, [posts]);
 
   // ----------------------------
+  useEffect(() => {
+    if (addOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+  }, [addOpen]);
+  // ----------------------------
   return (
     <section className="my-[80px] mx-auto blog w-full ">
       <div className="container">
@@ -73,11 +82,24 @@ const Blog = () => {
           setPostsLoading={setPostsLoading}
           setTotalCount={setTotalCount}
         />
-
-        <AddPostForm post={postToEdit} setPostToEdit={setPostToEdit} />
+        <button
+          onClick={() => {
+            setAddOpen(!addOpen);
+            document.body.style.overflow = "hidden";
+          }}
+          className="cursor-pointer"
+        >
+          ➕ Add Post form
+        </button>
+        <AddPostForm
+          post={postToEdit}
+          setPostToEdit={setPostToEdit}
+          addOpen={addOpen}
+          setAddOpen={setAddOpen}
+        />
         {/* ====Categories======= */}
         <div className="mt-6">
-          <h4 className="font-semibold">📂 Categories:</h4>
+          <h4 className="font-semibold">📂 Select category:</h4>
           {categories.length > 0 ? (
             <div className="flex items-center gap-2 my-2">
               <button
