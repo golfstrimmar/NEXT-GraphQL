@@ -29,6 +29,7 @@ interface PostProps {
   setOpenCommentsPostId: (id: number | null) => void;
 }
 const Post: FC<PostProps> = ({
+  key,
   post,
   currentPage,
   setCurrentPage,
@@ -172,7 +173,18 @@ const Post: FC<PostProps> = ({
 
   // --------
   return (
-    <li className="card p-2 bg-white rounded shadow  relative" ref={tabRef}>
+    <motion.li
+      className="card p-2 bg-white rounded shadow  relative"
+      ref={tabRef}
+      initial={{ opacity: 0, y: 50 }} // Начальное состояние: невидимый, сдвинут вниз
+      animate={{ opacity: 1, y: 0 }} // Конечное состояние: видимый, на месте
+      transition={{
+        type: "spring", // Пружинный эффект
+        stiffness: 100, // Жесткость пружины
+        damping: 10, // Сглаживание
+        delay: key * 0.1, // Задержка для каждой карточки (каскадный эффект)
+      }}
+    >
       <div className="absolute top-[5px] right-[5px]">
         {post?.creator?.id === user?.id && (
           <button
@@ -351,7 +363,7 @@ const Post: FC<PostProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
-    </li>
+    </motion.li>
   );
 };
 

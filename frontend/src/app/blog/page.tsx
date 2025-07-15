@@ -14,6 +14,7 @@ import "./Blog.scss";
 import Post from "@/components/Post/Post";
 import Select from "@/components/ui/Select/Select";
 import Image from "next/image";
+import { AnimatePresence, motion } from "framer-motion";
 
 const Blog = () => {
   const { user, showModal } = useStateContext();
@@ -145,6 +146,7 @@ const Blog = () => {
           </button>
         </div>
         {/* ===========Posts=========== */}
+
         <div className="mt-6">
           <h4 className="font-semibold ">📝 Posts({totalCount}):</h4>
           {postsLoading ? (
