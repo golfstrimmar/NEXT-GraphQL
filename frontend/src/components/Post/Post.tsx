@@ -67,6 +67,7 @@ const Post: FC<PostProps> = ({
   }, [data?.comments]);
 
   useEffect(() => {
+    console.log("<====loading====>", loading);
     if (openCommentsPostId === post.id && !loading && !error) {
       if (data?.comments?.length === 0) {
         showModal("No comments yet.");
@@ -251,15 +252,16 @@ const Post: FC<PostProps> = ({
       </button>
 
       <AnimatePresence>
-        {isOpen && (
+        {isOpen && !loading && !error && (
           <motion.div
-            initial={{ height: 0 }}
-            animate={{ height: "auto" }}
-            exit={{ height: 0 }}
-            transition={{ duration: 0.4, ease: "easeInOut" }}
+            initial={{ maxHeight: 0, opacity: 0 }}
+            animate={{ maxHeight: 500, opacity: 1 }}
+            exit={{ maxHeight: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
             className="flex flex-col items-center gap-2 w-full overflow-hidden comments-container"
           >
-            {comments &&
+            {comments?.length > 0 &&
+              !loading &&
               comments.map((comment: CommentType) => (
                 <div
                   key={comment.id}
