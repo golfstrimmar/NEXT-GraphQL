@@ -176,10 +176,10 @@ const Post: FC<PostProps> = ({
     <motion.li
       className="card p-2 bg-white rounded shadow  relative"
       ref={tabRef}
-      initial={{ opacity: 0, y: 50 }} // Начальное состояние: невидимый, сдвинут вниз
-      animate={{ opacity: 1, y: 0 }} // Конечное состояние: видимый, на месте
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{
-        type: "spring", // Пружинный эффект
+        type: "spring",
         stiffness: 100, // Жесткость пружины
         damping: 10, // Сглаживание
         delay: key * 0.1, // Задержка для каждой карточки (каскадный эффект)

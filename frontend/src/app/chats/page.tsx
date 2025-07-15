@@ -12,6 +12,7 @@ import UsersList from "@/components/UsersList/UsersList";
 import "./chats.scss";
 import { Chat } from "@/types/chat";
 import ChatSubscription from "@/components/ChatSubscription";
+import { motion, AnimatePresence } from "framer-motion";
 const Chats = () => {
   const { user } = useStateContext();
   const [deleteChat] = useMutation(DELETE_CHAT);
@@ -116,10 +117,18 @@ const Chats = () => {
               (chat) =>
                 chat.creator.id === user?.id || chat.participant.id === user?.id
             )
-            .map((chat) => {
+            .map((chat, index) => {
               return (
-                <div
+                <motion.div
                   key={chat.id}
+                  initial={{ opacity: 0, y: 50 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 100, // Жесткость пружины
+                    damping: 10, // Сглаживание
+                    delay: index * 0.1, // Задержка для каждой карточки (каскадный эффект)
+                  }}
                   className="p-2 w-full mb-2 border rounded bg-white chat"
                 >
                   <div className="grid grid-cols-[1fr_auto] gap-2 items-start justify-between">
@@ -150,10 +159,17 @@ const Chats = () => {
                   {/* ----------messag---------- */}
                   <ul className="flex flex-col gap-2  my-4  ">
                     {chat.messages &&
-                      chat.messages?.map((message) => (
-                        <li
+                      chat.messages?.map((message, index) => (
+                        <motion.li
                           key={message.id}
-                          // className="text-black bg-slate-400 rounded p-1"
+                          initial={{ opacity: 0, y: 50 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 100, // Жесткость пружины
+                            damping: 10, // Сглаживание
+                            delay: index * 0.1, // Задержка для каждой карточки (каскадный эффект)
+                          }}
                           className={`text-black  rounded p-1 ${
                             message.sender.name === user?.name ?? ""
                               ? "bg-slate-300  ml-4"
@@ -191,7 +207,7 @@ const Chats = () => {
                           <p className="text-[12px]">
                             {transformData(message.createdAt)}
                           </p>
-                        </li>
+                        </motion.li>
                       ))}
                   </ul>
                   {/* --------------------------------- */}
@@ -217,7 +233,7 @@ const Chats = () => {
                       />
                     </button>
                   </form>
-                </div>
+                </motion.div>
               );
             })}
         </div>
