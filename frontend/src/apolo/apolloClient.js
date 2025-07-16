@@ -10,6 +10,7 @@ import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
 import { createClient } from "graphql-ws";
 import { getMainDefinition } from "@apollo/client/utilities";
 import { setContext } from "@apollo/client/link/context";
+import { onError } from "@apollo/client/link/error";
 
 // Константы
 const GRAPHQL_URI = "http://localhost:4000/graphql";
@@ -44,7 +45,7 @@ const authLink = setContext((operation, { headers }) => {
   const isProtected = protectedOperations.includes(operationName);
 
   if (!isProtected) {
-    return { headers }; // 🔓 Пропускаем заголовки
+    return { headers };
   }
 
   const token = localStorage.getItem("token");
@@ -54,6 +55,22 @@ const authLink = setContext((operation, { headers }) => {
       Authorization: token ? `Bearer ${token}` : "",
     },
   };
+});
+
+// ✅ Обработка ошибок
+const errorLink = onError(({ graphQLErrors, networkError }) => {
+  graphQLErrors?.forEach(({ message }) => {
+    if (message === "TokenExpired") {
+      console.log("❗ Token expired, logging out user...");
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "/blog";
+    }
+  });
+
+  if (networkError) {
+    console.error("Network error:", networkError);
+  }
 });
 
 // ✅ WebSocket client (graphql-ws)
@@ -68,13 +85,15 @@ const wsClient = createClient({
         },
       };
     }
-
-    return {}; // На сервере — ничего не отправляем
+    return {};
   },
   on: {
     connected: () => console.log("✅ [WebSocket] Connected successfully"),
     closed: (event) =>
       console.log(`⚠️ [WebSocket] Disconnected (${event.code})`),
+    error: (error) => {
+      console.error("🔥 [WebSocket] Error:", error);
+    },
   },
 });
 
@@ -106,13 +125,13 @@ const splitLink = split(
       definition.operation === "subscription"
     );
   },
-  wsLink, // 👉 WebSocket для подписок
-  authLink.concat(httpLink) // 👉 HTTP с токеном только для защищённых
+  wsLink,
+  authLink.concat(httpLink)
 );
 
 // ✅ Apollo Client
 const client = new ApolloClient({
-  link: ApolloLink.from([loggerLink, splitLink]),
+  link: ApolloLink.from([errorLink, loggerLink, splitLink]),
   cache: new InMemoryCache(),
 });
 

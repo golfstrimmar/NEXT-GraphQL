@@ -29,7 +29,7 @@ interface PostProps {
   setOpenCommentsPostId: (id: number | null) => void;
 }
 const Post: FC<PostProps> = ({
-  key,
+  keyIndex,
   post,
   currentPage,
   setCurrentPage,
@@ -182,7 +182,7 @@ const Post: FC<PostProps> = ({
         type: "spring",
         stiffness: 100, // Жесткость пружины
         damping: 10, // Сглаживание
-        delay: key * 0.1, // Задержка для каждой карточки (каскадный эффект)
+        delay: keyIndex * 0.1, // Задержка для каждой карточки (каскадный эффект)
       }}
     >
       <div className="absolute top-[5px] right-[5px]">

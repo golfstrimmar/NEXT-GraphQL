@@ -134,11 +134,11 @@ const Chats = () => {
                   <div className="grid grid-cols-[1fr_auto] gap-2 items-start justify-between">
                     <div>
                       <p>📢</p>
-                      <p>
+                      <div>
                         <strong>{chat.creator.name}</strong>
                         <p> ↔ </p>
                         <strong>{chat.participant.name}</strong>
-                      </p>
+                      </div>
                       <p className="text-[12px] text-gray-200">
                         🕒 {transformData(chat.createdAt)}
                       </p>

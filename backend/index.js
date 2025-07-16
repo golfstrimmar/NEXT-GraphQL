@@ -9,19 +9,17 @@ import { useServer } from "graphql-ws/use/ws";
 import bodyParser from "body-parser";
 import cors from "cors";
 import jwt from "jsonwebtoken";
-// import { verifyToken } from "./utils/verifyToken.js";
+import prisma from "./utils/prismaClient.js";
 
 import resolvers from "./resolvers/index.js";
 import typeDefs from "./schema.js";
 
 const PORT = 4000;
+const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_here";
 
-let currentNumber = 0;
-const activeSubscriptions = new Map();
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 const app = express();
 const httpServer = createServer(app);
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_here";
 
 const wsServer = new WebSocketServer({
   server: httpServer,
@@ -32,65 +30,40 @@ const serverCleanup = useServer(
   {
     schema,
 
-    context: async (ctx, msg, args) => {
-      const authHeader = ctx.connectionParams?.headers?.Authorization || "";
+    context: async (ctx) => {
+      const authHeader =
+        ctx.connectionParams?.Authorization ||
+        ctx.connectionParams?.headers?.Authorization ||
+        "";
       const token = authHeader.startsWith("Bearer ")
         ? authHeader.slice(7)
         : null;
-      // const user = token ? verifyToken(token) : null;
-      const user = token ? jwt.verify(token, JWT_SECRET) : null;
 
-      return { user };
-    },
+      if (!token) return { user: null };
 
-    onConnect: async (ctx) => {
-      console.log("📡 Client connected +");
-    },
-
-    onDisconnect: async (ctx, code, reason) => {
-      const clientId =
-        ctx.extra.request.headers["sec-websocket-key"] ||
-        ctx.extra.request.socket.remoteAddress;
-      console.log(`⚠️ Client disconnected (${reason})`);
-      activeSubscriptions.delete(clientId);
-    },
-
-    onSubscribe: async (ctx, msg) => {
-      const clientId =
-        ctx.extra.request.headers["sec-websocket-key"] ||
-        ctx.extra.request.socket.remoteAddress;
-      const operationName = msg?.payload?.operationName || "UnnamedOperation";
-
-      const authHeader = ctx.connectionParams?.headers?.Authorization || "";
-      const token = authHeader.startsWith("Bearer ")
-        ? authHeader.slice(7)
-        : null;
-      const user = token ? jwt.verify(token, JWT_SECRET) : null;
-      const userId = user?.userId || "anonymous";
-
-      if (!activeSubscriptions.has(clientId)) {
-        activeSubscriptions.set(clientId, { userId, operations: new Set() });
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        return { user: decoded };
+      } catch (error) {
+        if (error.name === "TokenExpiredError") {
+          const decodedExpired = jwt.decode(token);
+          if (decodedExpired?.userId) {
+            await prisma.user.update({
+              where: { id: decodedExpired.userId },
+              data: { isLoggedIn: false },
+            });
+          }
+        }
+        return { user: null }; // Просто возвращаем null для WebSocket без падения
       }
-
-      const connData = activeSubscriptions.get(clientId);
-      connData.operations.add(operationName);
-
-      // console.log(`🧷 Subscribed: ${operationName} by userId=${userId}`);
     },
 
-    onComplete: async (ctx, msg) => {
-      const clientId =
-        ctx.extra.request.headers["sec-websocket-key"] ||
-        ctx.extra.request.socket.remoteAddress;
-      const operationName = msg?.payload?.operationName || "UnnamedOperation";
+    onConnect: () => {
+      console.log("📡 WebSocket client connected");
+    },
 
-      const connData = activeSubscriptions.get(clientId);
-      if (connData) {
-        connData.operations.delete(operationName);
-        // console.log(
-        //   `❌ Unsubscribed: ${operationName} by userId=${connData.userId}`
-        // );
-      }
+    onDisconnect: () => {
+      console.log("⚠️ WebSocket client disconnected");
     },
   },
   wsServer
@@ -101,7 +74,6 @@ const server = new ApolloServer({
   introspection: true,
   plugins: [
     ApolloServerPluginDrainHttpServer({ httpServer }),
-
     {
       async serverWillStart() {
         return {
@@ -127,24 +99,38 @@ app.use(
   expressMiddleware(server, {
     context: async ({ req }) => {
       const auth = req.headers.authorization || "";
-      // console.log("🛡️ Authorization header:", auth); // <-- Лог заголовка
-
       const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
-      const decoded = token ? jwt.verify(token, JWT_SECRET) : null;
 
-      // console.log("🧾 Decoded token payload:", decoded); // <-- Лог результата верификации
+      if (!token) {
+        return { user: null, userId: null };
+      }
 
-      return {
-        user: decoded,
-        userId: decoded?.userId,
-      };
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        return {
+          user: decoded,
+          userId: decoded.userId,
+        };
+      } catch (error) {
+        if (error.name === "TokenExpiredError") {
+          const decodedExpired = jwt.decode(token);
+          if (decodedExpired?.userId) {
+            await prisma.user.update({
+              where: { id: decodedExpired.userId },
+              data: { isLoggedIn: false },
+            });
+          }
+          throw new Error("TokenExpired");
+        }
+        throw error;
+      }
     },
   })
 );
 
 httpServer.listen(PORT, () => {
-  console.log(`🚀 Query endpoint ready at http://localhost:${PORT}/graphql `);
+  console.log(`🚀 Query endpoint ready at http://localhost:${PORT}/graphql`);
   console.log(
-    `🚀 Subscription endpoint ready at ws://localhost:${PORT}/graphql `
+    `🚀 Subscription endpoint ready at ws://localhost:${PORT}/graphql`
   );
 });

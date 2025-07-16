@@ -9,7 +9,7 @@ import useUserPostSubscriptions from "@/hooks/usePostsSubscription";
 import GetAllPosts from "@/components/GetAllPosts";
 const POSTS_PER_PAGE = 5;
 import PostType from "@/types/post";
-import { button } from "framer-motion/m";
+import { button, div } from "framer-motion/m";
 import "./Blog.scss";
 import Post from "@/components/Post/Post";
 import Select from "@/components/ui/Select/Select";
@@ -175,16 +175,18 @@ const Blog = () => {
             <Loading />
           ) : posts.length > 0 ? (
             <ul className="flex flex-col gap-4 mt-2">
-              {posts.map((post) => (
-                <Post
-                  key={post.id}
-                  post={post}
-                  currentPage={currentPage}
-                  setCurrentPage={setCurrentPage}
-                  PostToEdit={setPostToEdit}
-                  openCommentsPostId={openCommentsPostId}
-                  setOpenCommentsPostId={setOpenCommentsPostId}
-                />
+              {posts.map((post, index) => (
+                <div key={post.id}>
+                  <Post
+                    keyIndex={index}
+                    post={post}
+                    currentPage={currentPage}
+                    setCurrentPage={setCurrentPage}
+                    PostToEdit={setPostToEdit}
+                    openCommentsPostId={openCommentsPostId}
+                    setOpenCommentsPostId={setOpenCommentsPostId}
+                  />
+                </div>
               ))}
             </ul>
           ) : (
