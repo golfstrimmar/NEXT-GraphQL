@@ -83,6 +83,7 @@ type CommentDislike {
     posts(skip: Int, take: Int, category: String, sortOrder: String, searchTerm: String): PostsResponse
     categories: [String!]!
     comments(postId: Int!): [Comment!]!
+    checkToken: Boolean!
   }
 
   type Mutation {

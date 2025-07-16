@@ -1,5 +1,11 @@
 import { gql } from "@apollo/client";
 
+export const CHECK_TOKEN = gql`
+  query checkToken {
+    checkToken
+  }
+`;
+
 export const GET_USERS = gql`
   query getAllUsers {
     users {

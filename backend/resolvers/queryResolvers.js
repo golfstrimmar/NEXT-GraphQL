@@ -3,6 +3,13 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 const Query = {
+  checkToken: async (parent, args, context) => {
+    if (!context.user) {
+      throw new Error("UserLoggedOut");
+    }
+    return true;
+  },
+
   users: async () => {
     console.log("=> Запрос users");
     try {

@@ -1,4 +1,3 @@
-// Импорты
 import {
   ApolloClient,
   InMemoryCache,
@@ -12,11 +11,9 @@ import { getMainDefinition } from "@apollo/client/utilities";
 import { setContext } from "@apollo/client/link/context";
 import { onError } from "@apollo/client/link/error";
 
-// Константы
 const GRAPHQL_URI = "http://localhost:4000/graphql";
 const WS_URI = "ws://localhost:4000/graphql";
 
-// 🛡️ Список операций, требующих токена
 const protectedOperations = [
   "logoutUser",
   "deleteUser",
@@ -34,12 +31,11 @@ const protectedOperations = [
   "likeComment",
   "dislikeComment",
   "updatePost",
+  "checkToken",
 ];
 
-// ✅ HTTP link
 const httpLink = new HttpLink({ uri: GRAPHQL_URI });
 
-// ✅ Авторизационный линк для HTTP
 const authLink = setContext((operation, { headers }) => {
   const operationName = operation.operationName;
   const isProtected = protectedOperations.includes(operationName);
@@ -48,7 +44,8 @@ const authLink = setContext((operation, { headers }) => {
     return { headers };
   }
 
-  const token = localStorage.getItem("token");
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
   return {
     headers: {
       ...headers,
@@ -57,14 +54,15 @@ const authLink = setContext((operation, { headers }) => {
   };
 });
 
-// ✅ Обработка ошибок
 const errorLink = onError(({ graphQLErrors, networkError }) => {
   graphQLErrors?.forEach(({ message }) => {
-    if (message === "TokenExpired") {
-      console.log("❗ Token expired, logging out user...");
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      window.location.href = "/blog";
+    if (message === "TokenExpired" || message === "UserLoggedOut") {
+      console.log("❗ Token invalid or user logged out, logging out...");
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        window.location.href = "/blog";
+      }
     }
   });
 
@@ -73,7 +71,6 @@ const errorLink = onError(({ graphQLErrors, networkError }) => {
   }
 });
 
-// ✅ WebSocket client (graphql-ws)
 const wsClient = createClient({
   url: WS_URI,
   connectionParams: () => {
@@ -97,10 +94,8 @@ const wsClient = createClient({
   },
 });
 
-// ✅ GraphQLWsLink для подписок
 const wsLink = new GraphQLWsLink(wsClient);
 
-// ✅ Логгер (по желанию)
 const loggerLink = new ApolloLink((operation, forward) => {
   console.log("🔍 [Apollo] Operation:", {
     name: operation.operationName,
@@ -116,7 +111,6 @@ const loggerLink = new ApolloLink((operation, forward) => {
   });
 });
 
-// ✅ Разделение: HTTP ↔️ WebSocket
 const splitLink = split(
   ({ query }) => {
     const definition = getMainDefinition(query);
@@ -129,7 +123,6 @@ const splitLink = split(
   authLink.concat(httpLink)
 );
 
-// ✅ Apollo Client
 const client = new ApolloClient({
   link: ApolloLink.from([errorLink, loggerLink, splitLink]),
   cache: new InMemoryCache(),

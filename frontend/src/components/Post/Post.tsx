@@ -209,11 +209,21 @@ const Post: FC<PostProps> = ({
         <small className="text-indigo-400">Autor: </small>
         {post.creator.name}
       </h4>
+      <h4 className="">
+        <small className="text-indigo-400">Created: </small>
+        {transformData(post.createdAt)}
+      </h4>
       <p className="text-black my-4">{post.text}</p>
-      <small className="text-gray-400 ">
-        Created: {transformData(post.createdAt)}
-      </small>
+
       <div className="flex gap-4  mt-4">
+        <button
+          onClick={() => {
+            setOpenCommentsPostId(isOpen ? null : post.id);
+          }}
+          className="relative inline-flex  items-center gap-2 cursor-pointer comments-button"
+        >
+          <Image src="./svg/comment.svg" alt="comment" width={25} height={25} />
+        </button>
         <div className="relative flex items-center gap-2">
           <button
             onClick={() => {
@@ -254,14 +264,6 @@ const Post: FC<PostProps> = ({
           </button>
         )}
       </div>
-      <button
-        onClick={() => {
-          setOpenCommentsPostId(isOpen ? null : post.id);
-        }}
-        className="relative inline-flex  items-center gap-2 cursor-pointer comments-button"
-      >
-        <Image src="./svg/comment.svg" alt="comment" width={25} height={25} />
-      </button>
 
       <AnimatePresence>
         {isOpen && !loading && !error && (

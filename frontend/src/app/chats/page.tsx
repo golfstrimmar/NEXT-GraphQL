@@ -134,9 +134,9 @@ const Chats = () => {
                   <div className="grid grid-cols-[1fr_auto] gap-2 items-start justify-between">
                     <div>
                       <p>📢</p>
-                      <div>
+                      <div className=" text-gray-200">
                         <strong>{chat.creator.name}</strong>
-                        <p> ↔ </p>
+                        <span> ↔ </span>
                         <strong>{chat.participant.name}</strong>
                       </div>
                       <p className="text-[12px] text-gray-200">
@@ -212,7 +212,7 @@ const Chats = () => {
                   </ul>
                   {/* --------------------------------- */}
                   <form
-                    className="mt-2 relative  overflow-hidden rounded-[5px]"
+                    className="mt-2 relative  rounded-[5px]"
                     onSubmit={(e) => handleSendMessage(e, chat.id)}
                   >
                     <Input

@@ -106,7 +106,23 @@ app.use(
       }
 
       try {
+        // const decoded = jwt.verify(token, JWT_SECRET);
+        // return {
+        //   user: decoded,
+        //   userId: decoded.userId,
+        // };
+
         const decoded = jwt.verify(token, JWT_SECRET);
+
+        const dbUser = await prisma.user.findUnique({
+          where: { id: decoded.userId },
+          select: { isLoggedIn: true },
+        });
+
+        if (!dbUser || !dbUser.isLoggedIn) {
+          throw new Error("UserLoggedOut");
+        }
+
         return {
           user: decoded,
           userId: decoded.userId,
