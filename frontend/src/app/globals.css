@@ -20,10 +20,11 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: rgba(96, 117, 235, 0.3);
+  color: #171717;
   font-family: Arial, Helvetica, sans-serif;
 }
+<<<<<<< HEAD
 @keyframes pulse-opacity {
   0%,
   100% {
@@ -33,3 +34,27 @@ body {
     opacity: 1;
   }
 }
+=======
+/* :root,
+html,
+body,
+* {
+  cursor: url(/red-dot.svg) 8 8, auto !important;
+} */
+@layer utilities {
+  .animate-spin-slower {
+    animation: spin 1.5s linear infinite;
+  }
+}
+
+h2 {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.container {
+  margin: 0 auto;
+  max-width: 1200px;
+  padding: 0 1rem;
+}
+>>>>>>> simple

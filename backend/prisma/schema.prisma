@@ -1,7 +1,16 @@
+<<<<<<< HEAD
+=======
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+>>>>>>> simple
 generator client {
   provider = "prisma-client-js"
 }
 
+<<<<<<< HEAD
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")  // Подставьте URL новой Neon-базы
@@ -101,3 +110,111 @@ model PrivateMessage {
   receiverId  Int
   @@index([chatId, createdAt])
 }
+=======
+model User {
+  id                Int             @id @default(autoincrement())
+  email             String          @unique
+  name              String
+  password          String?  
+  googleId          String?  
+  createdAt         DateTime        @default(now())
+  isLoggedIn        Boolean         @default(false)
+  picture           String?    
+  posts             Post[]
+  comments          Comment[]
+  postLikes         PostLike[]
+  postDislikes      PostDislike[]
+  commentLikes      CommentLike[]
+  commentDislikes   CommentDislike[]
+  chatsCreated      Chat[]          @relation("ChatCreator")
+  chatsParticipated Chat[]          @relation("ChatParticipant")
+  messages          Message[]       @relation("UserMessages")
+}
+
+model Chat {
+  id            Int       @id @default(autoincrement())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  isActive      Boolean   @default(true)
+  creatorId     Int
+  creator       User      @relation("ChatCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  participantId Int
+  participant   User      @relation("ChatParticipant", fields: [participantId], references: [id], onDelete: Cascade)
+  messages      Message[]
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  chatId    Int
+  sender    User     @relation("UserMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  senderId  Int
+}
+
+model Post {
+  id         Int        @id @default(autoincrement())
+  title      String
+  text       String
+  category   String
+  createdAt  DateTime   @default(now())
+  creatorId  Int
+  creator    User       @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  comments   Comment[]
+  likes      PostLike[]
+  dislikes   PostDislike[]
+}
+
+model Comment {
+  id         Int          @id @default(autoincrement())
+  text       String
+  createdAt  DateTime     @default(now())
+  userId     Int
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId     Int
+  post       Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  commentLikes CommentLike[]
+  commentDislikes CommentDislike[]
+}
+
+model PostLike {
+  id      Int  @id @default(autoincrement())
+  post    Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId  Int
+  user    User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId  Int
+
+  @@unique([postId, userId])
+}
+
+model PostDislike {
+  id      Int  @id @default(autoincrement())
+  post    Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId  Int
+  user    User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId  Int
+
+  @@unique([postId, userId])
+}
+
+model CommentLike {
+  id         Int      @id @default(autoincrement())
+  comment    Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  commentId  Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     Int
+
+  @@unique([commentId, userId])
+}
+
+model CommentDislike {
+  id         Int      @id @default(autoincrement())
+  comment    Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  commentId  Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     Int
+
+  @@unique([commentId, userId])
+}
+>>>>>>> simple

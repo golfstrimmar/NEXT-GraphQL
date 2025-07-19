@@ -50,7 +50,11 @@ const Button: React.FC<ButtonProps> = ({
           handleButtonClick(e);
         }}
         value={buttonValue}
+<<<<<<< HEAD
         className={`${styles.rippleButton} ripple-button relative text-white bg-[#2422a7] hover:bg-[#9ba8f1] focus:ring-4 focus:outline-none focus:ring-[#2422a7]/50 font-medium rounded-lg w-full mt-4  px-5 py-2.5 text-center inline-flex items-center justify-center transition duration-200 ease-in-out cursor-pointer overflow-hidden `}
+=======
+        className={`${styles.rippleButton} ripple-button relative text-white bg-[#30344c] hover:bg-[#9ba8f1] focus:ring-4 focus:outline-none focus:ring-[#2422a7]/50 font-medium rounded-lg w-full   px-5 py-2.5 text-center inline-flex items-center justify-center transition duration-200 ease-in-out cursor-pointer overflow-hidden `}
+>>>>>>> simple
       >
         {ripples.map((ripple) => (
           <span

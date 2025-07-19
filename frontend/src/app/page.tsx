@@ -1,4 +1,5 @@
 "use client";
+<<<<<<< HEAD
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useSubscription, gql } from "@apollo/client";
 import { useApolloClient } from "@apollo/client";
@@ -240,6 +241,14 @@ export default function ChatPage() {
           )}
         </section>
       </main>
+=======
+import React from "react";
+
+export default function Users() {
+  return (
+    <div className="container ">
+      <div className="mt-[80px] w-full">Home</div>
+>>>>>>> simple
     </div>
   );
 }

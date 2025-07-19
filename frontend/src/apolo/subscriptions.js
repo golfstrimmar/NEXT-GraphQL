@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 // graphql/subscriptions.js
+=======
+>>>>>>> simple
 import { gql } from "@apollo/client";
 
 export const USER_CREATED_SUBSCRIPTION = gql`
@@ -18,6 +21,10 @@ export const USER_LOGIN_SUBSCRIPTION = gql`
       id
       email
       name
+<<<<<<< HEAD
+=======
+      picture
+>>>>>>> simple
       isLoggedIn
       createdAt
     }
@@ -71,6 +78,7 @@ export const CHAT_DELETED_SUBSCRIPTION = gql`
 `;
 
 export const MESSAGE_SENT_SUBSCRIPTION = gql`
+<<<<<<< HEAD
   subscription {
     messageSent {
       id
@@ -82,7 +90,170 @@ export const MESSAGE_SENT_SUBSCRIPTION = gql`
       sender {
         id
         name
+=======
+  subscription messageSent($chatId: Int!) {
+    messageSent(chatId: $chatId) {
+      id
+      content
+      createdAt
+      sender {
+        id
+        name
+      }
+      chat {
+        id
       }
     }
   }
 `;
+
+export const MESSAGE_DELETED_SUBSCRIPTION = gql`
+  subscription messageDeleted($chatId: Int!) {
+    messageDeleted(chatId: $chatId)
+  }
+`;
+
+export const POST_CREATED_SUBSCRIPTION = gql`
+  subscription postCreated {
+    postCreated {
+      id
+      title
+      text
+      category
+      createdAt
+      creator {
+        id
+        name
+        email
+      }
+      likesCount
+      dislikesCount
+      likes
+      dislikes
+    }
+  }
+`;
+export const POST_DELETED_SUBSCRIPTION = gql`
+  subscription postDeleted {
+    postDeleted
+  }
+`;
+
+export const POST_LIKED_SUBSCRIPTION = gql`
+  subscription postLiked {
+    postLiked {
+      id
+      title
+      text
+      category
+      createdAt
+      creator {
+        id
+        name
+        email
+      }
+      likesCount
+      dislikesCount
+      likes
+      dislikes
+    }
+  }
+`;
+
+export const POST_DISLIKED_SUBSCRIPTION = gql`
+  subscription postDisliked {
+    postDisliked {
+      id
+      title
+      text
+      category
+      createdAt
+      creator {
+        id
+        name
+        email
+      }
+      likesCount
+      dislikesCount
+      likes
+      dislikes
+    }
+  }
+`;
+
+export const COMMENT_CREATED_SUBSCRIPTION = gql`
+  subscription commentAdded {
+    commentAdded {
+      id
+      text
+      createdAt
+      user {
+        name
+>>>>>>> simple
+      }
+    }
+  }
+`;
+<<<<<<< HEAD
+=======
+
+export const COMMENT_DELETED_SUBSCRIPTION = gql`
+  subscription commentDeleted {
+    commentDeleted
+  }
+`;
+
+export const COMMENT_LIKED_SUBSCRIPTION = gql`
+  subscription commentLiked {
+    commentLiked {
+      id
+      text
+      createdAt
+      commentLikes {
+        id
+        user {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+
+export const COMMENT_DISLIKED_SUBSCRIPTION = gql`
+  subscription commentDisliked {
+    commentDisliked {
+      id
+      text
+      createdAt
+      commentDislikes {
+        id
+        user {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+
+export const POST_UPDATED_SUBSCRIPTION = gql`
+  subscription postUpdated {
+    postUpdated {
+      id
+      title
+      text
+      category
+      createdAt
+      creator {
+        id
+        name
+      }
+      likesCount
+      dislikesCount
+      likes
+      dislikes
+    }
+  }
+`;
+>>>>>>> simple

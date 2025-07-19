@@ -9,6 +9,7 @@ const resolvers = {
   Query,
   Mutation,
   Subscription,
+<<<<<<< HEAD
 
   Chat: {
     messages: async (parent) => {
@@ -19,6 +20,8 @@ const resolvers = {
       });
     },
   },
+=======
+>>>>>>> simple
 };
 
 export default resolvers;
