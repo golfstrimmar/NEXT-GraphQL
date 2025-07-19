@@ -1,58 +1,41 @@
+// utils/fetchPostsSSR.ts
 import { client } from "@/apolo/apolloClient";
-import { gql } from "@apollo/client";
+import { GET_ALL_CATEGORIES, GET_ALL_POSTS } from "@/apolo/queryes";
 
-const GET_ALL_POSTS = gql`
-  query GetAllPosts(
-    $skip: Int!
-    $take: Int!
-    $category: String
-    $sortOrder: String
-    $searchTerm: String
-  ) {
-    posts(
-      skip: $skip
-      take: $take
-      category: $category
-      sortOrder: $sortOrder
-      searchTerm: $searchTerm
-    ) {
-      posts {
-        id
-        title
-        text
-        category
-        createdAt
-        creator {
-          id
-          name
-          email
-        }
-        likesCount
-        dislikesCount
-        likes
-        dislikes
-      }
-      totalCount
-    }
-  }
-`;
+export async function fetchPostsSSR() {
+  let postsData = { posts: [], totalCount: 0 };
+  let categoriesData = [];
 
-export async function fetchPostsSSR({
-  skip = 0,
-  take = 5,
-  category = null,
-  sortOrder = "decr",
-  searchTerm = "",
-} = {}) {
   try {
     const { data } = await client.query({
       query: GET_ALL_POSTS,
-      variables: { skip, take, category, sortOrder, searchTerm },
+      variables: {
+        skip: 0,
+        take: 5,
+        category: null,
+        sortOrder: "decr",
+        searchTerm: "",
+      },
       fetchPolicy: "no-cache",
     });
-    return data.posts || { posts: [], totalCount: 0 };
+    postsData = data.posts;
   } catch (error) {
-    console.error("SSR fetchPostsSSR error:", error);
-    return { posts: [], totalCount: 0 };
+    console.error("Error fetching posts:", error);
   }
+
+  try {
+    const { data } = await client.query({
+      query: GET_ALL_CATEGORIES,
+      fetchPolicy: "no-cache",
+    });
+    categoriesData = data.categories;
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+  }
+
+  return {
+    posts: postsData.posts || [],
+    totalCount: postsData.totalCount || 0,
+    categories: categoriesData || [],
+  };
 }

@@ -1,5 +1,6 @@
+// app/blog/page.tsx
+import { fetchPostsSSR } from "@/utils/fetchPostsSSR";
 import Blog from "@/components/Blog/Blog";
-import { fetchPostsSSR } from "@/utils/fetchPostsSSR"; // твоя серверная функция
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -8,7 +9,13 @@ export const metadata: Metadata = {
 };
 
 export default async function BlogPage() {
-  const initialPosts = await fetchPostsSSR(1, 5);
+  const { posts, totalCount, categories } = await fetchPostsSSR(); // не getServerSideProps!
 
-  return <Blog initialPosts={initialPosts} />;
+  return (
+    <Blog
+      initialPosts={posts}
+      initialCategories={categories}
+      initialTotalCount={totalCount}
+    />
+  );
 }
