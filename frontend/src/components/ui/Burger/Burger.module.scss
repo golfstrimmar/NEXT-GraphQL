@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-@import '@/scss/common/colors';
-
-=======
->>>>>>> simple
 .burger {
   display: none;
 }
@@ -23,11 +18,7 @@
 
 
       &:hover * {
-<<<<<<< HEAD
-        background-color:  $hover;
-=======
         background-color: gray;
->>>>>>> simple
       }
     }
 
@@ -40,23 +31,6 @@
       border-radius: 2px;
       transition: all .2s;
     }
-<<<<<<< HEAD
-             &.run .burger-wrap {
-               .burger-top {
-                 width: 130%;
-                 transform: rotate(45deg) translate(4px, 7px);
-               }
-      
-               .burger-line {
-                 opacity: 0;
-               }
-      
-               .burger-bottom {
-                 width: 130%;
-                 transform: rotate(-45deg) translate(3px, -6px);
-               }
-             }
-=======
 
     &.run .burger-wrap {
       .burger-top {
@@ -73,6 +47,5 @@
         transform: rotate(-45deg) translate(3px, -6px);
       }
     }
->>>>>>> simple
   }
 }

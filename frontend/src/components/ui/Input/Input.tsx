@@ -1,10 +1,6 @@
 "use client";
 import React, { RefObject } from "react";
-<<<<<<< HEAD
-import styles from "./Input.module.scss";
-=======
 import "./input.scss";
->>>>>>> simple
 
 interface InputProps {
   typeInput:
@@ -44,16 +40,9 @@ const Input: React.FC<InputProps> = ({
   activ,
 }) => {
   return (
-<<<<<<< HEAD
-    <div className={styles["input-field"]}>
-      {typeInput === "textarea" ? (
-        <textarea
-          rows="5"
-=======
     <div className="input-field">
       {typeInput === "textarea" ? (
         <textarea
->>>>>>> simple
           id={id}
           name={name}
           value={value}
@@ -74,18 +63,9 @@ const Input: React.FC<InputProps> = ({
           value={value}
           onChange={onChange}
           onClick={onClick}
-<<<<<<< HEAD
-          className={
-            styles["no-search-cancel"] +
-            `${
-              activ ? "bg-emerald-400  " : ""
-            }   cursor-pointer border rounded  px-1   border-emerald-900`
-          }
-=======
           className={`${
             activ ? "bg-emerald-400  " : ""
           }   cursor-pointer border rounded  px-1   border-emerald-900`}
->>>>>>> simple
           required
         />
       )}

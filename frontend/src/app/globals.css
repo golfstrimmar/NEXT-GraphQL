@@ -24,17 +24,6 @@ body {
   color: #171717;
   font-family: Arial, Helvetica, sans-serif;
 }
-<<<<<<< HEAD
-@keyframes pulse-opacity {
-  0%,
-  100% {
-    opacity: 0.3;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-=======
 /* :root,
 html,
 body,
@@ -57,4 +46,3 @@ h2 {
   max-width: 1200px;
   padding: 0 1rem;
 }
->>>>>>> simple

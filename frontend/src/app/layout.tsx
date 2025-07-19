@@ -4,7 +4,6 @@ import ApolloWrapper from "../apolo/ApolloWrapper";
 import Navbar from "@/components/Navbar/Navbar";
 import { StateProvider } from "@/components/StateProvider";
 import "./globals.css";
-import Navbar from "@/components/Navbar/Navbar";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],

@@ -104,8 +104,6 @@ export const SEND_MESSAGE = gql`
     }
   }
 `;
-<<<<<<< HEAD
-=======
 
 export const DELETE_MESSAGE = gql`
   mutation deleteMessage($chatId: Int, $messageId: Int!) {
@@ -247,4 +245,3 @@ export const UPDATE_POST = gql`
     }
   }
 `;
->>>>>>> simple
