@@ -10,12 +10,12 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import jwt from "jsonwebtoken";
 import prisma from "./utils/prismaClient.js";
-
+import dotenv from "dotenv";
 import resolvers from "./resolvers/index.js";
 import typeDefs from "./schema.js";
 
-const PORT = 4000;
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_here";
+dotenv.config();
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 const app = express();
@@ -143,9 +143,9 @@ app.use(
     },
   })
 );
-
+const PORT = process.env.PORT || 4000;
 httpServer.listen(PORT, () => {
-  console.log(`🚀 Query endpoint ready at http://localhost:${PORT}/graphql`);
+  console.log(`🚀 Query endpoint ready at ${PORT}`);
   console.log(
     `🚀 Subscription endpoint ready at ws://localhost:${PORT}/graphql`
   );

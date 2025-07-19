@@ -11,8 +11,10 @@ import { getMainDefinition } from "@apollo/client/utilities";
 import { setContext } from "@apollo/client/link/context";
 import { onError } from "@apollo/client/link/error";
 
-const GRAPHQL_URI = "http://localhost:4000/graphql";
-const WS_URI = "ws://localhost:4000/graphql";
+// const GRAPHQL_URI = "http://localhost:4000/graphql";
+// const WS_URI = "ws://localhost:4000/graphql";
+const GRAPHQL_URI = process.env.NEXT_PUBLIC_GRAPHQL_URL;
+const WS_URI = process.env.NEXT_PUBLIC_GRAPHQL_WS_URL;
 
 const protectedOperations = [
   "logoutUser",
