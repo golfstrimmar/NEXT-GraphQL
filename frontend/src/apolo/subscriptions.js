@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-// graphql/subscriptions.js
-=======
->>>>>>> simple
 import { gql } from "@apollo/client";
 
 export const USER_CREATED_SUBSCRIPTION = gql`
@@ -21,10 +17,7 @@ export const USER_LOGIN_SUBSCRIPTION = gql`
       id
       email
       name
-<<<<<<< HEAD
-=======
       picture
->>>>>>> simple
       isLoggedIn
       createdAt
     }
@@ -78,19 +71,6 @@ export const CHAT_DELETED_SUBSCRIPTION = gql`
 `;
 
 export const MESSAGE_SENT_SUBSCRIPTION = gql`
-<<<<<<< HEAD
-  subscription {
-    messageSent {
-      id
-      text
-      createdAt
-      chat {
-        id
-      }
-      sender {
-        id
-        name
-=======
   subscription messageSent($chatId: Int!) {
     messageSent(chatId: $chatId) {
       id
@@ -189,13 +169,10 @@ export const COMMENT_CREATED_SUBSCRIPTION = gql`
       createdAt
       user {
         name
->>>>>>> simple
       }
     }
   }
 `;
-<<<<<<< HEAD
-=======
 
 export const COMMENT_DELETED_SUBSCRIPTION = gql`
   subscription commentDeleted {
@@ -256,4 +233,3 @@ export const POST_UPDATED_SUBSCRIPTION = gql`
     }
   }
 `;
->>>>>>> simple

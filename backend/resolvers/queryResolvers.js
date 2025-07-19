@@ -1,28 +1,8 @@
-<<<<<<< HEAD
-// queryResolvers.js
-=======
->>>>>>> simple
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 const Query = {
-<<<<<<< HEAD
-  users: async () => {
-    return await prisma.user.findMany();
-  },
-  chats: async () => {
-    return await prisma.chat.findMany({
-      include: {
-        creator: true,
-        participant: true,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-  },
-=======
   checkToken: async (parent, args, context) => {
     if (!context.user) {
       throw new Error("UserLoggedOut");
@@ -106,7 +86,6 @@ const Query = {
     }
   },
 
->>>>>>> simple
   messages: async (_, { chatId }, { userId }) => {
     if (!userId) throw new Error("Not authenticated");
 
@@ -124,8 +103,6 @@ const Query = {
       include: { sender: true, chat: true },
     });
   },
-<<<<<<< HEAD
-=======
 
   posts: async (
     _,
@@ -253,7 +230,6 @@ const Query = {
     console.log("<====== 📋📋📋 query comments =====>", comments.length);
     return comments;
   },
->>>>>>> simple
 };
 
 export default Query;

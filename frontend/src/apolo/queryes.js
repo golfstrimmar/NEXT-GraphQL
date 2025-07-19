@@ -1,65 +1,43 @@
 import { gql } from "@apollo/client";
 
-<<<<<<< HEAD
-=======
 export const CHECK_TOKEN = gql`
   query checkToken {
     checkToken
   }
 `;
 
->>>>>>> simple
 export const GET_USERS = gql`
   query getAllUsers {
     users {
       id
       email
       name
-<<<<<<< HEAD
-=======
       picture
->>>>>>> simple
       isLoggedIn
       createdAt
     }
   }
 `;
 
-<<<<<<< HEAD
-export const GET_ALL_CHATS = gql`
-  query getAllChats {
-    chats {
-=======
 export const GET_USER_CHATS = gql`
   query GetUserChats {
     userChats {
->>>>>>> simple
       id
       createdAt
       creator {
         id
         name
-<<<<<<< HEAD
-=======
         email
->>>>>>> simple
       }
       participant {
         id
         name
-<<<<<<< HEAD
-      }
-      messages {
-        id
-        text
-=======
         email
       }
       messages {
         id
         content
         createdAt
->>>>>>> simple
         sender {
           id
           name
@@ -68,8 +46,6 @@ export const GET_USER_CHATS = gql`
     }
   }
 `;
-<<<<<<< HEAD
-=======
 
 export const GET_ALL_POSTS = gql`
   query GetAllPosts(
@@ -143,4 +119,3 @@ export const GET_ALL_COMMENTS = gql`
     }
   }
 `;
->>>>>>> simple

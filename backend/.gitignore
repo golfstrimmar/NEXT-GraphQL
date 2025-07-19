@@ -3,8 +3,5 @@ node_modules
 .env
 
 /generated/prisma
-<<<<<<< HEAD
-=======
 
 /generated/prisma
->>>>>>> simple

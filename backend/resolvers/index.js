@@ -9,19 +9,6 @@ const resolvers = {
   Query,
   Mutation,
   Subscription,
-<<<<<<< HEAD
-
-  Chat: {
-    messages: async (parent) => {
-      return await prisma.message.findMany({
-        where: { chatId: parent.id },
-        orderBy: { createdAt: "asc" },
-        include: { sender: true },
-      });
-    },
-  },
-=======
->>>>>>> simple
 };
 
 export default resolvers;

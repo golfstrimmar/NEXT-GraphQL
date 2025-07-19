@@ -4,41 +4,13 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-<<<<<<< HEAD
-    "start": "node src/index.js",
-    "dev": "node src/index.js",
-    "prisma:migrate": "npx prisma migrate dev --name init"
-=======
     "start": "node index.js"
->>>>>>> simple
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-<<<<<<< HEAD
-    "@apollo/client": "^3.13.8",
-    "@apollo/server": "^4.9.0",
-    "@graphql-tools/schema": "^10.0.23",
-    "@prisma/client": "^6.9.0",
-    "bcrypt": "^6.0.0",
-    "bcryptjs": "^3.0.2",
-    "cors": "^2.8.5",
-    "express": "^5.1.0",
-    "google-auth-library": "^10.1.0",
-    "graphql": "^16.11.0",
-    "graphql-subscriptions": "^3.0.0",
-    "graphql-tag": "^2.12.6",
-    "graphql-ws": "^5.11.2",
-    "jsonwebtoken": "^9.0.2",
-    "subscriptions-transport-ws": "^0.11.0",
-    "ws": "^8.13.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.10",
-    "prisma": "^6.9.0"
-=======
     "@apollo/server": "^4.12.2",
     "@graphql-tools/schema": "^10.0.23",
     "@prisma/client": "^6.10.1",
@@ -57,6 +29,5 @@
   },
   "devDependencies": {
     "prisma": "^6.10.1"
->>>>>>> simple
   }
 }

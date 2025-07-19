@@ -2,11 +2,7 @@
 import { gql } from "@apollo/client";
 
 export const ADD_USER = gql`
-<<<<<<< HEAD
-  mutation addUser($email: String!, $name: String, $password: String!) {
-=======
   mutation addUser($email: String!, $name: String!, $password: String!) {
->>>>>>> simple
     addUser(email: $email, name: $name, password: $password) {
       id
       email
@@ -53,10 +49,7 @@ export const GOOGLE_LOGIN = gql`
       token
       isLoggedIn
       createdAt
-<<<<<<< HEAD
-=======
       picture
->>>>>>> simple
     }
   }
 `;
@@ -77,18 +70,12 @@ export const CREATE_CHAT = gql`
       creator {
         id
         email
-<<<<<<< HEAD
-=======
         name
->>>>>>> simple
       }
       participant {
         id
         email
-<<<<<<< HEAD
-=======
         name
->>>>>>> simple
       }
     }
   }
@@ -96,17 +83,6 @@ export const CREATE_CHAT = gql`
 
 export const DELETE_CHAT = gql`
   mutation deleteChat($id: Int!) {
-<<<<<<< HEAD
-    deleteChat(id: $id)
-  }
-`;
-
-export const SEND_MESSAGE = gql`
-  mutation sendMessage($chatId: Int!, $text: String!) {
-    sendMessage(chatId: $chatId, text: $text) {
-      id
-      text
-=======
     deleteChat(id: $id) {
       id
     }
@@ -117,7 +93,6 @@ export const SEND_MESSAGE = gql`
     sendMessage(chatId: $chatId, content: $content) {
       id
       content
->>>>>>> simple
       createdAt
       sender {
         id

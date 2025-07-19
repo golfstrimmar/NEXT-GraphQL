@@ -1,8 +1,5 @@
-<<<<<<< HEAD
-=======
 import { withFilter } from "graphql-subscriptions";
 
->>>>>>> simple
 import {
   pubsub,
   USER_CREATED,
@@ -12,11 +9,6 @@ import {
   CHAT_CREATED,
   CHAT_DELETED,
   MESSAGE_SENT,
-<<<<<<< HEAD
-} from "./../utils/pubsub.js";
-
-const Subscription = {
-=======
   MESSAGE_DELETED,
   POST_CREATED,
   POST_DELETED,
@@ -31,7 +23,6 @@ const Subscription = {
 
 const Subscription = {
   //=== User subscriptions
->>>>>>> simple
   userCreated: {
     subscribe: () => pubsub.asyncIterator(USER_CREATED),
   },
@@ -44,16 +35,6 @@ const Subscription = {
   userDeleted: {
     subscribe: () => pubsub.asyncIterator(USER_DELETED),
   },
-<<<<<<< HEAD
-  chatCreated: {
-    subscribe: () => pubsub.asyncIterator(CHAT_CREATED),
-  },
-  chatDeleted: {
-    subscribe: () => pubsub.asyncIterator(CHAT_DELETED),
-  },
-  messageSent: {
-    subscribe: () => pubsub.asyncIterator(MESSAGE_SENT),
-=======
 
   //===== Chat subscriptions
   chatCreated: {
@@ -206,7 +187,6 @@ const Subscription = {
       console.log("📨 postUpdated payload:", payload.postUpdated);
       return payload.postUpdated;
     },
->>>>>>> simple
   },
 };
 
