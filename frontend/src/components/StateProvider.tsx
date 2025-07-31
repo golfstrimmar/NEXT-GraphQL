@@ -1,76 +1,101 @@
 "use client";
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-} from "react";
-import User from "@/types/user";
-import dynamic from "next/dynamic";
-const ModalMessage = dynamic(
-  () => import("@/components/ModalMessage/ModalMessage"),
-  { ssr: false }
-);
+import {createContext, ReactNode, useContext, useEffect, useState,} from "react";
+import codeRemoveActive from "@/utils/codeRemoveActive";
+
+type HtmlNode = {
+    type: string;
+    attributes?: {
+        class?: string;
+        children?: HtmlNode[] | HtmlNode | string;
+        [key: string]: any;
+    };
+};
+
+type NodeToEdit = {
+    type: number;
+};
+
 interface StateContextType {
-  user: User | null;
-  setUser: React.Dispatch<React.SetStateAction<User | null>>;
-  showModal: (message: string, duration?: number) => void;
-  modalMessage: string;
-  isModalOpen: boolean;
-  chats: Chat[];
+    htmlJson: HtmlNode[];
+    setHtmlJson: React.Dispatch<React.SetStateAction<HtmlNode[]>>;
+    nodeToEdit: NodeToEdit | null;
+    setNodeToEdit: React.Dispatch<React.SetStateAction<NodeToEdit | null>>;
+    result: string | undefined;
+    setResult: React.Dispatch<React.SetStateAction<string | undefined>>;
 }
 
-const StateContext = createContext<StateContextType | undefined>(undefined);
+const StateContext = createContext<StateContextType | null>(null);
 
-export function StateProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [modalMessage, setModalMessage] = useState<string>("");
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [showIsModal, setShowIsModal] = useState<boolean>(false);
+export function StateProvider({children}: { children: ReactNode }) {
+    const [htmlJson, setHtmlJson] = useState<HtmlNode[]>([]);
+    const [nodeToEdit, setNodeToEdit] = useState<NodeToEdit | null>(null);
+    const [result, setResult] = useState<string>();
 
-  const showModal = (message: string, duration = 2000) => {
-    setModalMessage(message);
-    setIsModalOpen(true);
-    setShowIsModal(true);
-    setTimeout(() => {
-      setIsModalOpen(false);
-      setModalMessage("");
-    }, duration);
-  };
+    const initialize = async () => {
+        try {
+            // Проверяем доступность localStorage
+            if (typeof window === "undefined") return;
 
-  useEffect(() => {
-    console.log("👀 user changed in StateProvider:", user);
-  }, [user]);
+            const stored = localStorage.getItem("htmlJson");
+            if (stored) {
+                setHtmlJson(JSON.parse(stored));
+            } else {
+                // const res = await fetch("/data/initialTags.json");
+                const res = await fetch("/data/flex-col.json");
+                if (!res.ok) throw new Error("Failed to fetch initial tags");
+                const json = await res.json();
+                localStorage.setItem("htmlJson", JSON.stringify(json));
+                setHtmlJson(json);
+            }
+        } catch (error) {
+            console.error("Initialization error:", error);
+            setHtmlJson([]); // Fallback пустого состояния
+        }
+    };
 
-  useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem("user");
-      if (storedUser) {
-        const parsedUser = JSON.parse(storedUser) as User;
-        setUser(parsedUser);
-      }
-    } catch (err) {
-      console.error("Error restoring user:", err);
-    }
-  }, []);
+    useEffect(() => {
+        initialize();
+    }, []);
 
-  return (
-    <StateContext.Provider
-      value={{ user, setUser, showModal, modalMessage, isModalOpen }}
-    >
-      {children}
-      {showIsModal && (
-        <ModalMessage open={isModalOpen} message={modalMessage} />
-      )}
-    </StateContext.Provider>
-  );
+    useEffect(() => {
+        if (htmlJson && htmlJson.length > 0) {
+            localStorage.setItem("htmlJson", JSON.stringify(htmlJson));
+        }
+    }, [htmlJson]);
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+        if (!nodeToEdit) {
+            codeRemoveActive();
+        }
+    }, [nodeToEdit]);
+
+    useEffect(() => {
+        if (result) {
+            console.log("<====💥💥💥 result====>", result);
+        }
+    }, [result]);
+
+    return (
+        <StateContext.Provider
+            value={{
+                htmlJson,
+                setHtmlJson,
+                nodeToEdit,
+                setNodeToEdit,
+                result,
+                setResult,
+            }}
+        >
+            {children}
+        </StateContext.Provider>
+    );
 }
 
 export function useStateContext() {
-  const context = useContext(StateContext);
-  if (!context) {
-    throw new Error("useStateContext must be used within a StateProvider");
-  }
-  return context;
+    const context = useContext(StateContext);
+    if (context === null) {
+        throw new Error("useStateContext must be used within a StateProvider");
+    }
+    return context;
 }
