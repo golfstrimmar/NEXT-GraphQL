@@ -24,7 +24,7 @@ const transformEl = (node: any): string => {
         : attributes.class || "";
 
     if (voidElements.has(type)) {
-        return `<${type}${attrs ? ` ${attrs}` : ""}  class="${classes}"/>`;
+        return `<${type}${attrs ? ` ${attrs} draggable='true'` : ` draggable='true'`} class="${classes}" />`;
     }
 
     const childrenHTML = Array.isArray(children)
@@ -32,8 +32,7 @@ const transformEl = (node: any): string => {
         : typeof children === "string"
             ? children
             : "";
-
-    return `<${type}${attrs ? ` ${attrs}` : ""}  class="${classes}">${childrenHTML}</${type}>`;
+    return `<${type}${attrs ? ` ${attrs} draggable='true'` : ` draggable='true'`} class="${classes}" >${childrenHTML}</${type}>`;
 };
 
 const jsonToHtml = (nodes: any[]): string => {
