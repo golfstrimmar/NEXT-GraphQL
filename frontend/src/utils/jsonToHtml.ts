@@ -5,7 +5,7 @@ const voidElements = new Set([
 
 const allowedAttributes = new Set([
     "fill-rule", "clip-rule", "d", "fill", "clipPath", "src", "alt", "href",
-    "colspan", "rowspan", "valign", "style", "data-index"
+    "colspan", "rowspan", "valign", "style", "data-index", "id", "class"
 ]);
 
 const transformEl = (node: any): string => {

@@ -258,8 +258,13 @@ span {
   border: 1px solid var(--primary);
   padding: 0 5px;
   
-  &:hover {
-  }
+}
+
+.btn-allert {
+  background-color: red;
+  color: var(--grey-00);
+  border: 1px solid var(--primary);
+  padding: 0 5px;
 }
 
 .btn-empty {
