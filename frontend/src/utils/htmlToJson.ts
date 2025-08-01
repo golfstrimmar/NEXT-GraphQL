@@ -1,5 +1,6 @@
 const htmlToJson = (html: string): any[] => {
-    console.log('<=====⚡html⚡=====>', html);
+    // console.log('<=====⚡html⚡=====>', html);
+
     const container = document.createElement("div");
     container.innerHTML = html;
 
@@ -37,7 +38,7 @@ const htmlToJson = (html: string): any[] => {
     for (const child of container.children) {
         result.push(parseElement(child));
     }
-    console.log('<=====result=====>', result);
+    console.log('<=====⚡result⚡=====>', result);
     return result;
 };
 export default htmlToJson;
