@@ -7,7 +7,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "debug": "node --inspect-brk ./node_modules/next/dist/bin/next dev"
   },
   "dependencies": {
     "@apollo/client": "^3.13.8",

@@ -5,15 +5,15 @@ import EditorComponent from "@/components/EditorComponent/EditorComponent";
 import TestJson from "@/components/TestJson/TestJson";
 
 const Plaza = () => {
-  return (
-    <div className="plaza">
-      <div className="container">
-        <TestJson />
-        {/*<Preview />*/}
-        <EditorComponent />
-      </div>
-    </div>
-  );
+    return (
+        <div className="plaza">
+            <div className="container">
+                <TestJson/>
+
+                <EditorComponent/>
+            </div>
+        </div>
+    );
 };
 
 export default Plaza;

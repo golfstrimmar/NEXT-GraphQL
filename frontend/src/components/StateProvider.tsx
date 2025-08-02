@@ -1,6 +1,5 @@
 "use client";
 import {createContext, ReactNode, useContext, useEffect, useState,} from "react";
-import codeRemoveActive from "@/utils/codeRemoveActive";
 
 type HtmlNode = {
     type: string;
@@ -11,15 +10,15 @@ type HtmlNode = {
     };
 };
 
-type NodeToEdit = {
+type nodeToAdd = {
     type: number;
 };
 
 interface StateContextType {
     htmlJson: HtmlNode[];
     setHtmlJson: React.Dispatch<React.SetStateAction<HtmlNode[]>>;
-    nodeToEdit: NodeToEdit | null;
-    setNodeToEdit: React.Dispatch<React.SetStateAction<NodeToEdit | null>>;
+    nodeToAdd: nodeToAdd | null;
+    setNodeToAdd: React.Dispatch<React.SetStateAction<nodeToAdd | null>>;
     result: string | undefined;
     setResult: React.Dispatch<React.SetStateAction<string | undefined>>;
 }
@@ -28,7 +27,7 @@ const StateContext = createContext<StateContextType | null>(null);
 
 export function StateProvider({children}: { children: ReactNode }) {
     const [htmlJson, setHtmlJson] = useState<HtmlNode[]>([]);
-    const [nodeToEdit, setNodeToEdit] = useState<NodeToEdit | null>(null);
+    const [nodeToAdd, setNodeToAdd] = useState<nodeToAdd | null>(null);
     const [result, setResult] = useState<string>();
 
     const initialize = async () => {
@@ -40,8 +39,8 @@ export function StateProvider({children}: { children: ReactNode }) {
             if (stored) {
                 setHtmlJson(JSON.parse(stored));
             } else {
-                // const res = await fetch("/data/initialTags.json");
-                const res = await fetch("/data/flex-col.json");
+                const res = await fetch("/data/initialTags.json");
+                // const res = await fetch("/data/flex-col.json");
                 if (!res.ok) throw new Error("Failed to fetch initial tags");
                 const json = await res.json();
                 localStorage.setItem("htmlJson", JSON.stringify(json));
@@ -65,10 +64,11 @@ export function StateProvider({children}: { children: ReactNode }) {
 
     useEffect(() => {
         if (typeof window === "undefined") return;
-        if (!nodeToEdit) {
-            codeRemoveActive();
+        if (nodeToAdd) {
+            console.log('<=====🧪nodeToAdd🧪=====>', nodeToAdd)
+            // codeRemoveActive();
         }
-    }, [nodeToEdit]);
+    }, [nodeToAdd]);
 
     useEffect(() => {
         if (result) {
@@ -81,8 +81,8 @@ export function StateProvider({children}: { children: ReactNode }) {
             value={{
                 htmlJson,
                 setHtmlJson,
-                nodeToEdit,
-                setNodeToEdit,
+                nodeToAdd,
+                setNodeToAdd,
                 result,
                 setResult,
             }}

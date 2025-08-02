@@ -3,7 +3,7 @@ import orderIndexes from "@/utils/orderIndexes";
 
 export const dropHandler = (el: HTMLElement, nodeToDragRef, htmlJson, setHtmlJson, previewEl) => {
     el.addEventListener("drop", (e) => {
-
+        document.querySelector('[data-marker]')?.remove();
         e.preventDefault();
         el.style.outline = "none";
         el.style.opacity = "1";
@@ -53,7 +53,7 @@ export const dropHandler = (el: HTMLElement, nodeToDragRef, htmlJson, setHtmlJso
                 Object.assign(draggedEl.style, {
                     transform: 'scale(1)',
                     opacity: '1',
-                    transition: 'all 0.2s ease-in-out',
+                    transition: 'all 0.1s ease-in-out',
                 });
             });
         };
@@ -85,7 +85,7 @@ export const dropHandler = (el: HTMLElement, nodeToDragRef, htmlJson, setHtmlJso
                 Object.assign(clone.style, {
                     transform: 'scale(1)',
                     opacity: '1',
-                    transition: 'all 0.2s ease-in-out'
+                    transition: 'all 0.1s ease-in-out'
                 });
             });
 
@@ -93,7 +93,7 @@ export const dropHandler = (el: HTMLElement, nodeToDragRef, htmlJson, setHtmlJso
                 const newHtmlJson = htmlToJSON(previewEl.innerHTML);
                 const htmlOrdered = orderIndexes(newHtmlJson);
                 setHtmlJson(htmlOrdered);
-            }, 200);
+            }, 100);
 
         }
     });
