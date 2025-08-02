@@ -1,6 +1,11 @@
 "use client";
 import {createContext, ReactNode, useContext, useEffect, useState,} from "react";
+import dynamic from "next/dynamic";
 
+const ModalMessage = dynamic(
+    () => import("@/components/ModalMessage/ModalMessage"),
+    {ssr: false}
+);
 type HtmlNode = {
     type: string;
     attributes?: {
@@ -29,7 +34,24 @@ export function StateProvider({children}: { children: ReactNode }) {
     const [htmlJson, setHtmlJson] = useState<HtmlNode[]>([]);
     const [nodeToAdd, setNodeToAdd] = useState<nodeToAdd | null>(null);
     const [result, setResult] = useState<string>();
+    const [modalMessage, setModalMessage] = useState<string>("");
+    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+    const [showIsModal, setShowIsModal] = useState<boolean>(false);
 
+    const showModal = (message: string, duration = 2000) => {
+        setModalMessage(message);
+        setIsModalOpen(true);
+        setShowIsModal(true);
+        setTimeout(() => {
+            setIsModalOpen(false);
+            setModalMessage("");
+        }, duration);
+    };
+    useEffect(() => {
+        if (modalMessage) {
+            showModal(modalMessage);
+        }
+    }, [modalMessage]);
     const initialize = async () => {
         try {
             // Проверяем доступность localStorage
@@ -85,8 +107,12 @@ export function StateProvider({children}: { children: ReactNode }) {
                 setNodeToAdd,
                 result,
                 setResult,
+                setModalMessage
             }}
         >
+            {showIsModal && (
+                <ModalMessage open={isModalOpen} message={modalMessage}/>
+            )}
             {children}
         </StateContext.Provider>
     );

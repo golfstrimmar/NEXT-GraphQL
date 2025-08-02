@@ -13,26 +13,31 @@ const htmlToJson = (html: string): any[] => {
         }
 
         const children: (string | any)[] = [];
-        for (const node of el.childNodes) {
-            if (node.nodeType === Node.TEXT_NODE) {
-                const text = node.textContent?.trim();
-                if (text) children.push(text);
-            } else if (node.nodeType === Node.ELEMENT_NODE) {
-                children.push(parseElement(node as Element));
-            }
+
+        // Если есть data-label — добавляем как текст в children
+        if (attributes["data-label"]) {
+            children.push(attributes["data-label"]);
+            delete attributes["data-label"];
         }
+
+        for (const node of el.children) {
+            children.push(parseElement(node));
+        }
+
         const parsedChildren =
             children.length === 0
                 ? undefined
                 : children.length === 1 && typeof children[0] === "string"
                     ? children[0]
                     : children;
+
         return {
             type: tag,
             attributes,
             ...(parsedChildren !== undefined && {children: parsedChildren}),
         };
     }
+
 
     const result: any[] = [];
     for (const child of container.children) {

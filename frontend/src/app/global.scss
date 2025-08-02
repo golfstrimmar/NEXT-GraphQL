@@ -114,9 +114,24 @@ body {
 }
 
 .container {
+  // outline: 1px solid #4164ff;
+  // max-width: 1200px;
+  width: 100% !important;
+  max-width: calc(100% - 140px) !important;
+  margin: 0 140px 0 20px !important;
   position: relative;
-  padding: var(--token-12) var(--token-16);
-  
+}
+
+@media (min-width: 768px) and (max-width: 1259px) {
+  .container {
+    max-width: calc(100% - 140px) !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .container {
+    max-width: calc(100% - 20px) !important;
+  }
 }
 
 :focus-visible {
