@@ -20,35 +20,45 @@ export const dropHandler = (el: HTMLElement, nodeToDragRef, htmlJson, setHtmlJso
         const drinEl = (e: DragEvent, parentEl: HTMLElement, draggedEl: HTMLElement) => {
             const children = Array.from(parentEl.children).filter(
                 (child) => child !== draggedEl
-            );
+            ) as HTMLElement[];
+
+            const mouseX = e.clientX;
             const mouseY = e.clientY;
 
-            let insertBefore: HTMLElement | null = null;
+            let closestChild: HTMLElement | null = null;
+            let minDistance = Infinity;
 
             for (const child of children) {
                 const rect = child.getBoundingClientRect();
-                if (mouseY < rect.top + rect.height / 2) {
-                    insertBefore = child as HTMLElement;
-                    break;
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+
+                const dx = centerX - mouseX;
+                const dy = centerY - mouseY;
+                const distance = Math.sqrt(dx * dx + dy * dy); // евклидово расстояние
+
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestChild = child;
                 }
             }
 
-            // 1. Задаем начальное состояние
+            // Вставка как раньше:
             Object.assign(draggedEl.style, {
                 transform: 'scale(0.5)',
                 opacity: '0',
                 transition: 'none',
                 transformOrigin: 'center top',
             });
-            // 3. Вставляем элемент
-            if (insertBefore) {
-                parentEl.insertBefore(draggedEl, insertBefore);
+
+            if (closestChild) {
+                parentEl.insertBefore(draggedEl, closestChild);
             } else {
                 parentEl.appendChild(draggedEl);
             }
-            // 2. Форсируем layout (чтобы браузер применил начальное состояние)
+
             draggedEl.getBoundingClientRect();
-            // 4. Анимируем
+
             requestAnimationFrame(() => {
                 Object.assign(draggedEl.style, {
                     transform: 'scale(1)',
@@ -57,6 +67,8 @@ export const dropHandler = (el: HTMLElement, nodeToDragRef, htmlJson, setHtmlJso
                 });
             });
         };
+
+
 // ----------------------------
 
         if (draggedIndex !== targetIndex) {
