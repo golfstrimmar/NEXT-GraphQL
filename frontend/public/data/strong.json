@@ -1,0 +1,9 @@
+[
+  {
+    "type": "strong",
+    "attributes": {
+      "class": "  bg-slate-300"
+    },
+    "children": "strong"
+  }
+]

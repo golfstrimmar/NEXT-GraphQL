@@ -1,0 +1,25 @@
+[
+  {
+    "type": "div",
+    "attributes": {
+      "class": "grid grid-cols-[repeat(auto-fit,_minmax(150px,_1fr))] gap-2    bg-slate-300"
+    },
+    "children": [
+      "grid",
+      {
+        "type": "div",
+        "attributes": {
+          "class": "  bg-slate-300"
+        },
+        "children": "div"
+      },
+      {
+        "type": "div",
+        "attributes": {
+          "class": "  bg-slate-300"
+        },
+        "children": "div"
+      }
+    ]
+  }
+]

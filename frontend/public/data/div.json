@@ -1,0 +1,9 @@
+[
+  {
+    "type": "div",
+    "attributes": {
+      "class": " bg-slate-300"
+    },
+    "children": "div"
+  }
+]

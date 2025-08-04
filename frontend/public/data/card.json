@@ -1,0 +1,170 @@
+[
+  {
+    "type": "section",
+    "attributes": {
+      "id": "best",
+      "className": "best rel    bg-indigo-300",
+      "data-index": "0"
+    },
+    "children": [
+      {
+        "type": "div",
+        "attributes": {
+          "data-index": "1",
+          "className": "grid grid-cols-[repeat(auto-fit,_minmax(150px,_1fr))] gap-4    bg-slate-300"
+        },
+        "children": [
+          {
+            "type": "div",
+            "attributes": {
+              "className": "   rel  bg-slate-300",
+              "data-index": "2"
+            },
+            "children": [
+              {
+                "type": "div",
+                "attributes": {
+                  "className": "imgs m-0! p-0! -none bg-transparent  bg-slate-300",
+                  "data-index": "3"
+                },
+                "children": [
+                  {
+                    "type": "img",
+                    "attributes": {
+                      "src": "https://res.cloudinary.com/dke0nudcz/image/upload/v1745696143/events/odqmrgyyqrvlovzmtaag.png",
+                      "alt": "logo",
+                      "data-index": "4"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "div",
+            "attributes": {
+              "className": "  px-4 flex flex-col gap-4 py-[20px]  bg-slate-300",
+              "data-index": "5"
+            },
+            "children": [
+              {
+                "type": "h2",
+                "attributes": {
+                  "className": " ",
+                  "data-index": "6"
+                },
+                "children": "h2"
+              },
+              {
+                "type": "p",
+                "attributes": {
+                  "className": "text-sm   bg-green-300",
+                  "data-index": "7"
+                },
+                "children": "p"
+              },
+              {
+                "type": "span",
+                "attributes": {
+                  "className": "  bg-violet-300",
+                  "data-index": "8"
+                },
+                "children": "span"
+              },
+              {
+                "type": "ul",
+                "attributes": {
+                  "className": "  bg-indigo-200 ! flex items-center justify-center bg-sky-200",
+                  "data-index": "9"
+                },
+                "children": [
+                  {
+                    "type": "li",
+                    "attributes": {
+                      "className": " bg-indigo-300  ! bg-sky-300",
+                      "data-index": "10"
+                    },
+                    "children": [
+                      {
+                        "type": "a",
+                        "attributes": {
+                          "href": "#",
+                          "className": "link   bg-blue-300",
+                          "data-index": "11"
+                        },
+                        "children": [
+                          {
+                            "type": "img",
+                            "attributes": {
+                              "className": "  w-10 h-10",
+                              "src": "https://res.cloudinary.com/dke0nudcz/image/upload/v1753720705/link-svgrepo-com_fk1scy.svg",
+                              "alt": "svg-img"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "attributes": {
+                      "className": " bg-indigo-300  ! bg-sky-300",
+                      "data-index": "10"
+                    },
+                    "children": [
+                      {
+                        "type": "a",
+                        "attributes": {
+                          "href": "#",
+                          "className": "link   bg-blue-300",
+                          "data-index": "11"
+                        },
+                        "children": [
+                          {
+                            "type": "img",
+                            "attributes": {
+                              "className": "  w-10 h-10",
+                              "src": "https://res.cloudinary.com/dke0nudcz/image/upload/v1753720705/link-svgrepo-com_fk1scy.svg",
+                              "alt": "svg-img"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "attributes": {
+                      "className": " bg-indigo-300  ! bg-sky-300",
+                      "data-index": "10"
+                    },
+                    "children": [
+                      {
+                        "type": "a",
+                        "attributes": {
+                          "href": "#",
+                          "className": "link   bg-blue-300",
+                          "data-index": "11"
+                        },
+                        "children": [
+                          {
+                            "type": "img",
+                            "attributes": {
+                              "className": "  w-10 h-10",
+                              "src": "https://res.cloudinary.com/dke0nudcz/image/upload/v1753720705/link-svgrepo-com_fk1scy.svg",
+                              "alt": "svg-img"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

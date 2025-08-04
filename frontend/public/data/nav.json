@@ -1,0 +1,9 @@
+[
+  {
+    "type": "nav",
+    "attributes": {
+      "class": "bg-slate-400"
+    },
+    "children": "nav"
+  }
+]

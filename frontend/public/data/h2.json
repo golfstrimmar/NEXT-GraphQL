@@ -1,0 +1,9 @@
+[
+  {
+    "type": "h2",
+    "attributes": {
+      "class": "bg-pink-600"
+    },
+    "children": "h2"
+  }
+]

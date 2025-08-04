@@ -1,0 +1,9 @@
+[
+  {
+    "type": "tbody",
+    "attributes": {
+      "class": "bg-gray-200 border"
+    },
+    "children": "tbody"
+  }
+]

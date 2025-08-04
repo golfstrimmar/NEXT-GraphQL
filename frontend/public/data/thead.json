@@ -1,0 +1,9 @@
+[
+  {
+    "type": "thead",
+    "attributes": {
+      "class": "bg-gray-200 border"
+    },
+    "children": "thead"
+  }
+]

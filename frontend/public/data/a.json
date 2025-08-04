@@ -1,0 +1,10 @@
+[
+  {
+    "type": "a",
+    "attributes": {
+      "href": "#",
+      "class": "link   bg-blue-400 "
+    },
+    "children": "a"
+  }
+]

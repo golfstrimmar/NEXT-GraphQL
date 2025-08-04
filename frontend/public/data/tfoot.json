@@ -1,0 +1,9 @@
+[
+  {
+    "type": "tfoot",
+    "attributes": {
+      "class": "bg-gray-100 border"
+    },
+    "children": "tfoot"
+  }
+]

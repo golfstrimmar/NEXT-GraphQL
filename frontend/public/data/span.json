@@ -1,0 +1,9 @@
+[
+  {
+    "type": "span",
+    "attributes": {
+      "class": " bg-violet-300"
+    },
+    "children": "span"
+  }
+]

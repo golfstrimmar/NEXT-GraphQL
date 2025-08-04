@@ -1,0 +1,17 @@
+[
+  {
+    "type": "div",
+    "attributes": {
+      "class": "imgs m-0! p-0! border-none bg-transparent "
+    },
+    "children": [
+      {
+        "type": "img",
+        "attributes": {
+          "src": "https://res.cloudinary.com/dke0nudcz/image/upload/v1745696143/events/odqmrgyyqrvlovzmtaag.png",
+          "alt": "logo"
+        }
+      }
+    ]
+  }
+]

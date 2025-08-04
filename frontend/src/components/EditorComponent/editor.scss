@@ -1,0 +1,85 @@
+.editor {
+  position: relative;
+  margin: 20px 0 20px 0;
+}
+
+.myHighlight {
+  background-color: rgba(65, 243, 145, 1);
+  border-radius: 2px;
+  transition: background-color 0.3s ease;
+}
+
+.monaco-editor {
+  .minimap-slider {
+    height: 40px !important;
+    /* делает сам ползунок уже */
+    background: rgba(100, 100, 100, 0.4) !important;
+  }
+  
+  .minimap {
+    opacity: 0.95;
+  }
+}
+
+#preview {
+  z-index: 30;
+  // width: calc(100vw - 130px);
+  margin: 10px 0 30px 0;
+  min-height: 10px;
+  border: 1px solid var(--grey-30);
+  padding: 5px 5px 0px 5px;
+  border-radius: var(--token-04);
+  
+  background: #0F172A;
+  
+  * {
+    position: relative;
+    
+    &::after {
+      content: attr(data-label);
+      position: absolute;
+      top: -1em;
+      left: 0;
+      font-size: 13px;
+      background: #193756;
+      color: #51C9CD;
+      white-space: nowrap;
+      padding: 2px 3px;
+      line-height: 1;
+      border-radius: 4px;
+      pointer-events: none;
+      z-index: 10;
+    }
+  }
+  
+}
+
+.cart {
+  position: relative;
+  background-color: var(--primary) !important;
+  color: white;
+  padding: 5px 10px 5px 50px;
+  margin: 20px 0 5px 0 !important;
+  border-radius: var(--token-04);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  
+  width: calc(100%);
+  min-height: 80px;
+}
+
+.marker {
+  display: inline-block;
+  
+  background: red;
+  margin: 4px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  
+  &::after {
+    display: none;
+  }
+}
+

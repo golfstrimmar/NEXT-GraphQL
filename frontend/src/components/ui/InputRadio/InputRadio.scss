@@ -1,10 +1,16 @@
 @import '@/scss/common/colors';
 
-.fildset-radio {
-  .form-check {
-    position: relative;
-  }
+
+.form-check {
+  position: relative;
+  --radio-color: #51C9CD;
   
+  &--devider {
+    --radio-color: #70cc51;
+  }
+}
+
+.fildset-radio {
   input[type="radio"]:checked,
   input[type="radio"]:not(:checked) {
     position: fixed !important;
@@ -22,10 +28,10 @@
     line-height: 19px;
     padding: 0 0 0 26px;
     transition: all 0.2s;
-    color: #51C9CD;
+    color: var(--radio-color);
     
     &:hover {
-      color: lighten(#51C9CD, 10%);
+      color: color-mix(in srgb, var(--radio-color) 70%, white);
     }
   }
   

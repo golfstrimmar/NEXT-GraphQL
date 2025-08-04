@@ -1,0 +1,18 @@
+[
+  {
+    "type": "ul",
+    "attributes": {
+      "class": "flex items-center gap-2 border bg-sky-200 m-2! p-2!"
+    },
+    "children": [
+      "ul",
+      {
+        "type": "li",
+        "attributes": {
+          "class": " bg-sky-300 my-2! p-2!"
+        },
+        "children": "li-1"
+      }
+    ]
+  }
+]

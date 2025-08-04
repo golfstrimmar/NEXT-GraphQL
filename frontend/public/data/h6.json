@@ -1,0 +1,9 @@
+[
+  {
+    "type": "h6",
+    "attributes": {
+      "class": "  bg-pink-200"
+    },
+    "children": "h6"
+  }
+]

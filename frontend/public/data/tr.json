@@ -1,0 +1,9 @@
+[
+  {
+    "type": "tr",
+    "attributes": {
+      "class": "border"
+    },
+    "children": "tr"
+  }
+]

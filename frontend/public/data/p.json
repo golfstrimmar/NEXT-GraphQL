@@ -1,0 +1,9 @@
+[
+  {
+    "type": "p",
+    "attributes": {
+      "class": "text-sm   bg-green-300"
+    },
+    "children": "p"
+  }
+]

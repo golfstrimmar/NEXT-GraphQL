@@ -1,0 +1,9 @@
+[
+  {
+    "type": "footer",
+    "attributes": {
+      "class": " bg-slate-400"
+    },
+    "children": "footer"
+  }
+]

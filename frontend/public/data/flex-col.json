@@ -1,0 +1,25 @@
+[
+  {
+    "type": "div",
+    "attributes": {
+      "class": "flex flex-col  gap-2 bg-slate-300 "
+    },
+    "children": [
+      "flex-col",
+      {
+        "type": "div",
+        "attributes": {
+          "class": "bg-slate-300"
+        },
+        "children": "div"
+      },
+      {
+        "type": "div",
+        "attributes": {
+          "class": "bg-slate-300"
+        },
+        "children": "div"
+      }
+    ]
+  }
+]

@@ -1,0 +1,467 @@
+[
+  {
+    "type": "table",
+    "attributes": {
+      "class": "m-4 min-w-[20rem] bg-white border-2 border-[#1265a1] shadow-[1px_1px_4px_#666] rounded-[3px] border-separate",
+      "style": "border-spacing: 10px;"
+    },
+    "children": [
+      {
+        "type": "thead",
+        "attributes": {
+          "class": "table-header-group align-middle",
+          "style": "unicode-bidi: isolate;"
+        },
+        "children": [
+          {
+            "type": "tr",
+            "attributes": {
+              "class": "table-row align-inherit",
+              "style": "unicode-bidi: isolate;"
+            },
+            "children": [
+              {
+                "type": "th",
+                "attributes": {
+                  "rowspan": "2",
+                  "class": "border border-[rgba(255,255,255,0.25)] text-center align-middle bg-[#1265a1] text-[1rem] font-normal text-white border-l-0"
+                },
+                "children": " "
+              },
+              {
+                "type": "th",
+                "attributes": {
+                  "colspan": "5",
+                  "class": "no-border border-none text-center align-middle bg-[#1265a1] text-[1rem] font-normal text-white"
+                },
+                "children": "Singular"
+              },
+              {
+                "type": "th",
+                "attributes": {
+                  "colspan": "3",
+                  "class": "no-border border-none text-center align-middle bg-[#1265a1] text-[1rem] font-normal text-white"
+                },
+                "children": "Plural"
+              }
+            ]
+          },
+          {
+            "type": "tr",
+            "attributes": {
+              "class": "table-row align-inherit",
+              "style": "unicode-bidi: isolate;"
+            },
+            "children": [
+              {
+                "type": "th",
+                "attributes": {
+                  "class": "border border-[rgba(255,255,255,0.25)] text-center align-middle bg-[#1265a1] text-[1rem] font-normal text-white"
+                },
+                "children": "1. Pers."
+              },
+              {
+                "type": "th",
+                "attributes": {
+                  "class": "border border-[rgba(255,255,255,0.25)] text-center align-middle bg-[#1265a1] text-[1rem] font-normal text-white"
+                },
+                "children": "2. Pers."
+              },
+              {
+                "type": "th",
+                "attributes": {
+                  "colspan": "3. Pers.",
+                  "class": "border border-[rgba(255,255,255,0.25)] text-center align-middle bg-[#1265a1] text-[1rem] font-normal text-white"
+                },
+                "children": [
+                  {
+                    "type": "span",
+                    "attributes": {
+                      "class": "num2"
+                    },
+                    "children": "span"
+                  },
+                  " Person"
+                ]
+              },
+              {
+                "type": "th",
+                "attributes": {
+                  "class": "border border-[rgba(255,255,255,0.25)] text-center align-middle bg-[#1265a1] text-[1rem] font-normal text-white"
+                },
+                "children": "1. Pers."
+              },
+              {
+                "type": "th",
+                "attributes": {
+                  "class": "border border-[rgba(255,255,255,0.25)] text-center align-middle bg-[#1265a1] text-[1rem] font-normal text-white"
+                },
+                "children": "2. Pers."
+              },
+              {
+                "type": "th",
+                "attributes": {
+                  "class": "border border-[rgba(255,255,255,0.25)] text-center align-middle bg-[#1265a1] text-[1rem] font-normal text-white"
+                },
+                "children": "3. Pers."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "tbody",
+        "attributes": {
+          "class": "table-row-group align-middle",
+          "style": "unicode-bidi: isolate;"
+        },
+        "children": [
+          {
+            "type": "tr",
+            "attributes": {
+              "class": "table-row align-inherit",
+              "style": "unicode-bidi: isolate;"
+            },
+            "children": [
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center font-semibold"
+                },
+                "children": [
+                  {
+                    "type": "b",
+                    "children": "Nom"
+                  }
+                ]
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "ich"
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "du"
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "er"
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "sie"
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "es"
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "wir"
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "ihr"
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "sie"
+              }
+            ]
+          },
+          {
+            "type": "tr",
+            "attributes": {
+              "class": "table-row align-inherit",
+              "style": "unicode-bidi: isolate;"
+            },
+            "children": [
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center font-semibold"
+                },
+                "children": [
+                  {
+                    "type": "b",
+                    "children": "Genitiv"
+                  }
+                ]
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "meiner"
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "deiner"
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "seiner"
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "ihrer"
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "seiner"
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "unser"
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "euer"
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "ihrer"
+              }
+            ]
+          },
+          {
+            "type": "tr",
+            "attributes": {
+              "class": "table-row align-inherit",
+              "style": "unicode-bidi: isolate;"
+            },
+            "children": [
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center font-semibold"
+                },
+                "children": [
+                  {
+                    "type": "b",
+                    "children": "Dativ"
+                  }
+                ]
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "mir"
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "dir"
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "ihm"
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "ihr"
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "ihm"
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "uns"
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "euch"
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "ihnen"
+              }
+            ]
+          },
+          {
+            "type": "tr",
+            "attributes": {
+              "class": "table-row align-inherit",
+              "style": "unicode-bidi: isolate;"
+            },
+            "children": [
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center font-semibold"
+                },
+                "children": [
+                  {
+                    "type": "b",
+                    "children": "Akkusativ"
+                  }
+                ]
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "mich"
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "dich"
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "ihn"
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "sie"
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "es"
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "uns"
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "euch"
+              },
+              {
+                "type": "td",
+                "attributes": {
+                  "valign": "top",
+                  "class": "border border-[#ededed] text-[#202020] leading-[1.5rem] text-sm text-center"
+                },
+                "children": "sie"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

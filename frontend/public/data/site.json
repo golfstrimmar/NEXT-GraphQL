@@ -1,0 +1,374 @@
+[
+  {
+    "type": "div",
+    "attributes": {
+      "className": "page-container bg-gray-50 dark:bg-gray-900",
+      "children": [
+        {
+          "type": "header",
+          "attributes": {
+            "className": "sticky top-0 z-50 bg-white shadow-md",
+            "children": [
+              {
+                "type": "nav",
+                "attributes": {
+                  "className": "container mx-auto px-4 py-3 flex justify-between items-center",
+                  "children": [
+                    {
+                      "type": "a",
+                      "attributes": {
+                        "href": "/",
+                        "className": "flex items-center gap-2",
+                        "children": [
+                          {
+                            "type": "img",
+                            "attributes": {
+                              "src": "/logo.svg",
+                              "alt": "Логотип",
+                              "className": "h-8 w-auto"
+                            }
+                          },
+                          {
+                            "type": "span",
+                            "attributes": {
+                              "className": "text-xl font-bold",
+                              "children": "CompanyName"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "ul",
+                      "attributes": {
+                        "className": "hidden md:flex gap-8",
+                        "children": [
+                          {
+                            "type": "li",
+                            "attributes": {
+                              "children": {
+                                "type": "a",
+                                "attributes": {
+                                  "href": "/features",
+                                  "className": "hover:text-blue-600 transition",
+                                  "children": "Возможности"
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "type": "li",
+                            "attributes": {
+                              "children": {
+                                "type": "a",
+                                "attributes": {
+                                  "href": "/pricing",
+                                  "className": "hover:text-blue-600 transition",
+                                  "children": "Цены"
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "button",
+                      "attributes": {
+                        "className": "md:hidden p-2",
+                        "aria-label": "Меню",
+                        "children": {
+                          "type": "svg",
+                          "attributes": {
+                            "xmlns": "http://www.w3.org/2000/svg",
+                            "className": "h-6 w-6",
+                            "fill": "none",
+                            "viewBox": "0 0 24 24",
+                            "stroke": "currentColor",
+                            "children": {
+                              "type": "path",
+                              "attributes": {
+                                "strokeLinecap": "round",
+                                "strokeLinejoin": "round",
+                                "strokeWidth": "2",
+                                "d": "M4 6h16M4 12h16M4 18h16"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "main",
+          "attributes": {
+            "className": "container mx-auto px-4 py-8",
+            "children": [
+              {
+                "type": "section",
+                "attributes": {
+                  "className": "mb-12",
+                  "children": [
+                    {
+                      "type": "h1",
+                      "attributes": {
+                        "className": "text-4xl font-bold mb-6",
+                        "children": "Главный заголовок"
+                      }
+                    },
+                    {
+                      "type": "div",
+                      "attributes": {
+                        "className": "grid md:grid-cols-2 gap-8",
+                        "children": [
+                          {
+                            "type": "div",
+                            "attributes": {
+                              "className": "bg-white p-6 rounded-lg shadow",
+                              "children": [
+                                {
+                                  "type": "h2",
+                                  "attributes": {
+                                    "className": "text-2xl font-semibold mb-4",
+                                    "children": "Карточка 1"
+                                  }
+                                },
+                                {
+                                  "type": "p",
+                                  "attributes": {
+                                    "className": "text-gray-600 mb-4",
+                                    "children": "Описание карточки с важной информацией для пользователей."
+                                  }
+                                },
+                                {
+                                  "type": "button",
+                                  "attributes": {
+                                    "className": "px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition",
+                                    "children": "Подробнее"
+                                  }
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "type": "div",
+                            "attributes": {
+                              "className": "bg-white p-6 rounded-lg shadow",
+                              "children": [
+                                {
+                                  "type": "h2",
+                                  "attributes": {
+                                    "className": "text-2xl font-semibold mb-4",
+                                    "children": "Карточка 2"
+                                  }
+                                },
+                                {
+                                  "type": "ul",
+                                  "attributes": {
+                                    "className": "list-disc pl-5 space-y-2 mb-4",
+                                    "children": [
+                                      {
+                                        "type": "li",
+                                        "attributes": {
+                                          "children": "Пункт списка 1"
+                                        }
+                                      },
+                                      {
+                                        "type": "li",
+                                        "attributes": {
+                                          "children": "Пункт списка 2"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "section",
+                "attributes": {
+                  "className": "mb-12",
+                  "children": [
+                    {
+                      "type": "h2",
+                      "attributes": {
+                        "className": "text-3xl font-bold mb-6",
+                        "children": "Частые вопросы"
+                      }
+                    },
+                    {
+                      "type": "div",
+                      "attributes": {
+                        "className": "space-y-4",
+                        "children": [
+                          {
+                            "type": "div",
+                            "attributes": {
+                              "className": "bg-white p-6 rounded-lg shadow",
+                              "children": [
+                                {
+                                  "type": "h3",
+                                  "attributes": {
+                                    "className": "text-xl font-semibold",
+                                    "children": "Как начать работу?"
+                                  }
+                                },
+                                {
+                                  "type": "div",
+                                  "attributes": {
+                                    "className": "mt-2 text-gray-600",
+                                    "children": {
+                                      "type": "p",
+                                      "attributes": {
+                                        "children": "Просто нажмите кнопку 'Регистрация' и заполните форму."
+                                      }
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "footer",
+          "attributes": {
+            "className": "bg-gray-800 text-white py-8",
+            "children": [
+              {
+                "type": "div",
+                "attributes": {
+                  "className": "container mx-auto px-4",
+                  "children": [
+                    {
+                      "type": "div",
+                      "attributes": {
+                        "className": "grid md:grid-cols-4 gap-8",
+                        "children": [
+                          {
+                            "type": "div",
+                            "attributes": {
+                              "children": [
+                                {
+                                  "type": "h3",
+                                  "attributes": {
+                                    "className": "text-lg font-semibold mb-4",
+                                    "children": "Компания"
+                                  }
+                                },
+                                {
+                                  "type": "ul",
+                                  "attributes": {
+                                    "className": "space-y-2",
+                                    "children": [
+                                      {
+                                        "type": "li",
+                                        "attributes": {
+                                          "children": {
+                                            "type": "a",
+                                            "attributes": {
+                                              "href": "/about",
+                                              "className": "hover:text-blue-300 transition",
+                                              "children": "О нас"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "type": "div",
+                            "attributes": {
+                              "children": [
+                                {
+                                  "type": "h3",
+                                  "attributes": {
+                                    "className": "text-lg font-semibold mb-4",
+                                    "children": "Контакты"
+                                  }
+                                },
+                                {
+                                  "type": "address",
+                                  "attributes": {
+                                    "className": "not-italic",
+                                    "children": [
+                                      {
+                                        "type": "p",
+                                        "attributes": {
+                                          "children": "г. Москва, ул. Примерная, 123"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "div",
+          "attributes": {
+            "className": "fixed bottom-4 right-4",
+            "children": {
+              "type": "button",
+              "attributes": {
+                "className": "p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition",
+                "aria-label": "Поддержка",
+                "children": {
+                  "type": "svg",
+                  "attributes": {
+                    "xmlns": "http://www.w3.org/2000/svg",
+                    "className": "h-6 w-6",
+                    "fill": "none",
+                    "viewBox": "0 0 24 24",
+                    "stroke": "currentColor",
+                    "children": {
+                      "type": "path",
+                      "attributes": {
+                        "strokeLinecap": "round",
+                        "strokeLinejoin": "round",
+                        "strokeWidth": "2",
+                        "d": "M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+]
