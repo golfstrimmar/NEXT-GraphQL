@@ -15,6 +15,9 @@ import Input from "@/components/ui/Input/Input";
 import "@/components/ui/InputRadio/InputRadio.scss";
 import Image from "next/image";
 import htmlToJSON from "@/utils/htmlToJson";
+import convertHtml from "@/utils/convertHtml";
+import jsonToScss from "@/utils/jsonToScss";
+import htmlToScss from "@/utils/htmlToScss";
 // ♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️
 const EditorComponent = () => {
   const monaco = useMonaco();
@@ -32,12 +35,23 @@ const EditorComponent = () => {
   const [isMarker, setIsMarker] = useState<boolean>(false);
   const [commonClass, setCommonClass] = useState<string>("");
   const editorRef = useRef<any>(null);
+  // -------------------------------
+  const [resJson, setResJson] = useState<string>("");
+  const [resScss, setResScss] = useState<string>("");
+  const [resPug, setResPug] = useState<string>("");
+  const [ScssIsVisible, setScssIsVisible] = useState<boolean>(false);
+  const [PugIsVisible, setPugIsVisible] = useState<boolean>(false);
+  const [isCopiedScss, setIsCopiedScss] = useState<boolean>(false);
+  const [isCopiedPug, setIsCopiedPug] = useState<boolean>(false);
+  const [isCopied, setisCopied] = useState<boolean>(false);
+
   const checkClasses = [
     "inline-block",
     "block",
     "flex-col",
     "flex-row",
     "grid",
+    "flex",
     "justify-start",
     "justify-center",
     "justify-end",
@@ -347,14 +361,14 @@ const EditorComponent = () => {
         "items-stretch",
         "items-baseline",
       ];
-
+      console.log("<====currentLabel====>", currentLabel);
       // Чистим data-label
       const cleanLabel = currentLabel
         .split(" ")
         .filter((token) => !modesToRemove.includes(token))
         .join(" ")
         .trim();
-
+      console.log("<====cleanLabel====>", cleanLabel);
       if (foo === "block") {
         parentMarker.classList.remove(...modesToRemove);
         parentMarker.classList.add("block");
@@ -587,11 +601,7 @@ const EditorComponent = () => {
     });
     setCommonClass("");
   };
-  useEffect(() => {
-    if (commonClass) {
-      // console.log('<=====commonClass=====>', commonClass)
-    }
-  }, [commonClass]);
+
   // +++++++++++++++++++++++++
   const handleUndo = () => {
     if (editorRef.current) {
@@ -623,12 +633,30 @@ const EditorComponent = () => {
     if (editorRef.current) {
       const currentCode = editorRef.current.getValue();
       const newHtmlJson = htmlToJSON(currentCode);
-      const htmlOrdered = orderIndexes(newHtmlJson);
+      const htmlOrdered = orderIndexes();
       setHtmlJson(htmlOrdered);
     }
   };
 
-  // +++++++++++++++++++++++++
+  // ♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️
+  const removeInlineStyles = (html: string): string => {
+    return html.replace(/\s*style="[^"]*"/g, "");
+  };
+  const handleCopyHtml = () => {
+    setisCopied(true);
+    setTimeout(() => setisCopied(false), 1000);
+    // setResJson(htmlToJSON(code));
+
+    const cleanedCode = convertHtml(code);
+
+    console.log("<==== 💥cleanedCode====>", cleanedCode);
+    const cleanedScss = htmlToScss(cleanedCode);
+    console.log("<==== 💥cleanedScss====>", cleanedScss);
+    // const resultPug = htmlToPug(cleanedCode);
+    // setResPug(resultPug);
+    // navigator.clipboard.writeText(cleanedCode);
+  };
+  // ♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️
 
   return (
     <div className="editor">
@@ -665,6 +693,19 @@ const EditorComponent = () => {
         >
           reset common class
         </button>
+
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            if (commonClass) {
+              setClassToAdd(commonClass);
+            }
+          }}
+          className="btn btn-empty my-1 px-2 ml-2"
+        >
+          ⇩ common class
+        </button>
+        {/* )} */}
         {delimiters &&
           delimiters.map((delim) => (
             <button
@@ -711,7 +752,7 @@ const EditorComponent = () => {
           ))}
         </div>
         <div
-          className=" fildset-radio grid  grid-flow-row grid-cols-[repeat(3,_104px)]  gap-1"
+          className=" fildset-radio grid  grid-flow-row grid-cols-[repeat(3,_150px)]  gap-1"
           onClick={(e) => {
             e.stopPropagation();
             console.log("<=====isMarker=====>", isMarker);
@@ -778,6 +819,16 @@ const EditorComponent = () => {
               height={28}
               alt="right"
             />
+          </button>
+        )}
+        {code && (
+          <button
+            onClick={() => {
+              handleCopyHtml();
+            }}
+            className="btn"
+          >
+            <Image src="./svg/copy.svg" width={28} height={28} alt="copy" />
           </button>
         )}
       </div>
