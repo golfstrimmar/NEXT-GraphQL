@@ -6,6 +6,8 @@ const convertHtml = (html) => {
     "border",
     "p-2",
     "m-2",
+    "rel",
+    "border-none",
     "shadow-[0px_0px_6px_4px_rgba(255,255,255,0.8)]",
   ];
 
@@ -42,7 +44,9 @@ const convertHtml = (html) => {
             !cls.startsWith("text-") &&
             !cls.startsWith("shadow-") &&
             !cls.startsWith("m-") &&
+            !cls.startsWith("m") &&
             !cls.startsWith("p-") &&
+            !cls.startsWith("p") &&
             !cls.startsWith("w-") &&
             !cls.startsWith("h-") &&
             !cls.startsWith("gap-")

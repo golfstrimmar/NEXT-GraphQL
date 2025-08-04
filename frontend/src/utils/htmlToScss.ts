@@ -29,71 +29,112 @@ const htmlToScss = (html) => {
     "items-stretch": "align-items: stretch;",
     "items-baseline": "align-items: baseline;",
 
-    // Grid (особый случай)
+    // Grid
     "grid-cols-[repeat(auto-fit,_minmax(150px,_1fr))]":
       "grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));",
   };
 
-  // Рекурсивная функция для обхода DOM и генерации SCSS
-  const traverse = (element, depth = 0) => {
-    let scss = "";
-
-    // Пропускаем ненужные элементы
+  // Структура дерева SCSS
+  const buildTree = (element) => {
     if (
       element.nodeType !== Node.ELEMENT_NODE ||
       ["script", "meta", "link", "br", "hr"].includes(
         element.tagName.toLowerCase()
       )
     ) {
-      return scss;
+      return null;
     }
 
-    // Получаем классы элемента
-    const classes = Array.from(element.classList);
-    let styles = "";
-
-    // Отфильтровываем Tailwind-классы и добавляем их как CSS-свойства
-    const nonTailwindClasses = classes.filter((cls) => {
-      if (tailwindToCss[cls]) {
-        styles += `  ${tailwindToCss[cls]}\n`; // Добавляем свойство
-        return false; // Удаляем класс из селектора
-      }
-      return true; // Оставляем обычный класс
-    });
-
-    // Формируем селектор (без Tailwind-классов)
     const tagName = element.tagName.toLowerCase();
-    const classPart = nonTailwindClasses.length
-      ? `.${nonTailwindClasses.join(".")}`
-      : "";
     const id = element.id ? `#${element.id}` : "";
-    const selector = classPart || id ? `${classPart}${id}` : `${tagName}${id}`;
+    const classList = Array.from(new Set(element.classList));
 
-    // Отступы для вложенности
-    const indent = "  ".repeat(depth);
+    let cssProps = [];
+    let nonTailwindClasses = [];
 
-    // Открываем блок и добавляем стили
-    scss += `${indent}${selector} {\n${styles}`;
-
-    // Обрабатываем детей
-    const children = Array.from(element.children);
-    children.forEach((child) => {
-      const childScss = traverse(child, depth + 1);
-      if (childScss) {
-        scss += childScss;
+    classList.forEach((cls) => {
+      if (tailwindToCss[cls]) {
+        cssProps.push(tailwindToCss[cls]);
+      } else {
+        nonTailwindClasses.push(cls);
       }
     });
 
-    // Закрываем блок
-    scss += `${indent}}\n\n`;
+    const selector = nonTailwindClasses.length
+      ? `.${nonTailwindClasses.join(".")}${id}`
+      : `${tagName}${id}`;
 
-    return scss;
+    const node = {
+      selector,
+      styles: new Set(cssProps),
+      children: new Map(), // ключ: selector, значение: node
+    };
+
+    Array.from(element.children).forEach((childEl) => {
+      const childNode = buildTree(childEl);
+      if (childNode) {
+        if (!node.children.has(childNode.selector)) {
+          node.children.set(childNode.selector, childNode);
+        } else {
+          // если уже есть такой дочерний селектор — объединяем стили и детей
+          const existing = node.children.get(childNode.selector);
+          childNode.styles.forEach((s) => existing.styles.add(s));
+          childNode.children.forEach((grandchild, key) => {
+            if (!existing.children.has(key)) {
+              existing.children.set(key, grandchild);
+            } else {
+              // рекурсивное объединение
+              const existingGrandchild = existing.children.get(key);
+              grandchild.styles.forEach((s) =>
+                existingGrandchild.styles.add(s)
+              );
+              // можно продолжить вглубь, если нужно
+            }
+          });
+        }
+      }
+    });
+
+    return node;
   };
 
-  // Начинаем обход с body (или другого корневого элемента)
-  const resultScss = traverse(body);
+  const renderTree = (node, depth = 0, parentSelector = "") => {
+    const indent = "  ".repeat(depth);
 
-  return resultScss;
+    // Определим текущий селектор
+    let currentSelector = node.selector;
+
+    // Если селектор — класс и начинается с родителя + __, заменяем на амперсанд
+    if (parentSelector && currentSelector.startsWith(`.${parentSelector}__`)) {
+      currentSelector = `&${currentSelector.slice(parentSelector.length + 1)}`; // +1 на точку
+    }
+
+    let result = `${indent}${currentSelector} {\n`;
+
+    for (const style of node.styles) {
+      result += `${indent}  ${style}\n`;
+    }
+
+    for (const child of node.children.values()) {
+      const childSelector = child.selector.replace(/^\./, "");
+      result += renderTree(child, depth + 1, node.selector.replace(/^\./, ""));
+    }
+
+    result += `${indent}}\n`;
+
+    return result;
+  };
+
+  let result = "";
+  const children = Array.from(body.children);
+
+  for (const child of children) {
+    const node = buildTree(child);
+    if (node) {
+      result += renderTree(node);
+    }
+  }
+  return result.trimEnd();
 };
 
 export default htmlToScss;

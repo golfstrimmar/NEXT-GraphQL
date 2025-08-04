@@ -16,8 +16,8 @@ import "@/components/ui/InputRadio/InputRadio.scss";
 import Image from "next/image";
 import htmlToJSON from "@/utils/htmlToJson";
 import convertHtml from "@/utils/convertHtml";
-import jsonToScss from "@/utils/jsonToScss";
 import htmlToScss from "@/utils/htmlToScss";
+import removeTailwindClasses from "@/utils/removeTailwindClasses";
 // ♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️
 const EditorComponent = () => {
   const monaco = useMonaco();
@@ -599,7 +599,6 @@ const EditorComponent = () => {
         return commonClass + str + cleaned;
       });
     });
-    setCommonClass("");
   };
 
   // +++++++++++++++++++++++++
@@ -639,19 +638,15 @@ const EditorComponent = () => {
   };
 
   // ♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️
-  const removeInlineStyles = (html: string): string => {
-    return html.replace(/\s*style="[^"]*"/g, "");
-  };
+
   const handleCopyHtml = () => {
     setisCopied(true);
     setTimeout(() => setisCopied(false), 1000);
-    // setResJson(htmlToJSON(code));
-
-    const cleanedCode = convertHtml(code);
-
-    console.log("<==== 💥cleanedCode====>", cleanedCode);
+    let cleanedCode = convertHtml(code);
     const cleanedScss = htmlToScss(cleanedCode);
     console.log("<==== 💥cleanedScss====>", cleanedScss);
+    cleanedCode = removeTailwindClasses(cleanedCode);
+    console.log("<==== 💥cleanedCode====>", cleanedCode);
     // const resultPug = htmlToPug(cleanedCode);
     // setResPug(resultPug);
     // navigator.clipboard.writeText(cleanedCode);
