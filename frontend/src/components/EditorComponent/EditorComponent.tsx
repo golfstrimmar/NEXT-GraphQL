@@ -18,6 +18,7 @@ import htmlToJSON from "@/utils/htmlToJson";
 import convertHtml from "@/utils/convertHtml";
 import htmlToScss from "@/utils/htmlToScss";
 import removeTailwindClasses from "@/utils/removeTailwindClasses";
+import htmlToPug from "@/utils/htmlToPug";
 // ♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️
 const EditorComponent = () => {
   const monaco = useMonaco();
@@ -647,7 +648,8 @@ const EditorComponent = () => {
     console.log("<==== 💥cleanedScss====>", cleanedScss);
     cleanedCode = removeTailwindClasses(cleanedCode);
     console.log("<==== 💥cleanedCode====>", cleanedCode);
-    // const resultPug = htmlToPug(cleanedCode);
+    const resultPug = htmlToPug(cleanedCode);
+    console.log("<==== 💥resultPug====>", resultPug);
     // setResPug(resultPug);
     // navigator.clipboard.writeText(cleanedCode);
   };
