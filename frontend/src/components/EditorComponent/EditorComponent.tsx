@@ -19,6 +19,7 @@ import convertHtml from "@/utils/convertHtml";
 import htmlToScss from "@/utils/htmlToScss";
 import removeTailwindClasses from "@/utils/removeTailwindClasses";
 import htmlToPug from "@/utils/htmlToPug";
+import { motion, AnimatePresence } from "framer-motion";
 // ♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️
 const EditorComponent = () => {
   const monaco = useMonaco();
@@ -677,6 +678,7 @@ const EditorComponent = () => {
     // navigator.clipboard.writeText(cleanedCode);
   };
   // ♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️
+  // 💥💥💥💥💥💥💥💥
   const [codeIs, setCodeIs] = useState<boolean>(false);
   useEffect(() => {
     const preview = document.querySelector("#preview");
@@ -722,130 +724,136 @@ const EditorComponent = () => {
     setResPug("");
     // }
   }, [code]);
+  // 💥💥💥💥💥💥💥💥
   return (
     <div className="editor">
       <Admin />
 
-      <form className="mb-4  gap-4">
-        <Input
-          typeInput="text"
-          value={commonClass}
-          onChange={(e) => {
-            e.preventDefault();
-            setCommonClass(e.currentTarget.value);
-          }}
-          data="common class"
-        />{" "}
-      </form>
-      <div className="flex items-center mb-2 gap-2">
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            setNamenClasses((prevClasses) => {
-              return prevClasses.map((foo) => {
-                let cleaned = foo;
-                for (const delim of delimiters) {
-                  const index = foo.indexOf(delim);
-                  if (index !== -1) {
-                    cleaned = foo.slice(index + delim.length); // удаляем всё до и включая разделитель
-                    break;
-                  }
-                }
-                return cleaned;
-              });
-            });
-            setCommonClass("");
-          }}
-          className="btn btn-empty   px-2 "
-        >
-          reset common class
-        </button>
-
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            if (commonClass) {
-              setClassToAdd(commonClass);
-            }
-          }}
-          className="btn btn-empty  px-2 ml-2"
-        >
-          ⇩ common class
-        </button>
-        {delimiters &&
-          delimiters.map((delim) => (
+      {codeIs && (
+        <>
+          <form className="mb-4  gap-4">
+            <Input
+              typeInput="text"
+              value={commonClass}
+              onChange={(e) => {
+                e.preventDefault();
+                setCommonClass(e.currentTarget.value);
+              }}
+              data="common class"
+            />{" "}
+          </form>
+          <div className="flex items-center mb-2 gap-2">
             <button
-              key={delim}
+              onClick={(e) => {
+                e.preventDefault();
+                setNamenClasses((prevClasses) => {
+                  return prevClasses.map((foo) => {
+                    let cleaned = foo;
+                    for (const delim of delimiters) {
+                      const index = foo.indexOf(delim);
+                      if (index !== -1) {
+                        cleaned = foo.slice(index + delim.length); // удаляем всё до и включая разделитель
+                        break;
+                      }
+                    }
+                    return cleaned;
+                  });
+                });
+                setCommonClass("");
+              }}
+              className="btn btn-empty   px-2 "
+            >
+              reset common class
+            </button>
+
+            <button
               onClick={(e) => {
                 e.preventDefault();
                 if (commonClass) {
-                  AddCommonClass(delim);
+                  setClassToAdd(commonClass);
                 }
               }}
               className="btn btn-empty  px-2 ml-2"
             >
-              ⇩ divider {delim}
+              ⇩ common class
             </button>
-          ))}
-      </div>
-      <div className="grid grid-cols-[max-content_1fr] gap-4 ">
-        <div
-          className=" fildset-radio border-r border-gray-200 pr-2"
-          onClick={(e) => {
-            e.stopPropagation();
-            console.log("<=====isMarker=====>", isMarker);
-            if (!isMarker) {
-              setModalMessage(" You need to place a marker first");
-              setClassToAdd("");
-            }
-          }}
-        >
-          {checkClasses.map((item, index) => (
-            <div key={index} className="form-check">
-              <input
-                onChange={(e) => {
-                  setClassToAdd(e.target.value);
-                }}
-                disabled={!isMarker}
-                type="radio"
-                id={item}
-                name="example"
-                value={item}
-                checked={classToAdd === item}
-              />
-              <label htmlFor={item}>{item}</label>
+            {delimiters &&
+              delimiters.map((delim) => (
+                <button
+                  key={delim}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (commonClass) {
+                      AddCommonClass(delim);
+                    }
+                  }}
+                  className="btn btn-empty  px-2 ml-2"
+                >
+                  ⇩ divider {delim}
+                </button>
+              ))}
+          </div>
+          <div className="grid grid-cols-[max-content_1fr] gap-4 ">
+            <div
+              className=" fildset-radio border-r border-gray-200 pr-2"
+              onClick={(e) => {
+                e.stopPropagation();
+                console.log("<=====isMarker=====>", isMarker);
+                if (!isMarker) {
+                  setModalMessage(" You need to place a marker first");
+                  setClassToAdd("");
+                }
+              }}
+            >
+              {checkClasses.map((item, index) => (
+                <div key={index} className="form-check">
+                  <input
+                    onChange={(e) => {
+                      setClassToAdd(e.target.value);
+                    }}
+                    disabled={!isMarker}
+                    type="radio"
+                    id={item}
+                    name="example"
+                    value={item}
+                    checked={classToAdd === item}
+                  />
+                  <label htmlFor={item}>{item}</label>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-        <div
-          className=" fildset-radio grid  grid-flow-row grid-cols-[repeat(3,_150px)]  gap-1"
-          onClick={(e) => {
-            e.stopPropagation();
-            console.log("<=====isMarker=====>", isMarker);
-            if (!isMarker) {
-              setModalMessage(" You need to place a marker first");
-              setClassToAdd("");
-            }
-          }}
-        >
-          {NamenClasses?.map((item, index) => (
-            <div key={index} className="form-check form-check--devider  ">
-              <input
-                onChange={(e) => {
-                  setClassToAdd(e.target.value);
-                }}
-                disabled={!isMarker}
-                type="radio"
-                id={item}
-                name="example"
-                value={item}
-                checked={classToAdd === item}
-              />
-              <label htmlFor={item}>{item}</label>
+            <div
+              className=" fildset-radio grid  grid-flow-row grid-cols-[repeat(3,_150px)]  gap-1"
+              onClick={(e) => {
+                e.stopPropagation();
+                console.log("<=====isMarker=====>", isMarker);
+                if (!isMarker) {
+                  setModalMessage(" You need to place a marker first");
+                  setClassToAdd("");
+                }
+              }}
+            >
+              {NamenClasses?.map((item, index) => (
+                <div key={index} className="form-check form-check--devider  ">
+                  <input
+                    onChange={(e) => {
+                      setClassToAdd(e.target.value);
+                    }}
+                    disabled={!isMarker}
+                    type="radio"
+                    id={item}
+                    name="example"
+                    value={item}
+                    checked={classToAdd === item}
+                  />
+                  <label htmlFor={item}>{item}</label>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </div>
+          </div>
+        </>
+      )}
+
       <div className="flex items mt-6  gap-2">
         {code && (
           <button
