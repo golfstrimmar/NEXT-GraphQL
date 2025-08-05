@@ -153,7 +153,7 @@ const EditorComponent = () => {
   useEffect(() => {
     if (!htmlJson) return;
     const formattedCode = RenderJson(htmlJson);
-    console.log("<=====♻️formattedCode  ♻️====>", formattedCode);
+    // console.log("<=====♻️formattedCode  ♻️====>", formattedCode);
     setCode(formattedCode);
   }, [htmlJson]);
   // -----🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹
@@ -234,7 +234,14 @@ const EditorComponent = () => {
       })();
       return;
     }
-    const previewEl = document.getElementById("preview");
+
+    const insertNode = (fragment: DocumentFragment) => {
+      const marker = document.querySelector("[data-marker]") as HTMLElement;
+      if (!marker) return;
+      const block = marker.closest("[data-index]") as HTMLElement;
+      if (!block) return;
+      block.replaceChild(fragment, marker);
+    };
     (async () => {
       const htmlString = await ToAdd(nodeToAdd, htmlJson);
       if (!htmlString) return;
@@ -244,7 +251,7 @@ const EditorComponent = () => {
       while (temp.firstChild) {
         fragment.appendChild(temp.firstChild);
       }
-      marker.parentElement?.insertBefore(fragment, marker);
+      insertNode(fragment);
       marker.remove();
       setIsMarker(false);
       ToBase(setHtmlJson);
@@ -256,52 +263,61 @@ const EditorComponent = () => {
     const preview = document.getElementById("preview");
 
     const handleClick = (e: MouseEvent) => {
+      document.querySelector("[data-marker]")?.remove();
       const target = e.target as HTMLElement;
-
-      // Клик по пустому месту — ничего не делаем
       if (target.getAttribute("id") === "preview") return;
-
       const block = target.closest("[data-index]") as HTMLElement;
       if (!block || !preview?.contains(block)) return;
 
-      // Удаляем старый маркер
-      preview.querySelector("[data-marker]")?.remove();
-
-      // Создаём маркер
+      //----- Создаём маркер
       const marker = document.createElement("span");
       marker.setAttribute("data-marker", "true");
       marker.className = "marker";
+      marker.style.setProperty("position", "relative", "important");
+      marker.style.minWidth = "13px";
       setIsMarker(true);
+      //-----
 
       const children = Array.from(block.children).filter(
-        (el) => el !== marker
+        (el) => !el.hasAttribute("data-marker")
       ) as HTMLElement[];
 
       const clickX = e.clientX;
       const clickY = e.clientY;
 
-      let closestChild: HTMLElement | null = null;
-      let minDistance = Infinity;
+      const check = ["flex-row", "grid"];
+      const isHorizontal = check.some((item) => block.classList.contains(item));
+      console.log("<=====🔂isHorizontal====>", isHorizontal);
+      // ----------------------------------
+      if (isHorizontal) {
+        let insertBeforeElement = null;
+        for (let i = 0; i < children.length; i++) {
+          const current = children[i];
+          const rect = current.getBoundingClientRect();
 
-      for (const child of children) {
-        const rect = child.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-
-        const dx = centerX - clickX;
-        const dy = centerY - clickY;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-
-        if (distance < minDistance) {
-          minDistance = distance;
-          closestChild = child;
+          if (
+            Math.abs(clickY - rect.top) < rect.height && // На одной строке (плюс-минус)
+            clickX < rect.left + 13
+          ) {
+            insertBeforeElement = current;
+            break;
+          }
         }
-      }
-
-      if (closestChild) {
-        block.insertBefore(marker, closestChild);
+        block.insertBefore(marker, insertBeforeElement);
       } else {
-        block.appendChild(marker);
+        let insertBeforeElement = null;
+        for (let i = 0; i < children.length; i++) {
+          const current = children[i];
+          const rect = current.getBoundingClientRect();
+          console.log("<====clickY====>", clickY);
+          console.log("<====rect.top====>", rect.top);
+
+          if (clickY < rect.top + 13) {
+            insertBeforeElement = current;
+            break;
+          }
+        }
+        block.insertBefore(marker, insertBeforeElement);
       }
     };
 
@@ -825,7 +841,12 @@ const EditorComponent = () => {
             }}
             className="btn"
           >
-            <Image src="./svg/copy.svg" width={28} height={28} alt="copy" />
+            <Image
+              src="./svg/convert.svg"
+              width={28}
+              height={28}
+              alt="convert"
+            />
           </button>
         )}
       </div>

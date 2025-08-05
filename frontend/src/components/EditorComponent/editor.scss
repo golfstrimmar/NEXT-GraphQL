@@ -15,7 +15,7 @@
     /* делает сам ползунок уже */
     background: rgba(100, 100, 100, 0.4) !important;
   }
-  
+
   .minimap {
     opacity: 0.95;
   }
@@ -29,12 +29,12 @@
   border: 1px solid var(--grey-30);
   padding: 5px 5px 0px 5px;
   border-radius: var(--token-04);
-  
+
   background: #0F172A;
-  
+
   * {
     position: relative;
-    
+
     &::after {
       content: attr(data-label);
       position: absolute;
@@ -51,7 +51,7 @@
       z-index: 10;
     }
   }
-  
+
 }
 
 .cart {
@@ -64,22 +64,24 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  
+
   width: calc(100%);
   min-height: 80px;
 }
 
 .marker {
+  // position: absolute !important;
+  // top: 0;
+  // left: 0;
   display: inline-block;
-  
   background: red;
-  margin: 4px;
-  width: 15px;
-  height: 15px;
+  z-index: 200;
+  width: 13px !important;
+  height: 13px !important;
   border-radius: 50%;
-  
+  transition: all 0.5s ease-in-out;
+
   &::after {
     display: none;
   }
 }
-

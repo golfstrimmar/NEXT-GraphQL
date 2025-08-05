@@ -29,9 +29,8 @@ const convertHtml = (html) => {
     if (dataLabel) {
       const textNode = document.createTextNode(dataLabel);
       el.appendChild(textNode);
-      el.removeAttribute("data-label");
     }
-
+    el.removeAttribute("data-label");
     // Очистка классов
     const elClass = el.getAttribute("class");
     if (elClass) {
