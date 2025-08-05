@@ -22,8 +22,15 @@ import htmlToPug from "@/utils/htmlToPug";
 // ♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️
 const EditorComponent = () => {
   const monaco = useMonaco();
-  const { htmlJson, setHtmlJson, nodeToAdd, setNodeToAdd, setModalMessage } =
-    useStateContext();
+  const {
+    htmlJson,
+    setHtmlJson,
+    nodeToAdd,
+    setNodeToAdd,
+    setModalMessage,
+    transformTo,
+    setTransformTo,
+  } = useStateContext();
 
   const [editorInstance, setEditorInstance] = useState<any>(null);
   const decorationIds = React.useRef<string[]>([]);
@@ -37,14 +44,13 @@ const EditorComponent = () => {
   const [commonClass, setCommonClass] = useState<string>("");
   const editorRef = useRef<any>(null);
   // -------------------------------
-  const [resJson, setResJson] = useState<string>("");
+  const [resHtml, setResHtml] = useState<string>("");
   const [resScss, setResScss] = useState<string>("");
   const [resPug, setResPug] = useState<string>("");
-  const [ScssIsVisible, setScssIsVisible] = useState<boolean>(false);
-  const [PugIsVisible, setPugIsVisible] = useState<boolean>(false);
+
   const [isCopiedScss, setIsCopiedScss] = useState<boolean>(false);
   const [isCopiedPug, setIsCopiedPug] = useState<boolean>(false);
-  const [isCopied, setisCopied] = useState<boolean>(false);
+  const [isCopiedHtml, setisCopiedHtml] = useState<boolean>(false);
 
   const checkClasses = [
     "inline-block",
@@ -649,31 +655,77 @@ const EditorComponent = () => {
     if (editorRef.current) {
       const currentCode = editorRef.current.getValue();
       const newHtmlJson = htmlToJSON(currentCode);
-      const htmlOrdered = orderIndexes();
+      const htmlOrdered = orderIndexes(newHtmlJson);
       setHtmlJson(htmlOrdered);
     }
   };
 
   // ♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️
 
-  const handleCopyHtml = () => {
-    setisCopied(true);
-    setTimeout(() => setisCopied(false), 1000);
+  const handleTransform = () => {
+    setTransformTo(true);
     let cleanedCode = convertHtml(code);
     const cleanedScss = htmlToScss(cleanedCode);
-    console.log("<==== 💥cleanedScss====>", cleanedScss);
     cleanedCode = removeTailwindClasses(cleanedCode);
-    console.log("<==== 💥cleanedCode====>", cleanedCode);
     const resultPug = htmlToPug(cleanedCode);
-    console.log("<==== 💥resultPug====>", resultPug);
-    // setResPug(resultPug);
+    setResHtml(cleanedCode);
+    setResPug(resultPug);
+    setResScss(cleanedScss);
+    // console.log("<==== 💥cleanedScss====>", cleanedScss);
+    // console.log("<==== 💥cleanedCode====>", cleanedCode);
+    // console.log("<==== 💥resultPug====>", resultPug);
     // navigator.clipboard.writeText(cleanedCode);
   };
   // ♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️
+  const [codeIs, setCodeIs] = useState<boolean>(false);
+  useEffect(() => {
+    const preview = document.querySelector("#preview");
 
+    if (!preview) return;
+
+    const checkContent = () => {
+      const onlyCartInside =
+        preview.children.length === 1 && preview.querySelector(".cart");
+      setCodeIs(!onlyCartInside);
+    };
+
+    checkContent();
+
+    const observer = new MutationObserver(() => {
+      checkContent();
+    });
+
+    observer.observe(preview, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (codeIs) {
+      console.log("<====💥💥💥💥💥💥💥💥 codeIs====>", codeIs);
+    } else {
+      setResHtml("");
+      setResScss("");
+      setResPug("");
+    }
+  }, [codeIs]);
+  useEffect(() => {
+    setTransformTo(false);
+    setResHtml("");
+    setResScss("");
+    setResPug("");
+    // }
+  }, [code]);
   return (
     <div className="editor">
       <Admin />
+
       <form className="mb-4  gap-4">
         <Input
           typeInput="text"
@@ -683,7 +735,9 @@ const EditorComponent = () => {
             setCommonClass(e.currentTarget.value);
           }}
           data="common class"
-        />
+        />{" "}
+      </form>
+      <div className="flex items-center mb-2 gap-2">
         <button
           onClick={(e) => {
             e.preventDefault();
@@ -702,7 +756,7 @@ const EditorComponent = () => {
             });
             setCommonClass("");
           }}
-          className="btn btn-empty  my-1 px-2 "
+          className="btn btn-empty   px-2 "
         >
           reset common class
         </button>
@@ -714,11 +768,10 @@ const EditorComponent = () => {
               setClassToAdd(commonClass);
             }
           }}
-          className="btn btn-empty my-1 px-2 ml-2"
+          className="btn btn-empty  px-2 ml-2"
         >
           ⇩ common class
         </button>
-        {/* )} */}
         {delimiters &&
           delimiters.map((delim) => (
             <button
@@ -729,12 +782,12 @@ const EditorComponent = () => {
                   AddCommonClass(delim);
                 }
               }}
-              className="btn btn-empty my-1 px-2 ml-2"
+              className="btn btn-empty  px-2 ml-2"
             >
               ⇩ divider {delim}
             </button>
           ))}
-      </form>
+      </div>
       <div className="grid grid-cols-[max-content_1fr] gap-4 ">
         <div
           className=" fildset-radio border-r border-gray-200 pr-2"
@@ -834,20 +887,55 @@ const EditorComponent = () => {
             />
           </button>
         )}
-        {code && (
-          <button
-            onClick={() => {
-              handleCopyHtml();
-            }}
-            className="btn"
-          >
-            <Image
-              src="./svg/convert.svg"
-              width={28}
-              height={28}
-              alt="convert"
-            />
-          </button>
+        <button
+          onClick={() => {
+            handleTransform();
+          }}
+          className={`btn ml-8 ${transformTo ? "shadow-[0px_0px_3px_2px_rgb(58_243_8)] hover:shadow-[0px_0px_3px_2px_rgb(58_243_8)]! " : ""} ${codeIs ? "opacity-100" : "opacity-20 hover:shadow-[0px_0px_3px_2px_rgb(58_243_8_0)]!"}`}
+          disabled={!codeIs}
+        >
+          <Image src="./svg/convert.svg" width={28} height={28} alt="convert" />
+        </button>
+        {transformTo && (
+          <>
+            <button
+              onClick={() => {
+                if (!resHtml) return;
+                setisCopiedHtml(true);
+                setTimeout(() => setisCopiedHtml(false), 1000);
+                navigator.clipboard.writeText(resHtml);
+              }}
+              className={`btn ${isCopiedHtml ? "shadow-[0px_0px_3px_2px_rgb(58_243_8)] hover:shadow-[0px_0px_3px_2px_rgb(58_243_8)]!" : ""}`}
+              disabled={!resHtml}
+            >
+              <Image src="./svg/html.svg" width={28} height={28} alt="html" />
+            </button>
+            <button
+              onClick={() => {
+                if (!resPug) return;
+                setIsCopiedPug(true);
+                setTimeout(() => setIsCopiedPug(false), 1000);
+                navigator.clipboard.writeText(resPug);
+              }}
+              className={`btn ${isCopiedPug ? "shadow-[0px_0px_3px_2px_rgb(58_243_8)] hover:shadow-[0px_0px_3px_2px_rgb(58_243_8)]!" : ""}`}
+              disabled={!resPug}
+            >
+              <Image src="./svg/pug.svg" width={28} height={28} alt="pug" />
+            </button>
+
+            <button
+              onClick={() => {
+                if (!resScss) return;
+                setIsCopiedScss(true);
+                setTimeout(() => setIsCopiedScss(false), 1000);
+                navigator.clipboard.writeText(resScss);
+              }}
+              className={`btn  ${isCopiedScss ? "shadow-[0px_0px_3px_2px_rgb(58_243_8)] hover:shadow-[0px_0px_3px_2px_rgb(58_243_8)]!" : ""}`}
+              disabled={!resScss}
+            >
+              <Image src="./svg/scss.svg" width={28} height={28} alt="scss" />
+            </button>
+          </>
         )}
       </div>
       <div id="preview" data-index="0"></div>
@@ -855,7 +943,7 @@ const EditorComponent = () => {
         onClick={() => {
           handleCartClear();
         }}
-        className="w-8 h-8  mt-[-60px] mb-6 z-40 relative  rounded-full  flex items-center justify-center cursor-pointer"
+        className="w-8 h-8  mt-[-50px] mb-8 z-40 relative  rounded-full  flex items-center justify-center cursor-pointer"
       >
         🗑️
       </button>

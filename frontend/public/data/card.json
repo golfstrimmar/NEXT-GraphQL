@@ -1,163 +1,212 @@
 [
   {
-    "type": "section",
+    "type": "div",
     "attributes": {
-      "id": "best",
-      "className": "best rel    bg-indigo-300",
-      "data-index": "0"
+      "style": "",
+      "class": "bg-slate-300   card"
     },
     "children": [
+      "card div",
       {
         "type": "div",
         "attributes": {
-          "data-index": "1",
-          "className": "grid grid-cols-[repeat(auto-fit,_minmax(150px,_1fr))] gap-4    bg-slate-300"
+          "class": "bg-slate-300   card__wrap"
         },
         "children": [
+          "card__wrap div",
           {
-            "type": "div",
+            "type": "h2",
             "attributes": {
-              "className": "   rel  bg-slate-300",
-              "data-index": "2"
+              "class": "bg-pink-600   card__title"
             },
-            "children": [
-              {
-                "type": "div",
-                "attributes": {
-                  "className": "imgs m-0! p-0! -none bg-transparent  bg-slate-300",
-                  "data-index": "3"
-                },
-                "children": [
-                  {
-                    "type": "img",
-                    "attributes": {
-                      "src": "https://res.cloudinary.com/dke0nudcz/image/upload/v1745696143/events/odqmrgyyqrvlovzmtaag.png",
-                      "alt": "logo",
-                      "data-index": "4"
-                    }
-                  }
-                ]
-              }
-            ]
+            "children": "card__title h2"
           },
           {
             "type": "div",
             "attributes": {
-              "className": "  px-4 flex flex-col gap-4 py-[20px]  bg-slate-300",
-              "data-index": "5"
+              "class": "grid grid-cols-[repeat(auto-fit,_minmax(150px,_1fr))] gap-2 bg-slate-300   card__content"
             },
             "children": [
+              "card__content div",
               {
-                "type": "h2",
+                "type": "div",
                 "attributes": {
-                  "className": " ",
-                  "data-index": "6"
-                },
-                "children": "h2"
-              },
-              {
-                "type": "p",
-                "attributes": {
-                  "className": "text-sm   bg-green-300",
-                  "data-index": "7"
-                },
-                "children": "p"
-              },
-              {
-                "type": "span",
-                "attributes": {
-                  "className": "  bg-violet-300",
-                  "data-index": "8"
-                },
-                "children": "span"
-              },
-              {
-                "type": "ul",
-                "attributes": {
-                  "className": "  bg-indigo-200 ! flex items-center justify-center bg-sky-200",
-                  "data-index": "9"
+                  "style": "",
+                  "class": "bg-slate-300   card__img"
                 },
                 "children": [
+                  "card__img div",
                   {
-                    "type": "li",
+                    "type": "div",
                     "attributes": {
-                      "className": " bg-indigo-300  ! bg-sky-300",
-                      "data-index": "10"
+                      "data-label": "",
+                      "style": "",
+                      "class": "imgs m-0! p-0! border-none bg-transparent  "
                     },
                     "children": [
                       {
-                        "type": "a",
+                        "type": "img",
                         "attributes": {
-                          "href": "#",
-                          "className": "link   bg-blue-300",
-                          "data-index": "11"
+                          "src": "https://res.cloudinary.com/dke0nudcz/image/upload/v1745696143/events/odqmrgyyqrvlovzmtaag.png",
+                          "alt": "logo"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "div",
+                "attributes": {
+                  "class": "bg-slate-300   card__info"
+                },
+                "children": [
+                  "card__info div",
+                  {
+                    "type": "h3",
+                    "children": "h3"
+                  },
+                  {
+                    "type": "p",
+                    "attributes": {
+                      "class": "text-sm bg-green-300   card__text"
+                    },
+                    "children": "card__text p"
+                  },
+                  {
+                    "type": "ul",
+                    "attributes": {
+                      "style": "",
+                      "class": "flex items-center  bg-sky-200   card__items"
+                    },
+                    "children": [
+                      "card__items ul",
+                      {
+                        "type": "li",
+                        "attributes": {
+                          "style": "",
+                          "class": "bg-sky-300 my-2! p-2!  "
                         },
                         "children": [
+                          "li-1",
                           {
-                            "type": "img",
+                            "type": "a",
                             "attributes": {
-                              "className": "  w-10 h-10",
-                              "src": "https://res.cloudinary.com/dke0nudcz/image/upload/v1753720705/link-svgrepo-com_fk1scy.svg",
-                              "alt": "svg-img"
-                            }
+                              "href": "#!",
+                              "style": "",
+                              "class": "bg-blue-400  "
+                            },
+                            "children": [
+                              "a",
+                              {
+                                "type": "img",
+                                "attributes": {
+                                  "src": "https://res.cloudinary.com/dke0nudcz/image/upload/v1753720705/link-svgrepo-com_fk1scy.svg",
+                                  "alt": "svg-img",
+                                  "style": "",
+                                  "class": "w-10 h-10 p-0!  "
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "type": "li",
+                        "attributes": {
+                          "class": "bg-sky-300 my-2! p-2!  "
+                        },
+                        "children": [
+                          "li-1",
+                          {
+                            "type": "a",
+                            "attributes": {
+                              "href": "#!",
+                              "style": "",
+                              "class": "bg-blue-400  "
+                            },
+                            "children": [
+                              "a",
+                              {
+                                "type": "img",
+                                "attributes": {
+                                  "src": "https://res.cloudinary.com/dke0nudcz/image/upload/v1753720705/link-svgrepo-com_fk1scy.svg",
+                                  "alt": "svg-img",
+                                  "style": "",
+                                  "class": "w-10 h-10 p-0!  "
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "type": "li",
+                        "attributes": {
+                          "class": "bg-sky-300 my-2! p-2!  "
+                        },
+                        "children": [
+                          "li-1",
+                          {
+                            "type": "a",
+                            "attributes": {
+                              "href": "#!",
+                              "style": "",
+                              "class": "bg-blue-400  "
+                            },
+                            "children": [
+                              "a",
+                              {
+                                "type": "img",
+                                "attributes": {
+                                  "src": "https://res.cloudinary.com/dke0nudcz/image/upload/v1753720705/link-svgrepo-com_fk1scy.svg",
+                                  "alt": "svg-img",
+                                  "style": "",
+                                  "class": "w-10 h-10 p-0!  "
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "type": "li",
+                        "attributes": {
+                          "class": "bg-sky-300 my-2! p-2!  "
+                        },
+                        "children": [
+                          "li-1",
+                          {
+                            "type": "a",
+                            "attributes": {
+                              "href": "#!",
+                              "style": "",
+                              "class": "bg-blue-400  "
+                            },
+                            "children": [
+                              "a",
+                              {
+                                "type": "img",
+                                "attributes": {
+                                  "src": "https://res.cloudinary.com/dke0nudcz/image/upload/v1753720705/link-svgrepo-com_fk1scy.svg",
+                                  "alt": "svg-img",
+                                  "style": "",
+                                  "class": "w-10 h-10 p-0!  "
+                                }
+                              }
+                            ]
                           }
                         ]
                       }
                     ]
                   },
                   {
-                    "type": "li",
+                    "type": "button",
                     "attributes": {
-                      "className": " bg-indigo-300  ! bg-sky-300",
-                      "data-index": "10"
+                      "style": "",
+                      "class": "p-2! m-2! bg-blue-700  card__btn"
                     },
-                    "children": [
-                      {
-                        "type": "a",
-                        "attributes": {
-                          "href": "#",
-                          "className": "link   bg-blue-300",
-                          "data-index": "11"
-                        },
-                        "children": [
-                          {
-                            "type": "img",
-                            "attributes": {
-                              "className": "  w-10 h-10",
-                              "src": "https://res.cloudinary.com/dke0nudcz/image/upload/v1753720705/link-svgrepo-com_fk1scy.svg",
-                              "alt": "svg-img"
-                            }
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "type": "li",
-                    "attributes": {
-                      "className": " bg-indigo-300  ! bg-sky-300",
-                      "data-index": "10"
-                    },
-                    "children": [
-                      {
-                        "type": "a",
-                        "attributes": {
-                          "href": "#",
-                          "className": "link   bg-blue-300",
-                          "data-index": "11"
-                        },
-                        "children": [
-                          {
-                            "type": "img",
-                            "attributes": {
-                              "className": "  w-10 h-10",
-                              "src": "https://res.cloudinary.com/dke0nudcz/image/upload/v1753720705/link-svgrepo-com_fk1scy.svg",
-                              "alt": "svg-img"
-                            }
-                          }
-                        ]
-                      }
-                    ]
+                    "children": "card__btn"
                   }
                 ]
               }
