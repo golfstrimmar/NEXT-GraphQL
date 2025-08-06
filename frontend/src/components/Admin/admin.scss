@@ -1,7 +1,14 @@
-@import '@/scss/common/colors';
+.admin {
 
-.preview {
-  &__item {
-    /* Стили для элементов */
-  }
+  // height: 100vh;
+  // background-color: gray;
+  // z-index: 50;
+  border: 2px solid gray;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 5px;
+  min-width: 100px;
+  max-height: calc(100vh - 130px);
+  overflow-y: scroll;
 }

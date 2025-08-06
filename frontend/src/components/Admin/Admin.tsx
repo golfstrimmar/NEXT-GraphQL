@@ -4,9 +4,89 @@ import "./admin.scss";
 import { useStateContext } from "@/components/StateProvider";
 import ButtonUnit from "@/components/ButtonUnit/ButtonUnit";
 import { AnimatePresence, motion } from "framer-motion";
+import Input from "@/components/ui/Input/Input";
+const Admin = ({
+  commonClass,
+  setCommonClass,
+  classToAdd,
+  setClassToAdd,
+  isMarker,
+}) => {
+  const {
+    htmlJson,
+    setHtmlJson,
+    nodeToAdd,
+    setNodeToAdd,
+    setModalMessage,
+    transformTo,
+    setTransformTo,
+  } = useStateContext();
+  // const [classToAdd, setClassToAdd] = useState<string>("");
+  // const [isMarker, setIsMarker] = useState<boolean>(false);
+  const [openPanel, setOpenPanel] = useState<boolean>(false);
+  const [openPanelClasses, setOpenPanelClasses] = useState<boolean>(false);
 
-const Admin = () => {
-  const { setHtmlJson, setTransformTo } = useStateContext();
+  const ListOfClasses = ["flex-col", "flex-row", "grid"];
+  const [NamenClasses, setNamenClasses] = useState<string[]>([
+    "wrap",
+    "blocks",
+    "block",
+    "button",
+    "bage",
+    "content",
+    "container",
+    "columns",
+    "column",
+    "cards",
+    "card",
+    "decor",
+    "hidden",
+    "head",
+    "form",
+    "email",
+    "items",
+    "item",
+    "img",
+    "imgs",
+    "info",
+    "link",
+    "line",
+    "low",
+    "logo",
+    "pagination",
+    "plaza",
+    "slider",
+    "slide",
+    "socs",
+    "soc",
+    "title",
+    "text",
+    "top",
+    "phone",
+    "vidget",
+    "units",
+    "unit",
+  ]);
+  const checkClasses = [
+    "inline-block",
+    "block",
+    "flex-col",
+    "flex-row",
+    "grid",
+    "flex",
+    "justify-start",
+    "justify-center",
+    "justify-end",
+    "justify-between",
+    "justify-around",
+    "justify-evenly",
+    "items-start",
+    "items-center",
+    "items-end",
+    "items-stretch",
+    "items-baseline",
+  ];
+  const delimiters = ["__", "--", "-"];
   const Buttons = [
     "section",
     "div",
@@ -46,13 +126,13 @@ const Admin = () => {
   };
 
   const [openPanels, setOpenPanels] = useState({
-    // classes: false,
     snippets: false,
     headers: false,
     tables: false,
   });
   // 📌📌📌📌📌📌📌📌📌📌📌
   const togglePanel = (panel: keyof typeof openPanels) => {
+    setOpenPanel(true);
     setOpenPanels((prev) => {
       const newState = {};
       for (const key in prev) {
@@ -71,67 +151,68 @@ const Admin = () => {
     localStorage.setItem("htmlJson", JSON.stringify(json));
     setHtmlJson(json);
   };
+  const AddCommonClass = (str: string) => {
+    setNamenClasses((prevClasses) => {
+      return prevClasses.map((foo) => {
+        let cleaned = foo;
 
+        for (const delim of delimiters) {
+          const index = foo.indexOf(delim);
+          if (index !== -1) {
+            cleaned = foo.slice(index + delim.length); // удаляем всё до и включая разделитель
+            break;
+          }
+        }
+
+        return commonClass + str + cleaned;
+      });
+    });
+  };
   return (
-    <div
-      className="admin
-fixed
-top-0
-right-0
-z-50
-bg-gray-400
-border-2 border-slate-500
-rounded-sm
-p-2
-grid
-grid-rows-[repeat(auto-fill,30px)]
-gap-1
-h-[100vh]
-opacity-90"
-    >
+    <div className="admin">
       <button onClick={clearStoreJsonHtml} className=" btn btn-allert">
-        Clear
+        ⚠️ Clear Editor
       </button>
-      <button
-        // onClick={(e) => {
-        //     handleCopy(e);
-        // }}
-        className=" btn btn-primary"
-      >
-        ⇨ Result
-      </button>
-
       {/*----------------------*/}
       {Buttons.map((button, index) => (
         <ButtonUnit info={button} key={index} />
       ))}
       {/*----------------------*/}
       {Object.entries(openPanels).map(([key, value]) => (
-        <div key={key} className="relative">
+        <div key={key} className="relative flex flex-col items-center">
           <button
             onClick={() => togglePanel(key as keyof typeof openPanels)}
             className="bg-amber-500 hover:bg-amber-800 py-1 px-1 text-sm rounded w-full"
           >
-            ⇦ {key}
+            ⇩ {key}
           </button>
 
           <AnimatePresence>
-            {value && (
+            {value && openPanel && (
               <motion.div
-                initial={{ opacity: 0, translateX: 0 }}
-                animate={{ opacity: 0.9, translateX: "-110%" }}
-                exit={{ opacity: 0, translateX: 0 }}
-                transition={{ duration: 0.2, ease: [0.25, 0.8, 0.5, 1] }}
-                className="absolute
-                        bg-gray-400
-                        grid
-                        grid-flow-row
-                        auto-rows-[minmax(25px,_auto)]
-                        gap-2
-                        bottom-0
-                        left-0
-                        z-48
-                        border-2  rounded-sm p-2  border-slate-500"
+                initial={{
+                  height: 0,
+                  margin: 0,
+                  paddingTop: "0px",
+                  paddingBottom: "0px",
+                }}
+                animate={{
+                  height: "auto",
+                  marginTop: "5px",
+                  paddingTop: "5px",
+                  paddingBottom: "5px",
+                }}
+                exit={{
+                  height: 0,
+                  margin: 0,
+                  paddingTop: "0px",
+                  paddingBottom: "0px",
+                }}
+                transition={{ duration: 0.2 }}
+                className="
+                        bg-gray-400 flex flex-col gap-2
+                         overflow-hidden px-2 w-[95%]
+                        border-2  rounded-sm   border-slate-500"
               >
                 {headersByPanel[key]?.map((but, index) => (
                   <ButtonUnit key={index} info={but} />
@@ -141,7 +222,147 @@ opacity-90"
           </AnimatePresence>
         </div>
       ))}
+      {/*----------------------*/}
 
+      <button
+        onClick={() => setOpenPanelClasses(!openPanelClasses)}
+        className="bg-amber-500 hover:bg-amber-800 py-1 px-1 text-sm rounded w-full"
+      >
+        ⇩ add class
+      </button>
+      <AnimatePresence>
+        {openPanelClasses && (
+          <motion.div
+            initial={{ height: 0 }}
+            animate={{ height: "auto" }}
+            exit={{ height: 0 }}
+            transition={{ duration: 0.2 }}
+            className=" bg-gray-400  p-1 w-[95%] m-[0_auto_2rem]
+                        border-2  rounded-sm   border-slate-500"
+          >
+            <form className=" mb-2 gap-4">
+              <Input
+                typeInput="text"
+                value={commonClass}
+                onChange={(e) => {
+                  e.preventDefault();
+                  setCommonClass(e.currentTarget.value);
+                }}
+                data="set common class"
+              />{" "}
+            </form>
+            <div className="flex flex-col mb-2 gap-2">
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  setNamenClasses((prevClasses) => {
+                    return prevClasses.map((foo) => {
+                      let cleaned = foo;
+                      for (const delim of delimiters) {
+                        const index = foo.indexOf(delim);
+                        if (index !== -1) {
+                          cleaned = foo.slice(index + delim.length); // удаляем всё до и включая разделитель
+                          break;
+                        }
+                      }
+                      return cleaned;
+                    });
+                  });
+                  setCommonClass("");
+                }}
+                className="btn btn-empty bg-[#fdfdfb] w-full  px-2 "
+              >
+                reset common class
+              </button>
+
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (commonClass) {
+                    setClassToAdd(commonClass);
+                  }
+                }}
+                className="btn btn-empty bg-[#fdfdfb] w-full  px-2 "
+              >
+                add common class ↗️
+              </button>
+              {delimiters &&
+                delimiters.map((delim) => (
+                  <button
+                    key={delim}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (commonClass) {
+                        AddCommonClass(delim);
+                      }
+                    }}
+                    className="btn btn-empty bg-[#fdfdfb] w-full  px-2"
+                  >
+                    ⇩ common class + divider {delim}
+                  </button>
+                ))}
+            </div>
+            <div className="flex flex-col gap-2 ">
+              <div
+                className=" fildset-radio bg-[#4d6a92] px-1 border-2 border-slate-500 rounded-sm flex flex-col gap-1 "
+                onClick={(e) => {
+                  e.stopPropagation();
+                  console.log("<===== 🙍🙍🙍 admin isMarker=====>", isMarker);
+                  if (!isMarker) {
+                    setModalMessage("🙍 You need to place a marker first");
+                    setClassToAdd("");
+                  }
+                }}
+              >
+                {checkClasses.map((item, index) => (
+                  <div key={index} className="form-check">
+                    <input
+                      onChange={(e) => {
+                        setClassToAdd(e.target.value);
+                      }}
+                      disabled={!isMarker}
+                      type="radio"
+                      id={item}
+                      name="example"
+                      value={item}
+                      checked={classToAdd === item}
+                    />
+                    <label htmlFor={item}>{item}</label>
+                  </div>
+                ))}
+              </div>
+              <div
+                className=" fildset-radio bg-[#0891b2] px-1 border-2 border-slate-500 rounded-sm flex flex-col gap-1 "
+                onClick={(e) => {
+                  e.stopPropagation();
+                  console.log("<=====isMarker=====>", isMarker);
+                  if (!isMarker) {
+                    setModalMessage(" You need to place a marker first");
+                    setClassToAdd("");
+                  }
+                }}
+              >
+                {NamenClasses?.map((item, index) => (
+                  <div key={index} className="form-check form-check--devider  ">
+                    <input
+                      onChange={(e) => {
+                        setClassToAdd(e.target.value);
+                      }}
+                      disabled={!isMarker}
+                      type="radio"
+                      id={item}
+                      name="example"
+                      value={item}
+                      checked={classToAdd === item}
+                    />
+                    <label htmlFor={item}>{item}</label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/*----------------------*/}
     </div>
   );

@@ -19,6 +19,7 @@ import convertHtml from "@/utils/convertHtml";
 import htmlToScss from "@/utils/htmlToScss";
 import removeTailwindClasses from "@/utils/removeTailwindClasses";
 import htmlToPug from "@/utils/htmlToPug";
+import addClass from "@/utils/addClass";
 import { motion, AnimatePresence } from "framer-motion";
 // ♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️
 const EditorComponent = () => {
@@ -53,66 +54,66 @@ const EditorComponent = () => {
   const [isCopiedPug, setIsCopiedPug] = useState<boolean>(false);
   const [isCopiedHtml, setisCopiedHtml] = useState<boolean>(false);
 
-  const checkClasses = [
-    "inline-block",
-    "block",
-    "flex-col",
-    "flex-row",
-    "grid",
-    "flex",
-    "justify-start",
-    "justify-center",
-    "justify-end",
-    "justify-between",
-    "justify-around",
-    "justify-evenly",
-    "items-start",
-    "items-center",
-    "items-end",
-    "items-stretch",
-    "items-baseline",
-  ];
-  const [NamenClasses, setNamenClasses] = useState<string[]>([
-    "wrap",
-    "blocks",
-    "block",
-    "button",
-    "bage",
-    "content",
-    "container",
-    "columns",
-    "column",
-    "cards",
-    "card",
-    "decor",
-    "hidden",
-    "head",
-    "form",
-    "email",
-    "items",
-    "item",
-    "img",
-    "imgs",
-    "info",
-    "link",
-    "line",
-    "low",
-    "logo",
-    "pagination",
-    "plaza",
-    "slider",
-    "slide",
-    "socs",
-    "soc",
-    "title",
-    "text",
-    "top",
-    "phone",
-    "vidget",
-    "units",
-    "unit",
-  ]);
-  const delimiters = ["__", "--", "-"];
+  // const checkClasses = [
+  //   "inline-block",
+  //   "block",
+  //   "flex-col",
+  //   "flex-row",
+  //   "grid",
+  //   "flex",
+  //   "justify-start",
+  //   "justify-center",
+  //   "justify-end",
+  //   "justify-between",
+  //   "justify-around",
+  //   "justify-evenly",
+  //   "items-start",
+  //   "items-center",
+  //   "items-end",
+  //   "items-stretch",
+  //   "items-baseline",
+  // ];
+  // const [NamenClasses, setNamenClasses] = useState<string[]>([
+  //   "wrap",
+  //   "blocks",
+  //   "block",
+  //   "button",
+  //   "bage",
+  //   "content",
+  //   "container",
+  //   "columns",
+  //   "column",
+  //   "cards",
+  //   "card",
+  //   "decor",
+  //   "hidden",
+  //   "head",
+  //   "form",
+  //   "email",
+  //   "items",
+  //   "item",
+  //   "img",
+  //   "imgs",
+  //   "info",
+  //   "link",
+  //   "line",
+  //   "low",
+  //   "logo",
+  //   "pagination",
+  //   "plaza",
+  //   "slider",
+  //   "slide",
+  //   "socs",
+  //   "soc",
+  //   "title",
+  //   "text",
+  //   "top",
+  //   "phone",
+  //   "vidget",
+  //   "units",
+  //   "unit",
+  // ]);
+  // const delimiters = ["__", "--", "-"];
 
   // -----🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹--monaco
   useEffect(() => {
@@ -341,289 +342,23 @@ const EditorComponent = () => {
   };
   // +++++++++++++++++++++++++
 
-  const addClass = (foo: string) => {
-    console.log("<====++=classToAdd==++==>", foo);
-    const marker = document.querySelector("[data-marker]");
-    const previewEl = document.getElementById("preview");
-    const parentMarker = marker.parentElement;
-    if (parentMarker) {
-      console.log("<=====parentMarker=====>", parentMarker);
-
-      if (parentMarker.classList.contains(foo)) {
-        setModalMessage("You can't add the same class twice");
-        setClassToAdd("");
-        setIsMarker(false);
-        marker.remove();
-        ToBase(setHtmlJson);
-        return;
-      }
-
-      marker.remove();
-      setIsMarker(false);
-      // Получаем текущий data-label
-      let currentLabel = parentMarker.getAttribute("data-label") || "";
-
-      // Список всех управляющих классов, которые нужно удалять из data-label
-      const modesToRemove = [
-        "grid",
-        "grid-cols-[repeat(auto-fit,_minmax(150px,_1fr))]",
-        "gap-2",
-        "flex",
-        "flex-col",
-        "flex-row",
-        "block",
-        "inline-block",
-        "justify-start",
-        "justify-center",
-        "justify-end",
-        "justify-between",
-        "justify-around",
-        "justify-evenly",
-        "items-start",
-        "items-center",
-        "items-end",
-        "items-stretch",
-        "items-baseline",
-      ];
-      console.log("<====currentLabel====>", currentLabel);
-      // Чистим data-label
-      const cleanLabel = currentLabel
-        .split(" ")
-        .filter((token) => !modesToRemove.includes(token))
-        .join(" ")
-        .trim();
-      console.log("<====cleanLabel====>", cleanLabel);
-      if (foo === "block") {
-        parentMarker.classList.remove(...modesToRemove);
-        parentMarker.classList.add("block");
-        parentMarker.setAttribute("data-label", `block ${cleanLabel}`.trim());
-        ToBase(setHtmlJson);
-        setTimeout(() => {
-          setClassToAdd("");
-        }, 2000);
-        return;
-      }
-      if (foo === "inline-block") {
-        parentMarker.classList.remove(...modesToRemove);
-        parentMarker.classList.add("inline-block");
-        parentMarker.setAttribute(
-          "data-label",
-          `inline-block ${cleanLabel}`.trim()
-        );
-        ToBase(setHtmlJson);
-        setTimeout(() => {
-          setClassToAdd("");
-        }, 2000);
-        return;
-      }
-      if (foo === "grid") {
-        parentMarker.classList.remove(...modesToRemove);
-        parentMarker.classList.add(
-          "grid",
-          "grid-cols-[repeat(auto-fit,_minmax(150px,_1fr))]",
-          "gap-2"
-        );
-        parentMarker.setAttribute("data-label", `grid ${cleanLabel}`.trim());
-        ToBase(setHtmlJson);
-        setTimeout(() => {
-          setClassToAdd("");
-        }, 2000);
-
-        return;
-      }
-
-      if (foo === "flex-row") {
-        parentMarker.classList.remove(...modesToRemove);
-        parentMarker.classList.add("flex", "flex-row");
-        parentMarker.setAttribute(
-          "data-label",
-          `flex-row ${cleanLabel}`.trim()
-        );
-        ToBase(setHtmlJson);
-        setTimeout(() => {
-          setClassToAdd("");
-        }, 2000);
-        return;
-      }
-
-      if (foo === "flex-col") {
-        parentMarker.classList.remove(...modesToRemove);
-        parentMarker.classList.add("flex", "flex-col");
-        parentMarker.setAttribute(
-          "data-label",
-          `flex-col ${cleanLabel}`.trim()
-        );
-        ToBase(setHtmlJson);
-        setTimeout(() => {
-          setClassToAdd("");
-        }, 2000);
-        return;
-      }
-      // ================== FLEX JUSTIFY ====================
-      if (
-        [
-          "justify-start",
-          "justify-center",
-          "justify-end",
-          "justify-between",
-          "justify-around",
-          "justify-evenly",
-        ].includes(foo)
-      ) {
-        if (parentMarker.classList.contains("flex")) {
-          const modesToRemoveFlex = [
-            "grid",
-            "grid-cols-[repeat(auto-fit,_minmax(150px,_1fr))]",
-            "block",
-            "inline-block",
-            "justify-start",
-            "justify-center",
-            "justify-end",
-            "justify-between",
-            "justify-around",
-            "justify-evenly",
-          ];
-          parentMarker.classList.remove(...modesToRemoveFlex);
-          parentMarker.classList.add(foo);
-          parentMarker.setAttribute(
-            "data-label",
-            `${foo} ${cleanLabel}`.trim()
-          );
-          ToBase(setHtmlJson);
-          setTimeout(() => {
-            setClassToAdd("");
-          }, 2000);
-        }
-        if (parentMarker.classList.contains("grid")) {
-          const modesToRemoveFlex = [
-            "flex",
-            "flex-col",
-            "flex-row",
-            "block",
-            "inline-block",
-            "justify-start",
-            "justify-center",
-            "justify-end",
-            "justify-between",
-            "justify-around",
-            "justify-evenly",
-          ];
-          parentMarker.classList.remove(...modesToRemoveFlex);
-          parentMarker.classList.add(foo);
-          parentMarker.setAttribute(
-            "data-label",
-            `${foo} ${cleanLabel}`.trim()
-          );
-          ToBase(setHtmlJson);
-          setTimeout(() => {
-            setClassToAdd("");
-          }, 2000);
-        }
-        return;
-      }
-
-      // ================== FLEX ALIGN ITEMS ====================
-      if (
-        [
-          "items-start",
-          "items-center",
-          "items-end",
-          "items-stretch",
-          "items-baseline",
-        ].includes(foo)
-      ) {
-        if (parentMarker.classList.contains("flex")) {
-          const modesToRemoveFlex = [
-            "grid",
-            "grid-cols-[repeat(auto-fit,_minmax(150px,_1fr))]",
-            "block",
-            "inline-block",
-            "items-start",
-            "items-center",
-            "items-end",
-            "items-stretch",
-            "items-baseline",
-          ];
-          parentMarker.classList.remove(...modesToRemoveFlex);
-          parentMarker.classList.add("flex", foo);
-          parentMarker.setAttribute(
-            "data-label",
-            `${foo} ${cleanLabel}`.trim()
-          );
-          ToBase(setHtmlJson);
-          setTimeout(() => {
-            setClassToAdd("");
-          }, 2000);
-        }
-        if (parentMarker.classList.contains("grid")) {
-          const modesToRemoveFlex = [
-            "flex",
-            "flex-col",
-            "flex-row",
-            "block",
-            "inline-block",
-            "items-start",
-            "items-center",
-            "items-end",
-            "items-stretch",
-            "items-baseline",
-          ];
-          parentMarker.classList.remove(...modesToRemoveFlex);
-          parentMarker.classList.add(foo);
-          parentMarker.setAttribute(
-            "data-label",
-            `${foo} ${cleanLabel}`.trim()
-          );
-          ToBase(setHtmlJson);
-          setTimeout(() => {
-            setClassToAdd("");
-          }, 2000);
-        }
-        return;
-      }
-      // Остальные классы (просто добавляем без сброса)
-      parentMarker.classList.add(foo);
-
-      const allLabels = `${foo} ${cleanLabel}`.trim();
-      parentMarker.setAttribute("data-label", allLabels);
-      setTimeout(() => {
-        setClassToAdd("");
-      }, 2000);
-
-      ToBase(setHtmlJson);
-    }
-  };
-
   useEffect(() => {
     if (classToAdd) {
       if (isMarker) {
-        addClass(classToAdd);
+        addClass(
+          classToAdd,
+          setClassToAdd,
+          setIsMarker,
+          setHtmlJson,
+          setModalMessage
+        );
         setIsMarker(false);
       } else {
-        setModalMessage(" You need to place a marker first");
+        setModalMessage("✏️ You need to place a marker first");
         setClassToAdd("");
       }
     }
   }, [classToAdd]);
-
-  // +++++++++++++++++++++++++
-  const AddCommonClass = (str: string) => {
-    setNamenClasses((prevClasses) => {
-      return prevClasses.map((foo) => {
-        let cleaned = foo;
-
-        for (const delim of delimiters) {
-          const index = foo.indexOf(delim);
-          if (index !== -1) {
-            cleaned = foo.slice(index + delim.length); // удаляем всё до и включая разделитель
-            break;
-          }
-        }
-
-        return commonClass + str + cleaned;
-      });
-    });
-  };
 
   // +++++++++++++++++++++++++
   const handleUndo = () => {
@@ -727,278 +462,171 @@ const EditorComponent = () => {
   // 💥💥💥💥💥💥💥💥
   return (
     <div className="editor">
-      <Admin />
-
-      {codeIs && (
-        <>
-          <form className="mb-4  gap-4">
-            <Input
-              typeInput="text"
-              value={commonClass}
-              onChange={(e) => {
-                e.preventDefault();
-                setCommonClass(e.currentTarget.value);
-              }}
-              data="common class"
-            />{" "}
-          </form>
-          <div className="flex items-center mb-2 gap-2">
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                setNamenClasses((prevClasses) => {
-                  return prevClasses.map((foo) => {
-                    let cleaned = foo;
-                    for (const delim of delimiters) {
-                      const index = foo.indexOf(delim);
-                      if (index !== -1) {
-                        cleaned = foo.slice(index + delim.length); // удаляем всё до и включая разделитель
-                        break;
-                      }
-                    }
-                    return cleaned;
-                  });
-                });
-                setCommonClass("");
-              }}
-              className="btn btn-empty   px-2 "
-            >
-              reset common class
-            </button>
-
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                if (commonClass) {
-                  setClassToAdd(commonClass);
-                }
-              }}
-              className="btn btn-empty  px-2 ml-2"
-            >
-              ⇩ common class
-            </button>
-            {delimiters &&
-              delimiters.map((delim) => (
-                <button
-                  key={delim}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (commonClass) {
-                      AddCommonClass(delim);
-                    }
-                  }}
-                  className="btn btn-empty  px-2 ml-2"
-                >
-                  ⇩ divider {delim}
-                </button>
-              ))}
-          </div>
-          <div className="grid grid-cols-[max-content_1fr] gap-4 ">
-            <div
-              className=" fildset-radio border-r border-gray-200 pr-2"
-              onClick={(e) => {
-                e.stopPropagation();
-                console.log("<=====isMarker=====>", isMarker);
-                if (!isMarker) {
-                  setModalMessage(" You need to place a marker first");
-                  setClassToAdd("");
-                }
-              }}
-            >
-              {checkClasses.map((item, index) => (
-                <div key={index} className="form-check">
-                  <input
-                    onChange={(e) => {
-                      setClassToAdd(e.target.value);
-                    }}
-                    disabled={!isMarker}
-                    type="radio"
-                    id={item}
-                    name="example"
-                    value={item}
-                    checked={classToAdd === item}
-                  />
-                  <label htmlFor={item}>{item}</label>
-                </div>
-              ))}
-            </div>
-            <div
-              className=" fildset-radio grid  grid-flow-row grid-cols-[repeat(3,_150px)]  gap-1"
-              onClick={(e) => {
-                e.stopPropagation();
-                console.log("<=====isMarker=====>", isMarker);
-                if (!isMarker) {
-                  setModalMessage(" You need to place a marker first");
-                  setClassToAdd("");
-                }
-              }}
-            >
-              {NamenClasses?.map((item, index) => (
-                <div key={index} className="form-check form-check--devider  ">
-                  <input
-                    onChange={(e) => {
-                      setClassToAdd(e.target.value);
-                    }}
-                    disabled={!isMarker}
-                    type="radio"
-                    id={item}
-                    name="example"
-                    value={item}
-                    checked={classToAdd === item}
-                  />
-                  <label htmlFor={item}>{item}</label>
-                </div>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
-
-      <div className="flex items mt-6  gap-2">
-        {code && (
-          <button
-            onClick={() => {
-              handleUndo();
-            }}
-            className="btn "
-          >
-            <Image
-              src="./svg/left-arrow.svg"
-              width={28}
-              height={28}
-              alt="left"
-            />
-          </button>
-        )}{" "}
-        {code && (
-          <button
-            onClick={() => {
-              formatCode();
-            }}
-            className="btn btn-primary"
-          >
-            Format Code
-          </button>
-        )}
-        {code && (
-          <button
-            onClick={() => {
-              handleRedo();
-            }}
-            className="btn"
-          >
-            <Image
-              src="./svg/right-arrow.svg"
-              width={28}
-              height={28}
-              alt="right"
-            />
-          </button>
-        )}
-        <button
-          onClick={() => {
-            handleTransform();
-          }}
-          className={`btn ml-8 ${transformTo ? "shadow-[0px_0px_3px_2px_rgb(58_243_8)] hover:shadow-[0px_0px_3px_2px_rgb(58_243_8)]! " : ""} ${codeIs ? "opacity-100" : "opacity-20 hover:shadow-[0px_0px_3px_2px_rgb(58_243_8_0)]!"}`}
-          disabled={!codeIs}
-        >
-          <Image src="./svg/convert.svg" width={28} height={28} alt="convert" />
-        </button>
-        {transformTo && (
-          <>
-            <button
-              onClick={() => {
-                if (!resHtml) return;
-                setisCopiedHtml(true);
-                setTimeout(() => setisCopiedHtml(false), 1000);
-                navigator.clipboard.writeText(resHtml);
-              }}
-              className={`btn ${isCopiedHtml ? "shadow-[0px_0px_3px_2px_rgb(58_243_8)] hover:shadow-[0px_0px_3px_2px_rgb(58_243_8)]!" : ""}`}
-              disabled={!resHtml}
-            >
-              <Image src="./svg/html.svg" width={28} height={28} alt="html" />
-            </button>
-            <button
-              onClick={() => {
-                if (!resPug) return;
-                setIsCopiedPug(true);
-                setTimeout(() => setIsCopiedPug(false), 1000);
-                navigator.clipboard.writeText(resPug);
-              }}
-              className={`btn ${isCopiedPug ? "shadow-[0px_0px_3px_2px_rgb(58_243_8)] hover:shadow-[0px_0px_3px_2px_rgb(58_243_8)]!" : ""}`}
-              disabled={!resPug}
-            >
-              <Image src="./svg/pug.svg" width={28} height={28} alt="pug" />
-            </button>
-
-            <button
-              onClick={() => {
-                if (!resScss) return;
-                setIsCopiedScss(true);
-                setTimeout(() => setIsCopiedScss(false), 1000);
-                navigator.clipboard.writeText(resScss);
-              }}
-              className={`btn  ${isCopiedScss ? "shadow-[0px_0px_3px_2px_rgb(58_243_8)] hover:shadow-[0px_0px_3px_2px_rgb(58_243_8)]!" : ""}`}
-              disabled={!resScss}
-            >
-              <Image src="./svg/scss.svg" width={28} height={28} alt="scss" />
-            </button>
-          </>
-        )}
-      </div>
-      <div id="preview" data-index="0"></div>
-      <button
-        onClick={() => {
-          handleCartClear();
-        }}
-        className="w-8 h-8  mt-[-50px] mb-8 z-40 relative  rounded-full  flex items-center justify-center cursor-pointer"
-      >
-        🗑️
-      </button>
-      <Editor
-        height={editorHeight}
-        defaultLanguage="html"
-        defaultValue={code}
-        value={code}
-        onChange={(value) => {
-          setCode(value || "");
-        }}
-        options={{
-          fontSize: 14,
-          fontFamily: "Fira Code, monospace",
-          scrollBeyondLastLine: true,
-          minimap: {
-            enabled: true,
-            size: "fit",
-            showSlider: "always",
-            renderCharacters: false,
-          },
-          scrollbar: {
-            verticalScrollbarSize: 20,
-            horizontalScrollbarSize: 20,
-            handleMouseWheel: true,
-          },
-          hover: {
-            enabled: false,
-          },
-          parameterHints: {
-            enabled: false,
-          },
-        }}
-        onMount={handleEditorMount}
-        beforeMount={() => {
-          if (monaco) {
-            monaco.editor.defineTheme("myCustomTheme", {
-              base: "vs-dark",
-              inherit: true,
-              rules: [],
-              colors: {
-                "editor.background": "#1e1e1e",
-              },
-            });
-          }
-        }}
+      <Admin
+        commonClass={commonClass}
+        setCommonClass={setCommonClass}
+        classToAdd={classToAdd}
+        setClassToAdd={setClassToAdd}
+        isMarker={isMarker}
       />
+      <div className="editor__plaza">
+        <div className="flex items-center gap-2 editor__controls">
+          {code && (
+            <button
+              onClick={() => {
+                handleUndo();
+              }}
+              className="btn "
+            >
+              <Image
+                src="./svg/left-arrow.svg"
+                width={28}
+                height={28}
+                alt="left"
+              />
+            </button>
+          )}{" "}
+          {code && (
+            <button
+              onClick={() => {
+                formatCode();
+              }}
+              className="btn btn-primary"
+            >
+              Format Code
+            </button>
+          )}
+          {code && (
+            <button
+              onClick={() => {
+                handleRedo();
+              }}
+              className="btn"
+            >
+              <Image
+                src="./svg/right-arrow.svg"
+                width={28}
+                height={28}
+                alt="right"
+              />
+            </button>
+          )}
+          <button
+            onClick={() => {
+              handleTransform();
+            }}
+            className={`btn ml-8 ${transformTo ? "shadow-[0px_0px_3px_2px_rgb(58_243_8)] hover:shadow-[0px_0px_3px_2px_rgb(58_243_8)]! " : ""} ${codeIs ? "opacity-100" : "opacity-20 hover:shadow-[0px_0px_3px_2px_rgb(58_243_8_0)]!"}`}
+            disabled={!codeIs}
+          >
+            <Image
+              src="./svg/convert.svg"
+              width={28}
+              height={28}
+              alt="convert"
+            />
+          </button>
+          {transformTo && (
+            <>
+              <button
+                onClick={() => {
+                  if (!resHtml) return;
+                  setisCopiedHtml(true);
+                  setTimeout(() => setisCopiedHtml(false), 1000);
+                  navigator.clipboard.writeText(resHtml);
+                }}
+                className={`btn ${isCopiedHtml ? "shadow-[0px_0px_3px_2px_rgb(58_243_8)] hover:shadow-[0px_0px_3px_2px_rgb(58_243_8)]!" : ""}`}
+                disabled={!resHtml}
+              >
+                <Image src="./svg/html.svg" width={28} height={28} alt="html" />
+              </button>
+              <button
+                onClick={() => {
+                  if (!resPug) return;
+                  setIsCopiedPug(true);
+                  setTimeout(() => setIsCopiedPug(false), 1000);
+                  navigator.clipboard.writeText(resPug);
+                }}
+                className={`btn ${isCopiedPug ? "shadow-[0px_0px_3px_2px_rgb(58_243_8)] hover:shadow-[0px_0px_3px_2px_rgb(58_243_8)]!" : ""}`}
+                disabled={!resPug}
+              >
+                <Image src="./svg/pug.svg" width={28} height={28} alt="pug" />
+              </button>
+
+              <button
+                onClick={() => {
+                  if (!resScss) return;
+                  setIsCopiedScss(true);
+                  setTimeout(() => setIsCopiedScss(false), 1000);
+                  navigator.clipboard.writeText(resScss);
+                }}
+                className={`btn  ${isCopiedScss ? "shadow-[0px_0px_3px_2px_rgb(58_243_8)] hover:shadow-[0px_0px_3px_2px_rgb(58_243_8)]!" : ""}`}
+                disabled={!resScss}
+              >
+                <Image src="./svg/scss.svg" width={28} height={28} alt="scss" />
+              </button>
+            </>
+          )}
+        </div>
+        <div className="preview-wrap">
+          {/* 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 */}
+          <div id="preview" data-index="0"></div>
+          {/* 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 */}
+          <button
+            onClick={() => {
+              handleCartClear();
+            }}
+            className="w-8 h-8  mt-[-20px] mb-8 z-40 relative  rounded-full  flex items-center justify-center cursor-pointer"
+          >
+            🗑️
+          </button>
+        </div>
+        <div>
+          <Editor
+            height={editorHeight}
+            defaultLanguage="html"
+            defaultValue={code}
+            value={code}
+            onChange={(value) => {
+              setCode(value || "");
+            }}
+            options={{
+              fontSize: 14,
+              fontFamily: "Fira Code, monospace",
+              scrollBeyondLastLine: true,
+              minimap: {
+                enabled: true,
+                size: "fit",
+                showSlider: "always",
+                renderCharacters: false,
+              },
+              scrollbar: {
+                verticalScrollbarSize: 20,
+                horizontalScrollbarSize: 20,
+                handleMouseWheel: true,
+              },
+              hover: {
+                enabled: false,
+              },
+              parameterHints: {
+                enabled: false,
+              },
+            }}
+            onMount={handleEditorMount}
+            beforeMount={() => {
+              if (monaco) {
+                monaco.editor.defineTheme("myCustomTheme", {
+                  base: "vs-dark",
+                  inherit: true,
+                  rules: [],
+                  colors: {
+                    "editor.background": "#1e1e1e",
+                  },
+                });
+              }
+            }}
+          />
+        </div>
+      </div>
     </div>
   );
 };
