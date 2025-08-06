@@ -7,21 +7,47 @@ const Sandbox = () => {
   const monaco = useMonaco();
   const [selectedFile, setSelectedFile] = useState("index.html");
   const [scssError, setScssError] = useState<string | null>(null);
+  const [pugError, setPugError] = useState<string | null>(null);
 
   const [files, setFiles] = useState({
     "index.html": `<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Preview</title>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="assets/svg/check.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vite start</title>
 </head>
 <body>
-  <h1>Hello world</h1>
-  <p>Это превью вашего кода</p>
+  <template data-type="pug" data-src="index.pug"></template>
+  <script type="module" src="./index.js"></script>
 </body>
 </html>`,
-    "styles.css": `body { font-family: sans-serif; background-color: #f0f0f0; }`,
+    "index.pug": `h1 Hello world
+p Это превью вашего кода`,
+    "styles.css": `
+body { font-family: sans-serif; background-color: #f0f0f0; }
+.imgs {
+  overflow: hidden;
+  position: relative;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+.imgs img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  object-position: top;
+  position: absolute;
+  top: 0;
+  left: 0;
+}`,
     "styles.scss": `body { background-color: lightblue; h1 { color: darkblue; } }`,
+    "index.js": `console.log("Hello from index.js!");`,
   });
 
   const [code, setCode] = useState(files[selectedFile]);
@@ -44,6 +70,8 @@ const Sandbox = () => {
       });
       monaco.editor.setTheme("myCustomTheme");
       monaco.languages.register({ id: "scss" });
+      monaco.languages.register({ id: "pug" });
+      monaco.languages.register({ id: "javascript" });
     }
   }, [monaco]);
 
@@ -59,7 +87,9 @@ const Sandbox = () => {
     async function updateIframe() {
       let compiledCss = "";
       setScssError(null);
+      setPugError(null);
 
+      // Компиляция SCSS
       if (!sass || !sass.compileStringAsync) {
         setScssError("SCSS Error: sass module is not properly loaded");
         compiledCss = `/* SCSS Error: sass module is not properly loaded */`;
@@ -67,12 +97,48 @@ const Sandbox = () => {
         try {
           const result = await sass.compileStringAsync(files["styles.scss"]);
           compiledCss = result.css;
-          console.log("Compiled SCSS:", compiledCss); // Для отладки
+          console.log("Compiled SCSS:", compiledCss);
         } catch (e) {
           setScssError(`SCSS Error: ${e.message}`);
           compiledCss = `/* SCSS Compilation Error: ${e.message} */`;
         }
       }
+
+      // Компиляция Pug
+      let pugContent = "";
+      const pugFilePath = "index.pug";
+      if (files[pugFilePath]) {
+        try {
+          const response = await fetch("/api/pug", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code: files[pugFilePath] }),
+          });
+          const data = await response.json();
+          if (data.error) {
+            setPugError(data.error);
+            pugContent = `<p>${data.error}</p>`;
+          } else {
+            pugContent = data.html;
+            console.log("Compiled Pug:", pugContent);
+          }
+        } catch (e) {
+          setPugError(`Pug Error: Failed to fetch API - ${e.message}`);
+          pugContent = `<p>Pug Error: Failed to fetch API - ${e.message}</p>`;
+        }
+      } else {
+        setPugError("Pug Error: index.pug not found");
+        pugContent = `<p>Pug Error: index.pug not found</p>`;
+      }
+
+      // Парсинг index.html для извлечения <head> и <script> тегов
+      const htmlContent = files["index.html"] || "";
+      const headMatch = htmlContent.match(/<head>[\s\S]*<\/head>/i);
+      const scriptsMatch = htmlContent.match(/<script[\s\S]*?<\/script>/gi);
+      const headContent = headMatch
+        ? headMatch[0].replace(/<\/?head>/gi, "")
+        : '<meta charset="UTF-8" /><title>Preview</title>';
+      const scriptsContent = scriptsMatch ? scriptsMatch.join("\n") : "";
 
       const combinedCss = `
         /* CSS styles */
@@ -85,16 +151,16 @@ const Sandbox = () => {
       <!DOCTYPE html>
       <html lang="en">
       <head>
-        <meta charset="UTF-8" />
+        ${headContent}
         <style>${combinedCss}</style>
-        <title>Preview</title>
       </head>
       <body>
-        ${files["index.html"].replace(/<!DOCTYPE html>[\s\S]*<body>|<\/body>[\s\S]*<\/html>/gi, "")}
+        ${pugContent.replace(/<!DOCTYPE html>[\s\S]*<body>|<\/body>[\s\S]*<\/html>/gi, "")}
+        ${scriptsContent}
       </body>
       </html>
       `;
-      console.log("Generated HTML:", html); // Для отладки
+      console.log("Generated HTML:", html);
       document.open();
       document.write(html);
       document.close();
@@ -114,9 +180,10 @@ const Sandbox = () => {
   return (
     <div className="flex flex-col h-screen">
       <div className="flex-[0_0_50%] border-b border-gray-300 relative">
-        {scssError && (
+        {(scssError || pugError) && (
           <div className="absolute top-2 left-2 bg-red-100 text-red-700 p-2 rounded z-10">
-            {scssError}
+            {scssError && <p>{scssError}</p>}
+            {pugError && <p>{pugError}</p>}
           </div>
         )}
         <iframe
@@ -151,14 +218,22 @@ const Sandbox = () => {
                 ? "scss"
                 : selectedFile.endsWith(".css")
                   ? "css"
-                  : "html"
+                  : selectedFile.endsWith(".pug")
+                    ? "pug"
+                    : selectedFile.endsWith(".js")
+                      ? "javascript"
+                      : "html"
             }
             language={
               selectedFile.endsWith(".scss")
                 ? "scss"
                 : selectedFile.endsWith(".css")
                   ? "css"
-                  : "html"
+                  : selectedFile.endsWith(".pug")
+                    ? "pug"
+                    : selectedFile.endsWith(".js")
+                      ? "javascript"
+                      : "html"
             }
             value={files[selectedFile]}
             onChange={handleCodeChange}
