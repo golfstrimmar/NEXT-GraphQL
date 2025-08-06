@@ -3,39 +3,39 @@
     "type": "div",
     "attributes": {
       "style": "",
-      "class": "bg-slate-300   card"
+      "class": "bg-slate-300   hero"
     },
     "children": [
-      "card div",
+      "hero div",
       {
         "type": "div",
         "attributes": {
-          "class": "bg-slate-300   card__wrap"
+          "class": "bg-slate-300   hero__wrap"
         },
         "children": [
-          "card__wrap div",
+          "hero__wrap div",
           {
             "type": "h2",
             "attributes": {
-              "class": "bg-pink-600   card__title"
+              "class": "bg-pink-600   hero__title"
             },
-            "children": "card__title h2"
+            "children": "hero__title h2"
           },
           {
             "type": "div",
             "attributes": {
-              "class": "grid grid-cols-[repeat(auto-fit,_minmax(150px,_1fr))] gap-2 bg-slate-300   card__content"
+              "class": "grid grid-cols-[repeat(auto-fit,_minmax(150px,_1fr))] gap-2 bg-slate-300   hero__content"
             },
             "children": [
-              "card__content div",
+              "hero__content div",
               {
                 "type": "div",
                 "attributes": {
                   "style": "",
-                  "class": "bg-slate-300   card__img"
+                  "class": "bg-slate-300   hero__img"
                 },
                 "children": [
-                  "card__img div",
+                  "hero__img div",
                   {
                     "type": "div",
                     "attributes": {
@@ -58,10 +58,10 @@
               {
                 "type": "div",
                 "attributes": {
-                  "class": "bg-slate-300   card__info"
+                  "class": "bg-slate-300   hero__info"
                 },
                 "children": [
-                  "card__info div",
+                  "hero__info div",
                   {
                     "type": "h3",
                     "children": "h3"
@@ -69,18 +69,18 @@
                   {
                     "type": "p",
                     "attributes": {
-                      "class": "text-sm bg-green-300   card__text"
+                      "class": "text-sm bg-green-300   hero__text"
                     },
-                    "children": "card__text p"
+                    "children": "hero__text p"
                   },
                   {
                     "type": "ul",
                     "attributes": {
                       "style": "",
-                      "class": "flex items-center  bg-sky-200   card__items"
+                      "class": "flex items-center  bg-sky-200   hero__items"
                     },
                     "children": [
-                      "card__items ul",
+                      "hero__items ul",
                       {
                         "type": "li",
                         "attributes": {
@@ -204,9 +204,9 @@
                     "type": "button",
                     "attributes": {
                       "style": "",
-                      "class": "p-2! m-2! bg-blue-700  card__btn"
+                      "class": "p-2! m-2! bg-blue-700  hero__btn"
                     },
-                    "children": "card__btn"
+                    "children": "hero__btn"
                   }
                 ]
               }
