@@ -12,21 +12,10 @@ const Admin = ({
   setClassToAdd,
   isMarker,
 }) => {
-  const {
-    htmlJson,
-    setHtmlJson,
-    nodeToAdd,
-    setNodeToAdd,
-    setModalMessage,
-    transformTo,
-    setTransformTo,
-  } = useStateContext();
-  // const [classToAdd, setClassToAdd] = useState<string>("");
-  // const [isMarker, setIsMarker] = useState<boolean>(false);
+  const { setHtmlJson, setModalMessage, setTransformTo } = useStateContext();
   const [openPanel, setOpenPanel] = useState<boolean>(false);
   const [openPanelClasses, setOpenPanelClasses] = useState<boolean>(false);
 
-  const ListOfClasses = ["flex-col", "flex-row", "grid"];
   const [NamenClasses, setNamenClasses] = useState<string[]>([
     "wrap",
     "blocks",
@@ -87,31 +76,31 @@ const Admin = ({
     "items-baseline",
   ];
   const delimiters = ["__", "--", "-"];
-  const Buttons = [
-    "section",
-    "div",
 
-    "p",
-    "span",
-    "a",
-    "button",
-    "ul",
-
-    "li",
-    "img",
-    "svg",
-
-    "br",
-    "hr",
-    "header",
-    "footer",
-    "nav",
-    "strong",
-
-    "ol",
-  ];
   const headersByPanel = {
-    // classes: ["flex", "flex-col"],
+    elements: [
+      "section",
+      "div",
+
+      "p",
+      "span",
+      "a",
+      "button",
+      "ul",
+
+      "li",
+      "img",
+      "svg",
+
+      "br",
+      "hr",
+      "header",
+      "footer",
+      "nav",
+      "strong",
+
+      "ol",
+    ],
     snippets: [
       "imgs",
       "grid-2",
@@ -126,19 +115,17 @@ const Admin = ({
   };
 
   const [openPanels, setOpenPanels] = useState({
-    snippets: false,
+    elements: false,
     headers: false,
     tables: false,
+    snippets: false,
   });
   // 📌📌📌📌📌📌📌📌📌📌📌
   const togglePanel = (panel: keyof typeof openPanels) => {
     setOpenPanel(true);
     setOpenPanels((prev) => {
-      const newState = {};
-      for (const key in prev) {
-        newState[key] = false;
-      }
-      newState[panel] = !prev[panel];
+      const newState = { ...prev };
+      newState[panel] = !newState[panel];
       return newState;
     });
   };
@@ -174,15 +161,11 @@ const Admin = ({
         ⚠️ Clear Editor
       </button>
       {/*----------------------*/}
-      {Buttons.map((button, index) => (
-        <ButtonUnit info={button} key={index} />
-      ))}
-      {/*----------------------*/}
       {Object.entries(openPanels).map(([key, value]) => (
         <div key={key} className="relative flex flex-col items-center">
           <button
             onClick={() => togglePanel(key as keyof typeof openPanels)}
-            className="bg-amber-500 hover:bg-amber-800 py-1 px-1 text-sm rounded w-full"
+            className="bg-amber-500 hover:shadow-[0px_0px_6px_4px_rgba(255,255,255,0.8)_inset] py-1 px-1 text-sm rounded w-full"
           >
             ⇩ {key}
           </button>
@@ -226,7 +209,7 @@ const Admin = ({
 
       <button
         onClick={() => setOpenPanelClasses(!openPanelClasses)}
-        className="bg-amber-500 hover:bg-amber-800 py-1 px-1 text-sm rounded w-full"
+        className="bg-blue-700 hover:shadow-[0px_0px_6px_4px_rgba(255,255,255,0.8)_inset] py-1 px-1 text-sm text-white rounded w-full"
       >
         ⇩ add class
       </button>
