@@ -104,10 +104,11 @@ const Admin = ({
     snippets: [
       "imgs",
       "grid-2",
-      "flex",
+      "flex-row",
       "flex-col",
       "ul-grid-2",
-      "ul-flex",
+      "ul-flex-row",
+      "ul-flex-col",
       "card",
     ],
     headers: ["h1", "h2", "h3", "h4", "h5", "h6"],
