@@ -113,6 +113,7 @@ const Admin = ({
     ],
     headers: ["h1", "h2", "h3", "h4", "h5", "h6"],
     tables: ["table1", "table", "tr", "td", "th", "thead", "tbody", "tfoot"],
+    inputs: ["input"],
   };
 
   const [openPanels, setOpenPanels] = useState({
@@ -120,6 +121,7 @@ const Admin = ({
     headers: false,
     tables: false,
     snippets: false,
+    inputs: false,
   });
   // 📌📌📌📌📌📌📌📌📌📌📌
   const togglePanel = (panel: keyof typeof openPanels) => {

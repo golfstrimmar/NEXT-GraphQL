@@ -32,6 +32,10 @@ const allowedAttributes = new Set([
   "id",
   "data-marker",
   "data-label",
+  "type",
+  "for",
+  "required",
+  "draggable",
 ]);
 
 // Рекурсивная функция для добавления классов ко всем узлам

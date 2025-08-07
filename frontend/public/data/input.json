@@ -1,0 +1,30 @@
+[
+  {
+    "type": "div",
+    "attributes": {
+      "class": "input-field  bg-transparent "
+    },
+    "children": [
+      "input-field",
+      {
+        "type": "input",
+        "attributes": {
+          "class": " m-0!   bg-transparent shadow-[0_0_6px_4px_transparent]!",
+          "id": "text1",
+          "type": "text",
+          "name": "text1",
+          "placeholder": " Denzel Washington",
+          "required": true
+        }
+      },
+      {
+        "type": "label",
+        "attributes": {
+          "for": "text1",
+          "class": "text-field__label  m-0! p-0! border-none! bg-transparent shadow-[0_0_6px_4px_transparent]!"
+        },
+        "children": "input text"
+      }
+    ]
+  }
+]

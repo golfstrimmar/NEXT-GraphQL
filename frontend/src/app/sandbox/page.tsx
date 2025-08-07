@@ -3,22 +3,10 @@ import React, { useEffect, useRef, useState } from "react";
 import Editor, { useMonaco } from "@monaco-editor/react";
 import { useStateContext } from "@/components/StateProvider";
 import updateIframe from "@/utils/updateIframe";
-
+import "./sandbox.scss";
 const Sandbox = () => {
   const monaco = useMonaco();
-  const {
-    htmlJson,
-    setHtmlJson,
-    nodeToAdd,
-    setNodeToAdd,
-    setModalMessage,
-    transformTo,
-    setTransformTo,
-    resHtml,
-    setResHtml,
-    resScss,
-    setResScss,
-  } = useStateContext();
+  const { resHtml, resScss } = useStateContext();
   const [selectedFile, setSelectedFile] = useState("index.html");
   const [scssError, setScssError] = useState<string | null>(null);
   const [editorInstance, setEditorInstance] = useState<any>(null);
@@ -115,12 +103,18 @@ const Sandbox = () => {
     tryCss("styles").then(() => {
       updateIframe(document, files, setScssError);
     });
+
     const hasButton = resHtml?.includes("<button");
     if (hasButton)
       tryScss("buttonScss").then(() => {
         updateIframe(document, files, setScssError);
       });
-  }, [resHtml]);
+    const hasInput = resHtml?.includes("<input");
+    if (hasInput)
+      tryScss("inputScss").then(() => {
+        updateIframe(document, files, setScssError);
+      });
+  }, [files]);
 
   const handleFileClick = (filename: string) => {
     setSelectedFile(filename);

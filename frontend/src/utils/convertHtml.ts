@@ -5,9 +5,12 @@ const convertHtml = (html) => {
   const unwantedClasses = [
     "border",
     "p-2",
+    "p-2!",
     "m-2",
+    "m-2!",
     "rel",
     "border-none",
+    "border-none!",
     "shadow-[0px_0px_6px_4px_rgba(255,255,255,0.8)]",
   ];
 
