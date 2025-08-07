@@ -53,68 +53,6 @@ const EditorComponent = () => {
   const [isCopiedScss, setIsCopiedScss] = useState<boolean>(false);
   const [isCopiedPug, setIsCopiedPug] = useState<boolean>(false);
   const [isCopiedHtml, setisCopiedHtml] = useState<boolean>(false);
-
-  // const checkClasses = [
-  //   "inline-block",
-  //   "block",
-  //   "flex-col",
-  //   "flex-row",
-  //   "grid",
-  //   "flex",
-  //   "justify-start",
-  //   "justify-center",
-  //   "justify-end",
-  //   "justify-between",
-  //   "justify-around",
-  //   "justify-evenly",
-  //   "items-start",
-  //   "items-center",
-  //   "items-end",
-  //   "items-stretch",
-  //   "items-baseline",
-  // ];
-  // const [NamenClasses, setNamenClasses] = useState<string[]>([
-  //   "wrap",
-  //   "blocks",
-  //   "block",
-  //   "button",
-  //   "bage",
-  //   "content",
-  //   "container",
-  //   "columns",
-  //   "column",
-  //   "cards",
-  //   "card",
-  //   "decor",
-  //   "hidden",
-  //   "head",
-  //   "form",
-  //   "email",
-  //   "items",
-  //   "item",
-  //   "img",
-  //   "imgs",
-  //   "info",
-  //   "link",
-  //   "line",
-  //   "low",
-  //   "logo",
-  //   "pagination",
-  //   "plaza",
-  //   "slider",
-  //   "slide",
-  //   "socs",
-  //   "soc",
-  //   "title",
-  //   "text",
-  //   "top",
-  //   "phone",
-  //   "vidget",
-  //   "units",
-  //   "unit",
-  // ]);
-  // const delimiters = ["__", "--", "-"];
-
   // -----🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹--monaco
   useEffect(() => {
     if (monaco) {
