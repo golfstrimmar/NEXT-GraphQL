@@ -8,7 +8,8 @@ const Sandbox = () => {
   const [selectedFile, setSelectedFile] = useState("index.html");
   const [scssError, setScssError] = useState<string | null>(null);
   const [pugError, setPugError] = useState<string | null>(null);
-
+  const [editorInstance, setEditorInstance] = useState<any>(null);
+  const editorRef = useRef<any>(null);
   const [files, setFiles] = useState({
     "index.html": `<!DOCTYPE html>
 <html lang="en">
@@ -16,7 +17,7 @@ const Sandbox = () => {
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="assets/svg/check.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vite start</title>
+  <title>Starter</title>
 </head>
 <body>
   <template data-type="pug" data-src="index.pug"></template>
@@ -52,7 +53,7 @@ body { font-family: sans-serif; background-color: #f0f0f0; }
 
   const [code, setCode] = useState(files[selectedFile]);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-
+  // -----🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹--monaco
   useEffect(() => {
     if (monaco) {
       monaco.editor.defineTheme("myCustomTheme", {
@@ -74,6 +75,25 @@ body { font-family: sans-serif; background-color: #f0f0f0; }
       monaco.languages.register({ id: "javascript" });
     }
   }, [monaco]);
+  const handleEditorMount = (editor: any) => {
+    // Принудительно устанавливаем тему
+    if (monaco) {
+      monaco.editor.setTheme("myCustomTheme");
+    }
+
+    editor.setScrollTop(0);
+    editor.revealLine(1);
+    setEditorInstance(editor);
+    editorRef.current = editor;
+  };
+  useEffect(() => {
+    return () => {
+      if (editorInstance) {
+        editorInstance.dispose(); // уничтожает редактор и чистит память
+      }
+    };
+  }, [editorInstance]);
+  // -----🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹--monaco
 
   useEffect(() => {
     setCode(files[selectedFile]);
@@ -237,6 +257,7 @@ body { font-family: sans-serif; background-color: #f0f0f0; }
             }
             value={files[selectedFile]}
             onChange={handleCodeChange}
+            onMount={handleEditorMount}
             options={{
               fontSize: 14,
               fontFamily: "Fira Code, monospace",
