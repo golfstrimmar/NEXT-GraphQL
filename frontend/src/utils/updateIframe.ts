@@ -7,13 +7,11 @@ const updateIframe = async (document, files, setScssError) => {
   // Компиляция SCSS
   let scssCode = "";
 
-  if (files["styles.scss"]) {
-    scssCode += files["styles.scss"] + "\n";
-  }
-
-  // if (resHtml?.includes("<button") && files["button.scss"]) {
-  //   scssCode += files["button.scss"] + "\n";
-  // }
+  Object.entries(files).forEach(([filename, content]) => {
+    if (filename.endsWith(".scss")) {
+      scssCode += content + "\n";
+    }
+  });
 
   if (scssCode) {
     try {

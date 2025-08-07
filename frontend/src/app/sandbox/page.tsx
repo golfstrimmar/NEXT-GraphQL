@@ -39,40 +39,7 @@ const Sandbox = () => {
   <script type="module" src="./index.js"></script>
 </body>
 </html>`,
-
     "styles.scss": `${resScss}`,
-    "button.scss": `
-.btn {
-  border: 1px solid transparent;
-  outline: none;
-  display: inline-block;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease-in-out;
-  padding: 0 5px;
-  border-radius: 5px;
-  min-height: 30px;
-    &:hover {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    }
-}
-
-.btn-primary {
-  background-color: #4d6a92;
-  color: white;
-  border: 1px solid #021229;
-}
-.btn-allert {
-  background-color: red;
-  color: white;
-  border: 1px solid #021229;
-}
-.btn-empty {
-  border: 1px solid #021229;
-}
-
-`,
     "index.js": `console.log("Hello from index.js!");`,
   });
 
@@ -122,25 +89,38 @@ const Sandbox = () => {
     const document = iframeRef.current.contentDocument;
     if (!document) return;
 
-    const tryCss = async () => {
+    const tryCss = async (foo) => {
       try {
-        const res = await fetch("/data/styles.json");
-        if (!res.ok) throw new Error("Failed to fetch styles.json");
+        const res = await fetch(`/data/${foo}.json`);
+        if (!res.ok) throw new Error("Failed to fetch ");
         const json = await res.json();
-        return json.content; // извлекаем только CSS-контент
+        files[`${foo}.css`] = json.content;
+      } catch (error) {
+        console.error("Initialization error:", error);
+        return null;
+      }
+    };
+    const tryScss = async (foo) => {
+      try {
+        const res = await fetch(`/data/${foo}.json`);
+        if (!res.ok) throw new Error("Failed to fetch ");
+        const json = await res.json();
+        files[`${foo}.scss`] = json.content;
       } catch (error) {
         console.error("Initialization error:", error);
         return null;
       }
     };
 
-    tryCss().then((cssContent) => {
-      if (cssContent) {
-        files["style.css"] = cssContent; // теперь это просто строка с CSS
-        updateIframe(document, files, setScssError); // обновляем после добавления
-      }
+    tryCss("styles").then(() => {
+      updateIframe(document, files, setScssError);
     });
-  }, [files]);
+    const hasButton = resHtml?.includes("<button");
+    if (hasButton)
+      tryScss("buttonScss").then(() => {
+        updateIframe(document, files, setScssError);
+      });
+  }, [resHtml]);
 
   const handleFileClick = (filename: string) => {
     setSelectedFile(filename);
