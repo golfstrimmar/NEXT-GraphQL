@@ -2,7 +2,7 @@
   {
     "type": "button",
     "attributes": {
-      "class": "p-2!  m-2!   bg-blue-700"
+      "class": "p-2!  m-2! btn btn-primary bg-blue-700"
     },
     "children": "button"
   }

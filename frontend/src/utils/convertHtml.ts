@@ -25,11 +25,11 @@ const convertHtml = (html) => {
     el.removeAttribute("draggable");
     el.removeAttribute("data-index");
 
-    const dataLabel = el.getAttribute("data-label");
-    if (dataLabel) {
-      const textNode = document.createTextNode(dataLabel);
-      el.appendChild(textNode);
-    }
+    // const dataLabel = el.getAttribute("data-label");
+    // if (dataLabel) {
+    //   const textNode = document.createTextNode(dataLabel);
+    //   el.prepend(textNode);
+    // }
     el.removeAttribute("data-label");
     // Очистка классов
     const elClass = el.getAttribute("class");

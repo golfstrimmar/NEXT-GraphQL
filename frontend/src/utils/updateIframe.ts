@@ -1,12 +1,23 @@
 import * as sass from "sass";
+
 const updateIframe = async (document, files, setScssError) => {
   let compiledCss = "";
   setScssError(null);
 
   // Компиляция SCSS
+  let scssCode = "";
+
   if (files["styles.scss"]) {
+    scssCode += files["styles.scss"] + "\n";
+  }
+
+  // if (resHtml?.includes("<button") && files["button.scss"]) {
+  //   scssCode += files["button.scss"] + "\n";
+  // }
+
+  if (scssCode) {
     try {
-      const result = await sass.compileStringAsync(files["styles.scss"]);
+      const result = await sass.compileStringAsync(scssCode);
       compiledCss = result.css;
     } catch (e) {
       setScssError(`SCSS Error: ${e.message}`);
@@ -15,34 +26,36 @@ const updateIframe = async (document, files, setScssError) => {
   }
 
   const htmlContent = files["index.html"] || "";
-  const headMatch = htmlContent.match(/<head>[\s\S]*<\/head>/i);
-  const scriptsMatch = htmlContent.match(/<script[\s\S]*?<\/script>/gi);
-  const headContent = headMatch
-    ? headMatch[0].replace(/<\/?head>/gi, "")
-    : '<meta charset="UTF-8" /><title>Preview</title>';
-  const scriptsContent = scriptsMatch ? scriptsMatch.join("\n") : "";
+  const headMatch = htmlContent.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
+  const bodyMatch = htmlContent.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
 
-  const combinedCss = `
-        ${files["styles.css"] || ""}
-        ${compiledCss}
-      `;
+  const headContent = headMatch
+    ? headMatch[1]
+    : `<meta charset="UTF-8" /><title>Preview</title>`;
+  const bodyContent = bodyMatch ? bodyMatch[1] : "";
+
+  const combinedCss = [
+    files["styles.css"] || "",
+    "/* --- compiled SCSS below --- */",
+    compiledCss,
+  ].join("\n");
 
   const html = `
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        ${headContent}
-        <style>${combinedCss}</style>
-      </head>
-      <body>
-        ${htmlContent.replace(/[\s\S]*<body>|<\/body>[\s\S]*<\/html>/gi, "")}
-        ${scriptsContent}
-      </body>
-      </html>
-      `;
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      ${headContent}
+      <style>${combinedCss}</style>
+    </head>
+    <body>
+      ${bodyContent}
+    </body>
+    </html>
+  `;
 
   document.open();
   document.write(html);
   document.close();
 };
+
 export default updateIframe;

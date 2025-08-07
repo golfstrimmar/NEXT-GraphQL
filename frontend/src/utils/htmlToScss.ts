@@ -1,4 +1,5 @@
 const htmlToScss = (html) => {
+  console.log("<====htmlToScss html====>", html);
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, "text/html");
   const body = doc.body;
@@ -60,6 +61,11 @@ const htmlToScss = (html) => {
       }
     });
 
+    const attrAlt = element.attributes.getNamedItem("alt")?.value === "svg-img";
+    console.log("<====attrAlt====>", attrAlt);
+    if (attrAlt) {
+      cssProps.push("width: 30px; height: 30px;");
+    }
     const selector = nonTailwindClasses.length
       ? `.${nonTailwindClasses.join(".")}${id}`
       : `${tagName}${id}`;

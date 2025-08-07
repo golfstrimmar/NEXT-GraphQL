@@ -1,10 +1,24 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import Editor, { useMonaco } from "@monaco-editor/react";
-
+import { useStateContext } from "@/components/StateProvider";
 import updateIframe from "@/utils/updateIframe";
+
 const Sandbox = () => {
   const monaco = useMonaco();
+  const {
+    htmlJson,
+    setHtmlJson,
+    nodeToAdd,
+    setNodeToAdd,
+    setModalMessage,
+    transformTo,
+    setTransformTo,
+    resHtml,
+    setResHtml,
+    resScss,
+    setResScss,
+  } = useStateContext();
   const [selectedFile, setSelectedFile] = useState("index.html");
   const [scssError, setScssError] = useState<string | null>(null);
   const [editorInstance, setEditorInstance] = useState<any>(null);
@@ -21,14 +35,44 @@ const Sandbox = () => {
   <title>Starter</title>
 </head>
 <body>
-  <h1>Hello world</h1>
-  <p>Это превью вашего кода</p>
+  ${resHtml}
   <script type="module" src="./index.js"></script>
 </body>
 </html>`,
 
-    "styles.scss": `body {  h1 { color: darkblue; } }`,
-    "styles.css": `body { font-family: sans-serif;  }`,
+    "styles.scss": `${resScss}`,
+    "button.scss": `
+.btn {
+  border: 1px solid transparent;
+  outline: none;
+  display: inline-block;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  padding: 0 5px;
+  border-radius: 5px;
+  min-height: 30px;
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+}
+
+.btn-primary {
+  background-color: #4d6a92;
+  color: white;
+  border: 1px solid #021229;
+}
+.btn-allert {
+  background-color: red;
+  color: white;
+  border: 1px solid #021229;
+}
+.btn-empty {
+  border: 1px solid #021229;
+}
+
+`,
     "index.js": `console.log("Hello from index.js!");`,
   });
 
@@ -62,12 +106,12 @@ const Sandbox = () => {
     setEditorInstance(editor);
     editorRef.current = editor;
   };
-  // -----🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹--monaco
   useEffect(() => {
     return () => {
       if (editorInstance) editorInstance.dispose();
     };
   }, [editorInstance]);
+  // -----🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹
 
   useEffect(() => {
     setCode(files[selectedFile]);
@@ -77,7 +121,25 @@ const Sandbox = () => {
     if (!iframeRef.current) return;
     const document = iframeRef.current.contentDocument;
     if (!document) return;
-    updateIframe(document, files, setScssError);
+
+    const tryCss = async () => {
+      try {
+        const res = await fetch("/data/styles.json");
+        if (!res.ok) throw new Error("Failed to fetch styles.json");
+        const json = await res.json();
+        return json.content; // извлекаем только CSS-контент
+      } catch (error) {
+        console.error("Initialization error:", error);
+        return null;
+      }
+    };
+
+    tryCss().then((cssContent) => {
+      if (cssContent) {
+        files["style.css"] = cssContent; // теперь это просто строка с CSS
+        updateIframe(document, files, setScssError); // обновляем после добавления
+      }
+    });
   }, [files]);
 
   const handleFileClick = (filename: string) => {

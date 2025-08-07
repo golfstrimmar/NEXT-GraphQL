@@ -204,7 +204,7 @@
                     "type": "button",
                     "attributes": {
                       "style": "",
-                      "class": "p-2! m-2! bg-blue-700  hero__btn"
+                      "class": "p-2! m-2! bg-blue-700  hero__btn btn btn-primary"
                     },
                     "children": "hero__btn"
                   }

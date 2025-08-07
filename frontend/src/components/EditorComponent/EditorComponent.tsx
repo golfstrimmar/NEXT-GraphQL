@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import "./editor.scss";
 import Editor, { useMonaco } from "@monaco-editor/react";
 import { useStateContext } from "@/components/StateProvider";
@@ -21,6 +22,7 @@ import removeTailwindClasses from "@/utils/removeTailwindClasses";
 import htmlToPug from "@/utils/htmlToPug";
 import addClass from "@/utils/addClass";
 import { motion, AnimatePresence } from "framer-motion";
+import { Router } from "next/router";
 // ♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️
 const EditorComponent = () => {
   const monaco = useMonaco();
@@ -32,8 +34,12 @@ const EditorComponent = () => {
     setModalMessage,
     transformTo,
     setTransformTo,
+    resHtml,
+    setResHtml,
+    resScss,
+    setResScss,
   } = useStateContext();
-
+  const router = useRouter();
   const [editorInstance, setEditorInstance] = useState<any>(null);
   const decorationIds = React.useRef<string[]>([]);
   const [editorHeight, setEditorHeight] = useState(500);
@@ -46,8 +52,6 @@ const EditorComponent = () => {
   const [commonClass, setCommonClass] = useState<string>("");
   const editorRef = useRef<any>(null);
   // -------------------------------
-  const [resHtml, setResHtml] = useState<string>("");
-  const [resScss, setResScss] = useState<string>("");
   const [resPug, setResPug] = useState<string>("");
 
   const [isCopiedScss, setIsCopiedScss] = useState<boolean>(false);
@@ -398,6 +402,13 @@ const EditorComponent = () => {
     // }
   }, [code]);
   // 💥💥💥💥💥💥💥💥
+  // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
+  const handleToSandbox = (e) => {
+    e.preventDefault();
+    router.push("/sandbox");
+  };
+  // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
+
   return (
     <div className="editor">
       <Admin
@@ -501,6 +512,14 @@ const EditorComponent = () => {
                 disabled={!resScss}
               >
                 <Image src="./svg/scss.svg" width={28} height={28} alt="scss" />
+              </button>
+              <button
+                onClick={(e) => {
+                  handleToSandbox(e);
+                }}
+                className={`btn btn-empty px-2 `}
+              >
+                To Sandbox as project ⇨
               </button>
             </>
           )}

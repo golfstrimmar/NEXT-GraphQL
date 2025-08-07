@@ -41,6 +41,10 @@ interface StateContextType {
   showModal: (message: string, duration?: number) => void;
   showIsModal: boolean;
   setShowIsModal: React.Dispatch<React.SetStateAction<boolean>>;
+  resHtml: string;
+  setResHtml: React.Dispatch<React.SetStateAction<string>>;
+  resScss: string;
+  setResScss: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const StateContext = createContext<StateContextType | null>(null);
@@ -53,6 +57,8 @@ export function StateProvider({ children }: { children: ReactNode }) {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [showIsModal, setShowIsModal] = useState<boolean>(false);
   const [transformTo, setTransformTo] = useState<boolean>(false);
+  const [resHtml, setResHtml] = useState<string>("");
+  const [resScss, setResScss] = useState<string>("");
   const showModal = (message: string, duration = 2000) => {
     setModalMessage(message);
     setIsModalOpen(true);
@@ -113,6 +119,17 @@ export function StateProvider({ children }: { children: ReactNode }) {
     }
   }, [result]);
 
+  useEffect(() => {
+    if (resHtml) {
+      console.log("<====💥💥💥 resHtml====>", resHtml);
+    }
+  }, [resHtml]);
+  useEffect(() => {
+    if (resScss) {
+      console.log("<====💥💥💥 resScss====>", resScss);
+    }
+  }, [resScss]);
+  // ----------------------------------------------
   return (
     <StateContext.Provider
       value={{
@@ -125,6 +142,10 @@ export function StateProvider({ children }: { children: ReactNode }) {
         setModalMessage,
         transformTo,
         setTransformTo,
+        resHtml,
+        setResHtml,
+        resScss,
+        setResScss,
       }}
     >
       {showIsModal && (
