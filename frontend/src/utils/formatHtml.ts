@@ -1,33 +1,41 @@
 const formatHtml = (html: string): string => {
-    const tab = "    "; // размер отступа (4 пробела)
-    let result = "";
-    let indentLevel = 0;
+  const tab = "    "; // 4 пробела для отступа
+  let result = "";
+  let indentLevel = 0;
 
-    // убираем лишние пробелы между тегами
-    html = html.replace(/>\s+</g, "><").trim();
+  // 1. Сначала выделяем все textarea как специальные блоки
+  const parts = html.split(/(<textarea\b[\s\S]*?<\/textarea>)/gi);
 
-    // разбиваем на части — теги и текст
-    const tokens = html.split(/(<[^>]+>)/g).filter(token => token.trim() !== "");
+  parts.forEach((part) => {
+    if (/<textarea\b/i.test(part)) {
+      // 2. Для textarea - добавляем как есть без изменений
+      result += part;
+    } else {
+      // 3. Форматируем остальной HTML
+      const tokens = part
+        .replace(/>\s+</g, "><")
+        .split(/(<[^>]+>)/g)
+        .filter((t) => t.trim());
 
-    for (let token of tokens) {
-        if (token.match(/^<\/\w/)) {
-            // закрывающий тег — уменьшаем отступ
-            indentLevel--;
-            result += `${tab.repeat(indentLevel)}${token}\n`;
-        } else if (token.match(/^<\w/) && !token.endsWith("/>")) {
-            // открывающий тег
-            result += `${tab.repeat(indentLevel)}${token}\n`;
+      tokens.forEach((token) => {
+        if (token.startsWith("</")) {
+          indentLevel = Math.max(0, indentLevel - 1);
+          result += `\n${tab.repeat(indentLevel)}${token}`;
+        } else if (token.startsWith("<") && !token.endsWith("/>")) {
+          result += `\n${tab.repeat(indentLevel)}${token}`;
+          if (!token.match(/<(br|hr|img|input)/i)) {
             indentLevel++;
-        } else if (token.match(/^<.*\/>$/)) {
-            // самозакрывающийся тег
-            result += `${tab.repeat(indentLevel)}${token}\n`;
-        } else {
-            // текст между тегами
-            result += `${tab.repeat(indentLevel)}${token.trim()}\n`;
+          }
+        } else if (token.startsWith("<")) {
+          result += `\n${tab.repeat(indentLevel)}${token}`;
+        } else if (token.trim()) {
+          result += `\n${tab.repeat(indentLevel)}${token.trim()}`;
         }
+      });
     }
+  });
 
-    return result.trim();
+  return result.trim();
 };
 
 export default formatHtml;

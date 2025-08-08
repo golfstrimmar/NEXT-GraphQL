@@ -123,11 +123,12 @@ const jsonToHtml = (nodes: any[]): string => {
     ? nodes.map((node) => addClassesRecursively(node, newClasses))
     : addClassesRecursively(nodes, newClasses);
 
-  return Array.isArray(processedNodes)
+  const result = Array.isArray(processedNodes)
     ? processedNodes.map(transformEl).join("")
     : typeof processedNodes === "object"
       ? transformEl(processedNodes)
       : "";
+  return result;
 };
 
 export default jsonToHtml;

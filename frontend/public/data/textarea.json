@@ -13,6 +13,7 @@
           "id": "textarea4",
           "name": "textarea4",
           "rows": "20",
+          "value": "",
           "placeholder": "enter text here",
           "required": true
         }

@@ -114,6 +114,11 @@ const Sandbox = () => {
       tryScss("inputScss").then(() => {
         updateIframe(document, files, setScssError);
       });
+    const hasTextarea = resHtml?.includes("<textarea");
+    if (hasTextarea)
+      tryScss("textareaScss").then(() => {
+        updateIframe(document, files, setScssError);
+      });
   }, [files]);
 
   const handleFileClick = (filename: string) => {
