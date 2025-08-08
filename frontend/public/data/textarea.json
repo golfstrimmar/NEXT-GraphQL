@@ -1,0 +1,30 @@
+[
+  {
+    "type": "div",
+    "attributes": {
+      "class": "textarea-field bg-transparent"
+    },
+    "children": [
+      "textarea-field",
+      {
+        "type": "textarea",
+        "attributes": {
+          "class": "m-0! bg-transparent shadow-[0_0_6px_4px_transparent]!",
+          "id": "textarea4",
+          "name": "textarea4",
+          "rows": "20",
+          "placeholder": "enter text here",
+          "required": true
+        }
+      },
+      {
+        "type": "label",
+        "attributes": {
+          "for": "textarea4",
+          "class": "text-field__label  m-0! p-0! border-none!  shadow-[0_0_6px_4px_transparent]! "
+        },
+        "children": "textarea label"
+      }
+    ]
+  }
+]
