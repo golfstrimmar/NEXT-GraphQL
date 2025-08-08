@@ -119,6 +119,12 @@ const Sandbox = () => {
       tryScss("textareaScss").then(() => {
         updateIframe(document, files, setScssError);
       });
+
+    const hasSearch = resHtml?.includes("search-field");
+    if (hasSearch)
+      tryScss("searchScss").then(() => {
+        updateIframe(document, files, setScssError);
+      });
   }, [files]);
 
   const handleFileClick = (filename: string) => {

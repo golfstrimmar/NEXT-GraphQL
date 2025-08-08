@@ -1,0 +1,64 @@
+[
+  {
+    "type": "form",
+    "attributes": {
+      "class": "search-field "
+    },
+    "children": [
+      "search-field form",
+      {
+        "type": "div",
+        "attributes": {
+          "class": "input-field  bg-transparent "
+        },
+        "children": [
+          "input-field",
+          {
+            "type": "input",
+            "attributes": {
+              "class": " m-0!   bg-transparent shadow-[0_0_6px_4px_transparent]!",
+              "id": "text1",
+              "type": "text",
+              "name": "text1",
+              "placeholder": " Denzel Washington",
+              "required": true
+            }
+          },
+          {
+            "type": "label",
+            "attributes": {
+              "for": "text1",
+              "class": "text-field__label  m-0! p-0! border-none! bg-transparent shadow-[0_0_6px_4px_transparent]!"
+            },
+            "children": "Sarch..."
+          }
+        ]
+      },
+      {
+        "type": "div",
+        "attributes": {
+          "class": "search-field__submit m-0! p-0! border-none! bg-transparent shadow-[0_0_6px_4px_transparent]!"
+        },
+        "children": [
+          {
+            "type": "input",
+            "attributes": {
+              "type": "submit",
+              "class": " m-0! p-0! border-none! bg-transparent shadow-[0_0_6px_4px_transparent]!"
+            }
+          },
+          {
+            "type": "img",
+            "attributes": {
+              "class": " m-0! p-0! border-none! bg-transparent shadow-[0_0_6px_4px_transparent]!",
+              "src": "https://cdn-icons-png.flaticon.com/512/622/622669.png",
+              "alt": "search icon",
+              "width": "24",
+              "height": "24"
+            }
+          }
+        ]
+      }
+    ]
+  }
+]
