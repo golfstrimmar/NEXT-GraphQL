@@ -271,8 +271,8 @@ const Sandbox = () => {
             <Image src="./svg/css.svg" width={28} height={28} alt="css" />
           </button>
         </div>
-        <div className="flex flex-col h-screen mb-2">
-          <div className="ifreme-container flex-[0_0_50%] border-b border-gray-300 relative">
+        <div className="flex flex-col h-screen]">
+          <div className="ifreme-container flex-[0_0_50%]  my-2  relative border-4 border-blue-900">
             {scssError && (
               <div className="absolute top-2 left-2 bg-red-100 text-red-700 p-2 rounded z-10">
                 <p>{scssError}</p>
