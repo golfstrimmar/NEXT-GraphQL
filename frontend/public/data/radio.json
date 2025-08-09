@@ -2,7 +2,7 @@
   {
     "type": "fieldset",
     "attributes": {
-      "class": "fildset fildset-radio m-0! p-0!"
+      "class": "fildset fildset-radio fildset-radio--preview m-0! p-0!"
     },
     "children": [
       {
@@ -11,6 +11,7 @@
           "class": "form-check m-0! p-0!"
         },
         "children": [
+          "radio",
           {
             "type": "input",
             "attributes": {
@@ -44,6 +45,7 @@
           "class": "form-check m-0! p-0!"
         },
         "children": [
+          "radio",
           {
             "type": "input",
             "attributes": {

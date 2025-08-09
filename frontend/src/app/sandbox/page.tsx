@@ -130,6 +130,12 @@ const Sandbox = () => {
       tryScss("checkboxScss").then(() => {
         updateIframe(document, files, setScssError);
       });
+
+    const hasRadio = resHtml?.includes("fildset-radio");
+    if (hasRadio)
+      tryScss("radioScss").then(() => {
+        updateIframe(document, files, setScssError);
+      });
   }, [files]);
 
   const handleFileClick = (filename: string) => {

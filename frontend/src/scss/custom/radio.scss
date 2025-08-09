@@ -9,26 +9,25 @@
 
 }
 
-.fildset-radio {
+.fildset-radio--preview {
+  .form-check {
+    min-height: 30px;
+  }
 
-  input[type="radio"]:checked,
-  input[type="radio"]:not(:checked) {
-    position: fixed !important;
-    left: -9999px !important;
-    height: 0px;
-    width: 0px;
+  input[type="checkbox"]:not(:checked)+label::after,
+  input[type="checkbox"]:checked+label::after {
+    display: none !important;
   }
 
   input[type="radio"]:checked+label,
   input[type="radio"]:not(:checked)+label {
-    display: inline-block;
-    position: absolute;
-    left: 30px;
-    cursor: pointer;
-    transition: all .2s;
+
+    position: absolute !important;
+    left: 30px !important;
+
 
     &:hover {
-      color: rgb(29, 128, 1, 25%);
+      color: rgb(29, 128, 1, 25%) !important;
     }
   }
 
@@ -36,20 +35,12 @@
   input[type="radio"]:not(:checked)+label::before {
     content: "";
     position: absolute;
-    left: -25px;
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: transparent;
-    transition: all .3s;
-  }
+    left: -25px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    background-color: transparent !important;
 
-  input[type="radio"]:not(:checked)+label::before {
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    border: solid 2px #bababa;
   }
-
 
   input[type="radio"]:not(:checked)+label::before {
     border-radius: 50%;
