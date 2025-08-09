@@ -4,6 +4,9 @@ import Editor, { useMonaco } from "@monaco-editor/react";
 import { useStateContext } from "@/components/StateProvider";
 import updateIframe from "@/utils/updateIframe";
 import "./sandbox.scss";
+import replaceSvg from "@/utils/replaceSvg";
+import Image from "next/image";
+
 const Sandbox = () => {
   const monaco = useMonaco();
   const { resHtml, resScss } = useStateContext();
@@ -12,7 +15,16 @@ const Sandbox = () => {
   const [editorInstance, setEditorInstance] = useState<any>(null);
   const editorRef = useRef<any>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [updatedHtml, setUpdatedHtml] = useState<string>(replaceSvg(resHtml));
+  // ---------------------------
+  const [HtmlToCopy, setHtmlToCopy] = useState<string>("");
+  const [CssToCopy, setCssToCopy] = useState<string>("");
+  const [PugToCopy, setPugToCopy] = useState<string>("");
 
+  const [isCopiedScss, setIsCopiedScss] = useState<boolean>(false);
+  const [isCopiedPug, setIsCopiedPug] = useState<boolean>(false);
+  const [isCopiedHtml, setisCopiedHtml] = useState<boolean>(false);
+  // ---------------------------
   const [files, setFiles] = useState({
     "index.html": `<!DOCTYPE html>
 <html lang="en">
@@ -23,7 +35,7 @@ const Sandbox = () => {
   <title>Starter</title>
 </head>
 <body>
-  ${resHtml}
+  ${updatedHtml}
   <script type="module" src="./index.js"></script>
 </body>
 </html>`,
@@ -67,6 +79,18 @@ const Sandbox = () => {
     };
   }, [editorInstance]);
   // -----🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹
+  // 💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥
+  // 💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥
+  // 💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥
+
+  // 💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥
+  // 💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥
+  // 💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥
+
+  useEffect(() => {
+    if (!code) return;
+    setUpdatedHtml(replaceSvg(code));
+  }, [code]);
 
   useEffect(() => {
     setCode(files[selectedFile]);
@@ -76,6 +100,15 @@ const Sandbox = () => {
     if (!iframeRef.current) return;
     const document = iframeRef.current.contentDocument;
     if (!document) return;
+    if (!files) return;
+    updateIframe(
+      document,
+      files,
+      setScssError,
+      setHtmlToCopy,
+      setCssToCopy,
+      setPugToCopy
+    );
 
     const tryCss = async (foo) => {
       try {
@@ -101,40 +134,89 @@ const Sandbox = () => {
     };
 
     tryCss("styles").then(() => {
-      updateIframe(document, files, setScssError);
+      updateIframe(
+        document,
+        files,
+        setScssError,
+        setHtmlToCopy,
+        setCssToCopy,
+        setPugToCopy
+      );
     });
 
-    const hasButton = resHtml?.includes("<button");
+    const hasButton = updatedHtml?.includes("<button");
     if (hasButton)
       tryScss("buttonScss").then(() => {
-        updateIframe(document, files, setScssError);
+        updateIframe(
+          document,
+          files,
+          setScssError,
+          setHtmlToCopy,
+          setCssToCopy,
+          setPugToCopy
+        );
       });
-    const hasInput = resHtml?.includes("<input");
+    const hasInput = updatedHtml?.includes("<input");
     if (hasInput)
       tryScss("inputScss").then(() => {
-        updateIframe(document, files, setScssError);
+        updateIframe(
+          document,
+          files,
+          setScssError,
+          setHtmlToCopy,
+          setCssToCopy,
+          setPugToCopy
+        );
       });
-    const hasTextarea = resHtml?.includes("<textarea");
+    const hasTextarea = updatedHtml?.includes("<textarea");
     if (hasTextarea)
       tryScss("textareaScss").then(() => {
-        updateIframe(document, files, setScssError);
+        updateIframe(
+          document,
+          files,
+          setScssError,
+          setHtmlToCopy,
+          setCssToCopy,
+          setPugToCopy
+        );
       });
 
-    const hasSearch = resHtml?.includes("search-field");
+    const hasSearch = updatedHtml?.includes("search-field");
     if (hasSearch)
       tryScss("searchScss").then(() => {
-        updateIframe(document, files, setScssError);
+        updateIframe(
+          document,
+          files,
+          setScssError,
+          setHtmlToCopy,
+          setCssToCopy,
+          setPugToCopy
+        );
       });
-    const hasCheck = resHtml?.includes("form-check");
+    const hasCheck = updatedHtml?.includes("form-check");
     if (hasCheck)
       tryScss("checkboxScss").then(() => {
-        updateIframe(document, files, setScssError);
+        updateIframe(
+          document,
+          files,
+          setScssError,
+          setHtmlToCopy,
+          setCssToCopy,
+          setPugToCopy
+        );
       });
 
-    const hasRadio = resHtml?.includes("fildset-radio");
+    const hasRadio = updatedHtml?.includes("fildset-radio");
     if (hasRadio)
       tryScss("radioScss").then(() => {
-        updateIframe(document, files, setScssError);
+        updateIframe(
+          document,
+          files,
+          setScssError,
+          setHtmlToCopy,
+          setCssToCopy,
+          setPugToCopy
+        );
       });
   }, [files]);
 
@@ -150,8 +232,47 @@ const Sandbox = () => {
   return (
     <div className="sandbox">
       <div className="container">
+        <div className="flex gap-2 border-b p-2">
+          <button
+            onClick={() => {
+              if (!HtmlToCopy) return;
+              setisCopiedHtml(true);
+              setTimeout(() => setisCopiedHtml(false), 1000);
+              navigator.clipboard.writeText(HtmlToCopy);
+            }}
+            className={`btn ${isCopiedHtml ? "shadow-[0px_0px_3px_2px_rgb(58_243_8)] hover:shadow-[0px_0px_3px_2px_rgb(58_243_8)]!" : ""}`}
+            disabled={!resHtml}
+          >
+            <Image src="./svg/html.svg" width={28} height={28} alt="html" />
+          </button>
+          <button
+            onClick={() => {
+              if (!PugToCopy) return;
+              setIsCopiedPug(true);
+              setTimeout(() => setIsCopiedPug(false), 1000);
+              navigator.clipboard.writeText(PugToCopy);
+            }}
+            className={`btn ${isCopiedPug ? "shadow-[0px_0px_3px_2px_rgb(58_243_8)] hover:shadow-[0px_0px_3px_2px_rgb(58_243_8)]!" : ""}`}
+            disabled={!PugToCopy}
+          >
+            <Image src="./svg/pug.svg" width={28} height={28} alt="pug" />
+          </button>
+
+          <button
+            onClick={() => {
+              if (!CssToCopy) return;
+              setIsCopiedScss(true);
+              setTimeout(() => setIsCopiedScss(false), 1000);
+              navigator.clipboard.writeText(CssToCopy);
+            }}
+            className={`btn  ${isCopiedScss ? "shadow-[0px_0px_3px_2px_rgb(58_243_8)] hover:shadow-[0px_0px_3px_2px_rgb(58_243_8)]!" : ""}`}
+            disabled={!resScss}
+          >
+            <Image src="./svg/css.svg" width={28} height={28} alt="css" />
+          </button>
+        </div>
         <div className="flex flex-col h-screen mb-2">
-          <div className="flex-[0_0_50%] border-b border-gray-300 relative">
+          <div className="ifreme-container flex-[0_0_50%] border-b border-gray-300 relative">
             {scssError && (
               <div className="absolute top-2 left-2 bg-red-100 text-red-700 p-2 rounded z-10">
                 <p>{scssError}</p>

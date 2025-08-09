@@ -476,7 +476,7 @@ const EditorComponent = () => {
           </button>
           {transformTo && (
             <>
-              <button
+              {/* <button
                 onClick={() => {
                   if (!resHtml) return;
                   setisCopiedHtml(true);
@@ -512,7 +512,7 @@ const EditorComponent = () => {
                 disabled={!resScss}
               >
                 <Image src="./svg/scss.svg" width={28} height={28} alt="scss" />
-              </button>
+              </button> */}
               <button
                 onClick={(e) => {
                   handleToSandbox(e);

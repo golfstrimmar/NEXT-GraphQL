@@ -15,6 +15,8 @@ const htmlToScss = (html) => {
     "flex-col": "flex-direction: column;",
     "flex-row": "flex-direction: row;",
 
+    "flex-wrap": "flex-wrap: wrap;",
+
     // Justify
     "justify-start": "justify-content: flex-start;",
     "justify-center": "justify-content: center;",
@@ -46,7 +48,7 @@ const htmlToScss = (html) => {
       return null;
     }
 
-    const tagName = element.tagName.toLowerCase();
+    let tagName = element.tagName.toLowerCase();
     const id = element.id ? `#${element.id}` : "";
     const classList = Array.from(new Set(element.classList));
 
@@ -65,6 +67,7 @@ const htmlToScss = (html) => {
     console.log("<====attrAlt====>", attrAlt);
     if (attrAlt) {
       cssProps.push("width: 30px; height: 30px;");
+      tagName = "svg";
     }
     const selector = nonTailwindClasses.length
       ? `.${nonTailwindClasses.join(".")}${id}`

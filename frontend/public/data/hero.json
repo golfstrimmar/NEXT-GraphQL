@@ -46,6 +46,7 @@
                     "children": [
                       {
                         "type": "img",
+
                         "attributes": {
                           "src": "https://res.cloudinary.com/dke0nudcz/image/upload/v1745696143/events/odqmrgyyqrvlovzmtaag.png",
                           "alt": "logo"
@@ -77,7 +78,7 @@
                     "type": "ul",
                     "attributes": {
                       "style": "",
-                      "class": "flex items-center  bg-sky-200   hero__items"
+                      "class": "flex flex-wrap items-center  bg-sky-200   hero__items"
                     },
                     "children": [
                       "hero__items ul",
@@ -101,10 +102,39 @@
                               {
                                 "type": "img",
                                 "attributes": {
+                                  "class": " w-10 h-10 p-0! m-0! border-none bg-transparent shadow-[0_0_6px_4px_transparent]!",
                                   "src": "https://res.cloudinary.com/dke0nudcz/image/upload/v1753720705/link-svgrepo-com_fk1scy.svg",
                                   "alt": "svg-img",
-                                  "style": "",
-                                  "class": "w-10 h-10 p-0!  "
+                                  "style": ""
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "type": "li",
+                        "attributes": {
+                          "class": "bg-sky-300 my-2! p-2!  "
+                        },
+                        "children": [
+                          "li-1",
+                          {
+                            "type": "a",
+                            "attributes": {
+                              "href": "#!",
+                              "style": "",
+                              "class": "bg-blue-400  "
+                            },
+                            "children": [
+                              "a",
+                              {
+                                "type": "img",
+                                "attributes": {
+                                  "class": " w-10 h-10 p-0! m-0! border-none bg-transparent shadow-[0_0_6px_4px_transparent]!",
+                                  "src": "https://res.cloudinary.com/dke0nudcz/image/upload/v1753720705/link-svgrepo-com_fk1scy.svg",
+                                  "alt": "svg-img",
+                                  "style": ""
                                 }
                               }
                             ]
@@ -133,65 +163,7 @@
                                   "src": "https://res.cloudinary.com/dke0nudcz/image/upload/v1753720705/link-svgrepo-com_fk1scy.svg",
                                   "alt": "svg-img",
                                   "style": "",
-                                  "class": "w-10 h-10 p-0!  "
-                                }
-                              }
-                            ]
-                          }
-                        ]
-                      },
-                      {
-                        "type": "li",
-                        "attributes": {
-                          "class": "bg-sky-300 my-2! p-2!  "
-                        },
-                        "children": [
-                          "li-1",
-                          {
-                            "type": "a",
-                            "attributes": {
-                              "href": "#!",
-                              "style": "",
-                              "class": "bg-blue-400  "
-                            },
-                            "children": [
-                              "a",
-                              {
-                                "type": "img",
-                                "attributes": {
-                                  "src": "https://res.cloudinary.com/dke0nudcz/image/upload/v1753720705/link-svgrepo-com_fk1scy.svg",
-                                  "alt": "svg-img",
-                                  "style": "",
-                                  "class": "w-10 h-10 p-0!  "
-                                }
-                              }
-                            ]
-                          }
-                        ]
-                      },
-                      {
-                        "type": "li",
-                        "attributes": {
-                          "class": "bg-sky-300 my-2! p-2!  "
-                        },
-                        "children": [
-                          "li-1",
-                          {
-                            "type": "a",
-                            "attributes": {
-                              "href": "#!",
-                              "style": "",
-                              "class": "bg-blue-400  "
-                            },
-                            "children": [
-                              "a",
-                              {
-                                "type": "img",
-                                "attributes": {
-                                  "src": "https://res.cloudinary.com/dke0nudcz/image/upload/v1753720705/link-svgrepo-com_fk1scy.svg",
-                                  "alt": "svg-img",
-                                  "style": "",
-                                  "class": "w-10 h-10 p-0!  "
+                                  "class": " w-10 h-10 p-0!  m-0! border-none bg-transparent shadow-[0_0_6px_4px_transparent]!"
                                 }
                               }
                             ]

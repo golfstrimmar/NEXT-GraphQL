@@ -48,7 +48,7 @@
   border-radius: 5px;
   background: #0F172A;
 
-  * {
+  *:not(img) {
     position: relative;
 
     &::after {
@@ -66,7 +66,7 @@
       pointer-events: none;
       z-index: 10;
     }
-    
+
   }
 
 }

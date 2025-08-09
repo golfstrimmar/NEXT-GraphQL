@@ -17,7 +17,7 @@ const ButtonUnit: React.FC<ButtonUnitProps> = ({ info, renderTag }) => {
         console.log("<=====🧪setNodeToAdd ButtonUnit 🧪=====>", info);
         setNodeToAdd(`${info}`);
       }}
-      className={`buttonunit  text-white font-bold p-1 min-w-10   rounded  transition duration-200 ease-in-out z-50 hover:shadow-[0px_0px_6px_4px_rgba(255,255,255,0.8)_inset]
+      className={`buttonunit  text-white font-bold  min-w-10 max-h-[25px]   rounded  transition duration-200 ease-in-out z-50 hover:shadow-[0px_0px_6px_4px_rgba(255,255,255,0.8)_inset]
         ${
           info === "section"
             ? "bg-indigo-300"

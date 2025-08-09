@@ -1,6 +1,13 @@
 import * as sass from "sass";
-
-const updateIframe = async (document, files, setScssError) => {
+import htmlToPug from "@/utils//htmlToPug";
+const updateIframe = async (
+  document,
+  files,
+  setScssError,
+  setHtmlToCopy,
+  setCssToCopy,
+  setPugToCopy
+) => {
   let compiledCss = "";
   setScssError(null);
 
@@ -51,6 +58,26 @@ const updateIframe = async (document, files, setScssError) => {
     </html>
   `;
 
+  const productionHtml = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Preview</title>
+  <link rel="icon" type="image/svg+xml" href="assets/svg/check.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  ${bodyContent}
+</body>
+</html>
+`;
+
+  setHtmlToCopy(productionHtml);
+  setCssToCopy(combinedCss);
+
+  setPugToCopy(htmlToPug(productionHtml));
   document.open();
   document.write(html);
   document.close();

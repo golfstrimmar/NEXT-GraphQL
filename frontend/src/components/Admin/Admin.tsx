@@ -117,11 +117,12 @@ const Admin = ({
   };
 
   const [openPanels, setOpenPanels] = useState({
+    snippets: false,
     elements: false,
     headers: false,
-    tables: false,
-    snippets: false,
+
     inputs: false,
+    tables: false,
   });
   // 📌📌📌📌📌📌📌📌📌📌📌
   const togglePanel = (panel: keyof typeof openPanels) => {
@@ -196,7 +197,7 @@ const Admin = ({
                 }}
                 transition={{ duration: 0.2 }}
                 className="
-                        bg-gray-400 flex flex-col gap-2
+                        bg-gray-400 grid grid-cols-[repeat(auto-fit,_minmax(70px,_1fr))] gap-2
                          overflow-hidden px-2 w-[95%]
                         border-2  rounded-sm   border-slate-500"
               >
