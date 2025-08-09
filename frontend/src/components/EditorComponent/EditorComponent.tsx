@@ -92,7 +92,7 @@ const EditorComponent = () => {
   useEffect(() => {
     return () => {
       if (editorInstance) {
-        editorInstance.dispose(); // уничтожает редактор и чистит память
+        editorInstance.dispose();
       }
     };
   }, [editorInstance]);
@@ -109,20 +109,14 @@ const EditorComponent = () => {
   // -----🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹
   // -----🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹
   // -----🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹
-  // useEffect(() => {
-  //   document.body.querySelectorAll("textarea").forEach((textarea) =>
-  //     textarea.addEventListener("input", (e) => {
-  //       e.target.value = "";
-  //     })
-  //   );
-  // }, []);
+
   useEffect(() => {
     if (!htmlJson) return;
 
     const codeOrdered = orderIndexes(htmlJson);
     const codeRendered = jsonToHtml(codeOrdered);
     const formattedCode = formatHtml(codeRendered);
-    console.log("<===🟢🟢🟢=formattedCode====>", formattedCode);
+    // console.log("<===🟢🟢🟢=formattedCode====>", formattedCode);
     setCode(formattedCode);
     const previewEl = document.getElementById("preview");
     previewEl.innerHTML = formattedCode;

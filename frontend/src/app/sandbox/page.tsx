@@ -125,6 +125,11 @@ const Sandbox = () => {
       tryScss("searchScss").then(() => {
         updateIframe(document, files, setScssError);
       });
+    const hasCheck = resHtml?.includes("form-check");
+    if (hasCheck)
+      tryScss("checkboxScss").then(() => {
+        updateIframe(document, files, setScssError);
+      });
   }, [files]);
 
   const handleFileClick = (filename: string) => {

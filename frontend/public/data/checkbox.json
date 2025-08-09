@@ -1,0 +1,32 @@
+{
+  "type": "div",
+  "attributes": {
+    "class": "form-check  m-0! p-0!"
+  },
+  "children": [
+    {
+      "type": "input",
+      "attributes": {
+        "type": "checkbox",
+        "id": "checkbox9",
+        "name": ""
+      }
+    },
+    {
+      "type": "label",
+      "attributes": {
+        "for": "checkbox9",
+        "class": "m-0! p-0! border-none! bg-transparent shadow-[0_0_6px_4px_transparent]!"
+      },
+      "children": [
+        "checkbox",
+        {
+          "type": "span",
+          "attributes": {
+            "class": "m-0! p-0! border-none! bg-transparent shadow-[0_0_6px_4px_transparent]!"
+          }
+        }
+      ]
+    }
+  ]
+}

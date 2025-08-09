@@ -1,19 +1,19 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import "./plaza.scss";
 import EditorComponent from "@/components/EditorComponent/EditorComponent";
 import TestJson from "@/components/TestJson/TestJson";
 
 const Plaza = () => {
-    return (
-        <div className="plaza">
-            <div className="container">
-                <TestJson/>
+  return (
+    <div className="plaza">
+      <div className="container">
+        <TestJson />
 
-                <EditorComponent/>
-            </div>
-        </div>
-    );
+        <EditorComponent />
+      </div>
+    </div>
+  );
 };
 
 export default Plaza;

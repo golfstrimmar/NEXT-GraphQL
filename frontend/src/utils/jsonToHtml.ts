@@ -36,6 +36,7 @@ const allowedAttributes = new Set([
   "for",
   "required",
   "draggable",
+  "name",
 ]);
 
 // Рекурсивная функция для добавления классов ко всем узлам
@@ -84,7 +85,9 @@ const transformEl = (node: any): string => {
     .map(([key, value]) => `${key}="${value}"`)
     .join(" ");
 
-  const tagStart = `<${type}${attrs ? ` ${attrs}` : ""}${className ? ` class="${className}"` : ""} draggable="true"`;
+  const tagStart = `<${type}${attrs ? ` ${attrs}` : ""}${
+    className ? ` class="${className}"` : ""
+  } draggable="true"`;
 
   if (voidElements.has(type)) {
     return `${tagStart} />`;
@@ -92,20 +95,27 @@ const transformEl = (node: any): string => {
 
   let childrenHTML = "";
   let dataLabel = "";
+  let content = "";
 
   if (Array.isArray(children)) {
     childrenHTML = children
-      .map((child) =>
-        typeof child === "string"
-          ? (() => {
-              dataLabel = child;
-              return "";
-            })()
-          : transformEl(child)
-      )
+      .map((child) => {
+        if (typeof child === "string") {
+          dataLabel = child;
+          content = child; // сохраняем текст как content
+          return "";
+        }
+        return transformEl(child);
+      })
       .join("");
   } else if (typeof children === "string") {
     dataLabel = children;
+    content = children;
+  }
+
+  if (node?.type === "label") {
+    // Добавляем content перед childrenHTML
+    return `${tagStart} data-label="${dataLabel}">${content}${childrenHTML}</${type}>`;
   }
 
   return `${tagStart} data-label="${dataLabel}">${childrenHTML}</${type}>`;

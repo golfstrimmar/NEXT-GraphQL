@@ -1,0 +1,76 @@
+[
+  {
+    "type": "fieldset",
+    "attributes": {
+      "class": "fildset fildset-radio m-0! p-0!"
+    },
+    "children": [
+      {
+        "type": "div",
+        "attributes": {
+          "class": "form-check m-0! p-0!"
+        },
+        "children": [
+          {
+            "type": "input",
+            "attributes": {
+              "type": "radio",
+              "id": "radio10",
+              "name": "a",
+              "value": "radio10"
+            }
+          },
+          {
+            "type": "label",
+            "attributes": {
+              "for": "radio10",
+              "class": "m-0! p-0! border-none! bg-transparent shadow-[0_0_6px_4px_transparent]!"
+            },
+            "children": [
+              "radio10",
+              {
+                "type": "span",
+                "attributes": {
+                  "class": "m-0! p-0! border-none! bg-transparent shadow-[0_0_6px_4px_transparent]!"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "div",
+        "attributes": {
+          "class": "form-check m-0! p-0!"
+        },
+        "children": [
+          {
+            "type": "input",
+            "attributes": {
+              "type": "radio",
+              "id": "radio11",
+              "name": "a",
+              "value": "radio11"
+            }
+          },
+          {
+            "type": "label",
+            "attributes": {
+              "for": "radio11",
+              "class": "m-0! p-0! border-none! bg-transparent shadow-[0_0_6px_4px_transparent]!"
+            },
+            "children": [
+              "radio11",
+              {
+                "type": "span",
+                "attributes": {
+                  "class": "m-0! p-0! border-none! bg-transparent shadow-[0_0_6px_4px_transparent]!"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

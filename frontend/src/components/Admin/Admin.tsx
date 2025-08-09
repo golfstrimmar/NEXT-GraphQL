@@ -113,7 +113,7 @@ const Admin = ({
     ],
     headers: ["h1", "h2", "h3", "h4", "h5", "h6"],
     tables: ["table1", "table", "tr", "td", "th", "thead", "tbody", "tfoot"],
-    inputs: ["input", "textarea", "search"],
+    inputs: ["input", "textarea", "search", "checkbox", "radio"],
   };
 
   const [openPanels, setOpenPanels] = useState({
