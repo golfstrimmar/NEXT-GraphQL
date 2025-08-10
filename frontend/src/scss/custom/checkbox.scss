@@ -4,6 +4,10 @@
   align-items: center;
   gap: 10px;
 
+  &::after {
+    display: none !important;
+  }
+
   *::after {
     display: none !important;
   }

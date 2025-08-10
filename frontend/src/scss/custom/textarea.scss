@@ -28,15 +28,16 @@
       transform: translateY(-50%);
       left: 10px !important;
       transition: all 0.2s;
-      z-index: 1;
-      font-style: italic;
-      font-size: 14px;
-      background: #193756;
-      color: #51C9CD;
-      white-space: nowrap;
-      padding: 2px 3px;
-      line-height: 1;
-      border-radius: 4px;
+      color: transparent !important;
+      // z-index: 1;
+      // font-style: italic;
+      // font-size: 14px;
+      // background: #193756;
+      // color: #51C9CD;
+      // white-space: nowrap;
+      // padding: 2px 3px;
+      // line-height: 1;
+      // border-radius: 4px;
 
       &::after {
         position: absolute !important;

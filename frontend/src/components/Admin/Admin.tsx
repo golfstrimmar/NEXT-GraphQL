@@ -227,7 +227,7 @@ const Admin = ({
             className=" bg-gray-400  p-1 w-[95%] m-[0_auto_2rem]
                         border-2  rounded-sm   border-slate-500"
           >
-            <form className=" mb-2 gap-4">
+            <form className=" mb-2 ">
               <Input
                 typeInput="text"
                 value={commonClass}
@@ -236,7 +236,7 @@ const Admin = ({
                   setCommonClass(e.currentTarget.value);
                 }}
                 data="set common class"
-              />{" "}
+              />
             </form>
             <div className="flex flex-col mb-2 gap-2">
               <button

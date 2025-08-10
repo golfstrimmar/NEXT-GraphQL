@@ -33,15 +33,16 @@
       transform: translateY(-50%);
       left: 10px !important;
       transition: all 0.2s;
-      z-index: 1;
-      font-style: italic;
-      font-size: 14px;
-      background: #193756;
-      color: #51C9CD;
-      white-space: nowrap;
-      padding: 2px 3px;
-      line-height: 1;
-      border-radius: 4px;
+      // z-index: 1;
+      // font-style: italic;
+      // font-size: 14px;
+      // background: #193756;
+      color: transparent !important;
+      // white-space: nowrap;
+      // padding: 2px 3px;
+      // line-height: 1;
+      // border-radius: 4px;
+      // opacity: 0;
 
       &::after {
         position: absolute !important;
@@ -80,6 +81,11 @@
   input[type="search"],
   input[type="number"],
   input[type="tel"] {
+    &+label {
+      background: transparent !important;
+
+      white-space: nowrap;
+    }
 
     &:focus+label,
     &:valid+label {
@@ -103,6 +109,32 @@
     margin: 0;
   }
 
+  &--ui {
+    background-color: antiquewhite !important;
+
+    input[type="text"],
+    input[type="email"],
+    input[type="number"],
+    input[type="date"],
+    input[type="password"],
+    input[type="time"],
+    input[type="search"],
+    input[type="number"],
+    input[type="tel"] {
+      &+label {
+        color: #193756 !important;
+      }
+
+      &:focus+label,
+      &:valid+label {
+        top: 0% !important;
+        z-index: 10;
+        background-color: aliceblue !important;
+        padding: 0 3px !important;
+        border-radius: 4px;
+      }
+    }
+  }
 }
 
 .no-search-cancel::-webkit-search-cancel-button {

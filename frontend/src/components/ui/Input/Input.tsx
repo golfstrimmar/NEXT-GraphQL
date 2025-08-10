@@ -40,7 +40,7 @@ const Input: React.FC<InputProps> = ({
   activ,
 }) => {
   return (
-    <div className="input-field">
+    <div className="input-field input-field--ui">
       {typeInput === "textarea" ? (
         <textarea
           id={id}

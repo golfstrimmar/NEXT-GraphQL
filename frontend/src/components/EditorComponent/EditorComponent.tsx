@@ -449,59 +449,6 @@ const EditorComponent = () => {
               />
             </button>
           )}
-          {/* <button
-            onClick={() => {
-              handleTransform();
-            }}
-            className={`btn ml-8 ${transformTo ? "shadow-[0px_0px_3px_2px_rgb(58_243_8)] hover:shadow-[0px_0px_3px_2px_rgb(58_243_8)]! " : ""} ${codeIs ? "opacity-100" : "opacity-20 hover:shadow-[0px_0px_3px_2px_rgb(58_243_8_0)]!"}`}
-            disabled={!codeIs}
-          >
-            <Image
-              src="./svg/convert.svg"
-              width={28}
-              height={28}
-              alt="convert"
-            />
-          </button> */}
-          {/* {transformTo && ( */}
-          {/* <> */}
-          {/* <button
-                onClick={() => {
-                  if (!resHtml) return;
-                  setisCopiedHtml(true);
-                  setTimeout(() => setisCopiedHtml(false), 1000);
-                  navigator.clipboard.writeText(resHtml);
-                }}
-                className={`btn ${isCopiedHtml ? "shadow-[0px_0px_3px_2px_rgb(58_243_8)] hover:shadow-[0px_0px_3px_2px_rgb(58_243_8)]!" : ""}`}
-                disabled={!resHtml}
-              >
-                <Image src="./svg/html.svg" width={28} height={28} alt="html" />
-              </button>
-              <button
-                onClick={() => {
-                  if (!resPug) return;
-                  setIsCopiedPug(true);
-                  setTimeout(() => setIsCopiedPug(false), 1000);
-                  navigator.clipboard.writeText(resPug);
-                }}
-                className={`btn ${isCopiedPug ? "shadow-[0px_0px_3px_2px_rgb(58_243_8)] hover:shadow-[0px_0px_3px_2px_rgb(58_243_8)]!" : ""}`}
-                disabled={!resPug}
-              >
-                <Image src="./svg/pug.svg" width={28} height={28} alt="pug" />
-              </button>
-
-              <button
-                onClick={() => {
-                  if (!resScss) return;
-                  setIsCopiedScss(true);
-                  setTimeout(() => setIsCopiedScss(false), 1000);
-                  navigator.clipboard.writeText(resScss);
-                }}
-                className={`btn  ${isCopiedScss ? "shadow-[0px_0px_3px_2px_rgb(58_243_8)] hover:shadow-[0px_0px_3px_2px_rgb(58_243_8)]!" : ""}`}
-                disabled={!resScss}
-              >
-                <Image src="./svg/scss.svg" width={28} height={28} alt="scss" />
-              </button> */}
           <button
             onClick={(e) => {
               handleTransform();
@@ -512,8 +459,6 @@ const EditorComponent = () => {
           >
             To Sandbox as project ⇨
           </button>
-          {/* </> */}
-          {/* )} */}
         </div>
         <div className="preview-wrap">
           {/* 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 */}
