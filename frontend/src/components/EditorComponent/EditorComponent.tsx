@@ -19,7 +19,6 @@ import htmlToJSON from "@/utils/htmlToJson";
 import convertHtml from "@/utils/convertHtml";
 import htmlToScss from "@/utils/htmlToScss";
 import removeTailwindClasses from "@/utils/removeTailwindClasses";
-import htmlToPug from "@/utils/htmlToPug";
 import addClass from "@/utils/addClass";
 import { motion, AnimatePresence } from "framer-motion";
 import { Router } from "next/router";
@@ -52,11 +51,6 @@ const EditorComponent = () => {
   const [commonClass, setCommonClass] = useState<string>("");
   const editorRef = useRef<any>(null);
   // -------------------------------
-  const [resPug, setResPug] = useState<string>("");
-
-  const [isCopiedScss, setIsCopiedScss] = useState<boolean>(false);
-  const [isCopiedPug, setIsCopiedPug] = useState<boolean>(false);
-  const [isCopiedHtml, setisCopiedHtml] = useState<boolean>(false);
   // -----🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹--monaco
   useEffect(() => {
     if (monaco) {
@@ -345,14 +339,11 @@ const EditorComponent = () => {
     let cleanedCode = convertHtml(code);
     const cleanedScss = htmlToScss(cleanedCode);
     cleanedCode = removeTailwindClasses(cleanedCode);
-    const resultPug = htmlToPug(cleanedCode);
     setResHtml(cleanedCode);
-    setResPug(resultPug);
     setResScss(cleanedScss);
     // console.log("<==== 💥cleanedScss====>", cleanedScss);
     // console.log("<==== 💥cleanedCode====>", cleanedCode);
     // console.log("<==== 💥resultPug====>", resultPug);
-    // navigator.clipboard.writeText(cleanedCode);
   };
   // ♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️
   // 💥💥💥💥💥💥💥💥
@@ -391,14 +382,12 @@ const EditorComponent = () => {
     } else {
       setResHtml("");
       setResScss("");
-      setResPug("");
     }
   }, [codeIs]);
   useEffect(() => {
     setTransformTo(false);
     setResHtml("");
     setResScss("");
-    setResPug("");
     // }
   }, [code]);
   // 💥💥💥💥💥💥💥💥
@@ -460,7 +449,7 @@ const EditorComponent = () => {
               />
             </button>
           )}
-          <button
+          {/* <button
             onClick={() => {
               handleTransform();
             }}
@@ -473,10 +462,10 @@ const EditorComponent = () => {
               height={28}
               alt="convert"
             />
-          </button>
-          {transformTo && (
-            <>
-              {/* <button
+          </button> */}
+          {/* {transformTo && ( */}
+          {/* <> */}
+          {/* <button
                 onClick={() => {
                   if (!resHtml) return;
                   setisCopiedHtml(true);
@@ -513,16 +502,18 @@ const EditorComponent = () => {
               >
                 <Image src="./svg/scss.svg" width={28} height={28} alt="scss" />
               </button> */}
-              <button
-                onClick={(e) => {
-                  handleToSandbox(e);
-                }}
-                className={`btn btn-empty px-2 `}
-              >
-                To Sandbox as project ⇨
-              </button>
-            </>
-          )}
+          <button
+            onClick={(e) => {
+              handleTransform();
+              setTimeout(() => handleToSandbox(e), 1000);
+            }}
+            className={`btn btn-empty px-2 ${transformTo ? "shadow-[0px_0px_3px_2px_rgb(58_243_8)] hover:shadow-[0px_0px_3px_2px_rgb(58_243_8)]! " : ""} ${codeIs ? "opacity-100" : "opacity-20 hover:shadow-[0px_0px_3px_2px_rgb(58_243_8_0)]!"}`}
+            disabled={!codeIs}
+          >
+            To Sandbox as project ⇨
+          </button>
+          {/* </> */}
+          {/* )} */}
         </div>
         <div className="preview-wrap">
           {/* 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 */}

@@ -36,11 +36,10 @@ const Sandbox = () => {
 </head>
 <body>
   ${updatedHtml}
-  <script type="module" src="./index.js"></script>
+ 
 </body>
 </html>`,
     "styles.scss": `${resScss}`,
-    "index.js": `console.log("Hello from index.js!");`,
   });
 
   const [code, setCode] = useState(files[selectedFile]);
@@ -86,6 +85,21 @@ const Sandbox = () => {
   // 💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥
   // 💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥
   // 💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥
+
+  // useEffect(() => {
+  //   console.log('<====files["index.html"]====>', files["index.html"]);
+  //   setHtmlToCopy(files["index.html"]);
+  //    updateIframe(
+  //      document,
+  //      files,
+  //      setScssError,
+  //      setHtmlToCopy,
+  //      setCssToCopy,
+  //      setPugToCopy
+  //    );
+  //   // setCssToCopy(files["styles.css"]);
+  //   // setPugToCopy(files["index.pug"]);
+  // }, []);
 
   useEffect(() => {
     if (!code) return;
@@ -235,13 +249,14 @@ const Sandbox = () => {
         <div className="flex gap-2 border-b p-2">
           <button
             onClick={() => {
+              console.log("<====💥HtmlToCopy====>", HtmlToCopy);
               if (!HtmlToCopy) return;
               setisCopiedHtml(true);
               setTimeout(() => setisCopiedHtml(false), 1000);
               navigator.clipboard.writeText(HtmlToCopy);
             }}
             className={`btn ${isCopiedHtml ? "shadow-[0px_0px_3px_2px_rgb(58_243_8)] hover:shadow-[0px_0px_3px_2px_rgb(58_243_8)]!" : ""}`}
-            disabled={!resHtml}
+            disabled={!HtmlToCopy}
           >
             <Image src="./svg/html.svg" width={28} height={28} alt="html" />
           </button>
@@ -266,13 +281,13 @@ const Sandbox = () => {
               navigator.clipboard.writeText(CssToCopy);
             }}
             className={`btn  ${isCopiedScss ? "shadow-[0px_0px_3px_2px_rgb(58_243_8)] hover:shadow-[0px_0px_3px_2px_rgb(58_243_8)]!" : ""}`}
-            disabled={!resScss}
+            disabled={!CssToCopy}
           >
             <Image src="./svg/css.svg" width={28} height={28} alt="css" />
           </button>
         </div>
-        <div className="flex flex-col h-screen]">
-          <div className="ifreme-container flex-[0_0_50%]  my-2  relative border-4 border-blue-900">
+        <div className="grid grid-rows-[600px_1fr] my-2 w-full">
+          <div className="ifreme-container  overflow-y-auto my-2  relative border-4 border-blue-900">
             {scssError && (
               <div className="absolute top-2 left-2 bg-red-100 text-red-700 p-2 rounded z-10">
                 <p>{scssError}</p>
@@ -285,8 +300,8 @@ const Sandbox = () => {
               sandbox="allow-scripts allow-same-origin"
             />
           </div>
-          <div className="flex flex-1">
-            <div className="w-52 border-r border-gray-300 p-3 bg-white">
+          <div className=" grid grid-cols-[200px_1fr] min-h-[1000px] mb-2">
+            <div className="w-52 border-r  border-gray-300 p-3 bg-white">
               <h3 className="text-lg font-semibold mb-3">Файлы</h3>
               <ul>
                 {Object.keys(files).map((file) => (
@@ -304,7 +319,7 @@ const Sandbox = () => {
                 ))}
               </ul>
             </div>
-            <div className="flex-1">
+            <div className="">
               <Editor
                 height="100%"
                 defaultLanguage={
