@@ -2,13 +2,17 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { usePathname } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import "./Navigation.scss";
-
+import { LOGOUT_USER } from "@/apolo/mutations";
+import { useMutation } from "@apollo/client";
+import { useStateContext } from "@/components/StateProvider";
 const pages = [
   { title: "Home", path: "/" },
   { title: "Plaza", path: "/plaza" },
   { title: "Sandbox", path: "/sandbox" },
+  { title: "Register", path: "/register" },
+  { title: "Login", path: "/login" },
   // { title: "ClassAdder", path: "/classadder" },
   // { title: "SDKs", path: "/sdks" },
   // { title: "Inbound Relay", path: "/inbound-relay" },
@@ -18,8 +22,26 @@ const pages = [
 ];
 
 export default function Navigation() {
+  const { user, setUser } = useStateContext();
   const pathname = usePathname();
-
+  const router = useRouter();
+  const [logoutUser, { loading }] = useMutation(LOGOUT_USER);
+  const handleLogout = async () => {
+    try {
+      const { data } = await logoutUser();
+      if (data?.logoutUser) {
+        setUser(null);
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        router.push("/chats");
+      } else {
+        console.log("Logout failed on server side.");
+      }
+    } catch (err) {
+      console.error("Logout error:", err);
+      console.log("------Failed to log out. Please try again.-------");
+    }
+  };
   return (
     <header className="header" id="header">
       <div className="container">

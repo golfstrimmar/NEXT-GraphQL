@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 // import ApolloWrapper from "../apolo/ApolloWrapper";
 // import Navbar from "@/components/Navbar/Navbar";
-import Navigation from "@/components/Navigation/Navigation";
+import Navbar from "@/components/Navbar/Navbar";
 import { StateProvider } from "@/components/StateProvider";
 import "./global.scss";
 
@@ -20,7 +20,7 @@ export default function RootLayout({
       <body>
         <StateProvider>
           {/*<ApolloWrapper>*/}
-          <Navigation />
+          <Navbar />
           {children}
           {/*</ApolloWrapper>*/}
         </StateProvider>
