@@ -45,11 +45,14 @@ interface StateContextType {
   setResHtml: React.Dispatch<React.SetStateAction<string>>;
   resScss: string;
   setResScss: React.Dispatch<React.SetStateAction<string>>;
+  user: User | null;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
 }
 
 const StateContext = createContext<StateContextType | null>(null);
 
 export function StateProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
   const [htmlJson, setHtmlJson] = useState<HtmlNode[]>([]);
   const [nodeToAdd, setNodeToAdd] = useState<nodeToAdd | null>(null);
   const [result, setResult] = useState<string>();
@@ -129,6 +132,17 @@ export function StateProvider({ children }: { children: ReactNode }) {
       console.log("<====💥💥💥 resScss====>", resScss);
     }
   }, [resScss]);
+  useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser) as User;
+        setUser(parsedUser);
+      }
+    } catch (err) {
+      console.error("Error restoring user:", err);
+    }
+  }, []);
   // ----------------------------------------------
   return (
     <StateContext.Provider
@@ -146,6 +160,8 @@ export function StateProvider({ children }: { children: ReactNode }) {
         setResHtml,
         resScss,
         setResScss,
+        user,
+        setUser,
       }}
     >
       {showIsModal && (
