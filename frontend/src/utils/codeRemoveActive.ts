@@ -1,7 +1,7 @@
-const codeRemoveActive = () => {
+const codeRemoveActive = (): void => {
   if (typeof window === "undefined") return;
   const codeElement = document.querySelector(".code");
-  const removeActiveClass = (element: HTMLElement) => {
+  const removeActiveClass = (element: HTMLElement): void => {
     if (element.classList.contains("is-active")) {
       element.classList.remove("is-active");
     }
@@ -11,7 +11,7 @@ const codeRemoveActive = () => {
     );
   };
   if (codeElement) {
-    removeActiveClass(codeElement);
+    removeActiveClass(codeElement as HTMLElement); // Cast codeElement to HTMLElement
   }
 };
 export default codeRemoveActive;

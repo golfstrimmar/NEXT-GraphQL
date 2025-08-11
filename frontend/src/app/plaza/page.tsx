@@ -9,7 +9,6 @@ const Plaza = () => {
     <div className="plaza">
       <div className="container">
         <TestJson />
-
         <EditorComponent />
       </div>
     </div>

@@ -112,7 +112,7 @@ const Admin = ({
       "hero",
     ],
     headers: ["h1", "h2", "h3", "h4", "h5", "h6"],
-    tables: ["table1", "table", "tr", "td", "th", "thead", "tbody", "tfoot"],
+    tables: ["table1", "table", "tr", "td", "th", "thead", "tbody", "tfoot", "test-button-1", "test-button-2"],
     inputs: ["input", "textarea", "search", "checkbox", "radio"],
   };
 
