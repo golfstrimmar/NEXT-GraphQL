@@ -34,7 +34,7 @@ export const dropHandler = (
       const mouseX = e.clientX;
       const mouseY = e.clientY;
 
-      const isHorizontal = ["flex-row", "grid"].some((cls) =>
+      const isHorizontal = ["flex-row", "flex", "grid"].some((cls) =>
         parentEl.classList.contains(cls)
       );
 

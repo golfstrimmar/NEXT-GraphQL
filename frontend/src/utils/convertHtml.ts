@@ -1,4 +1,4 @@
-const convertHtml = (html) => {
+const convertHtml = (html: string): string => {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, "text/html");
 
@@ -14,8 +14,25 @@ const convertHtml = (html) => {
     "shadow-[0px_0px_6px_4px_rgba(255,255,255,0.8)]",
   ];
 
-  function cleanElement(el) {
-    if (el.nodeType !== 1) return;
+  // Helper function to filter classes
+  const filterClasses = (cls: string): boolean => {
+    return (
+      !unwantedClasses.includes(cls) &&
+      !cls.startsWith("bg-") &&
+      !cls.startsWith("text-") &&
+      !cls.startsWith("shadow-") &&
+      !cls.startsWith("m-") &&
+      !cls.startsWith("m") && // This 'm' without hyphen might be a typo or intentional. Preserving logic.
+      !cls.startsWith("p-") &&
+      !cls.startsWith("p") && // This 'p' without hyphen might be a typo or intentional. Preserving logic.
+      !cls.startsWith("w-") &&
+      !cls.startsWith("h-") &&
+      !cls.startsWith("gap-")
+    );
+  };
+
+  function cleanElement(el: Element): void {
+    if (el.nodeType !== Node.ELEMENT_NODE) return; // Use Node.ELEMENT_NODE for clarity
 
     // Удалить элементы с классом 'cart'
     if (el.classList.contains("cart")) {
@@ -27,32 +44,12 @@ const convertHtml = (html) => {
     el.removeAttribute("style");
     el.removeAttribute("draggable");
     el.removeAttribute("data-index");
+    el.removeAttribute("data-label"); // Removed commented-out block
 
-    // const dataLabel = el.getAttribute("data-label");
-    // if (dataLabel) {
-    //   const textNode = document.createTextNode(dataLabel);
-    //   el.prepend(textNode);
-    // }
-    el.removeAttribute("data-label");
     // Очистка классов
     const elClass = el.getAttribute("class");
     if (elClass) {
-      const classList = elClass
-        .split(" ")
-        .filter(
-          (cls) =>
-            !unwantedClasses.includes(cls) &&
-            !cls.startsWith("bg-") &&
-            !cls.startsWith("text-") &&
-            !cls.startsWith("shadow-") &&
-            !cls.startsWith("m-") &&
-            !cls.startsWith("m") &&
-            !cls.startsWith("p-") &&
-            !cls.startsWith("p") &&
-            !cls.startsWith("w-") &&
-            !cls.startsWith("h-") &&
-            !cls.startsWith("gap-")
-        );
+      const classList = elClass.split(" ").filter(filterClasses);
 
       if (classList.length > 0) {
         el.setAttribute("class", classList.join(" ").trim());

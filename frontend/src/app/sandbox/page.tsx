@@ -302,7 +302,6 @@ const Sandbox = () => {
           </div>
           <div className=" grid grid-cols-[200px_1fr] min-h-[1000px] mb-2">
             <div className="w-52 border-r  border-gray-300 p-3 bg-white">
-              <h3 className="text-lg font-semibold mb-3">Файлы</h3>
               <ul>
                 {Object.keys(files).map((file) => (
                   <li
