@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon server.js",
+    "dev": "nodemon index.js",
     "prisma:migrate": "npx prisma migrate dev"
   },
   "keywords": [],
@@ -13,7 +13,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@apollo/server": "^5.0.0",
+    "@apollo/server": "^4.10.4",
     "@graphql-tools/schema": "^10.0.25",
     "@prisma/client": "^6.13.0",
     "bcrypt": "^6.0.0",
@@ -26,7 +26,6 @@
     "graphql-tag": "^2.12.6",
     "graphql-ws": "^6.0.6",
     "jsonwebtoken": "^9.0.2",
-    "subscriptions-transport-ws": "^0.11.0",
     "ws": "^8.18.3"
   },
   "devDependencies": {

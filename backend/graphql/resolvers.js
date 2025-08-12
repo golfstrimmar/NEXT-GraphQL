@@ -1,9 +1,9 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import prisma from "../prisma/client.js";
-
+import { PubSub } from "graphql-subscriptions";
 const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key";
-
+const pubsub = new PubSub();
 export const resolvers = {
   User: {
     messages: async (parent) => {

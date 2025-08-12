@@ -10,7 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@apollo/client": "^3.13.8",
+    "@apollo/client": "^3.13.9",
     "@evervault/react": "^1.0.1",
     "@evervault/sdk": "^3.12.2",
     "@monaco-editor/react": "^4.7.0",

@@ -14,7 +14,7 @@ export default function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { showModal } = useStateContext();
+  const { setModalMessage } = useStateContext();
   const [createUser, { loading }] = useMutation(CREATE_USER);
   // ===============================
 
@@ -26,15 +26,17 @@ export default function Register() {
         "🟢 Новый пользователь через подписку:",
         subscriptionData.userCreated
       );
-      showModal(`Новый пользователь: ${subscriptionData.userCreated.name}`);
+      setModalMessage(
+        `Новый пользователь: ${subscriptionData.userCreated.name}`
+      );
       // тут можно пушить в общий стейт/контекст
     }
-  }, [subscriptionData, showModal]);
+  }, [subscriptionData, setModalMessage]);
   // ===============================
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !email || !password) {
-      showModal("Please fill in all fields.");
+      setModalMessage("Please fill in all fields.");
       return;
     }
     try {
@@ -45,7 +47,7 @@ export default function Register() {
       setEmail("");
       setName("");
       setPassword("");
-      showModal("Registration successful!");
+      setModalMessage("Registration successful!");
       // client.resetStore();
       setTimeout(() => {
         router.push("/");
@@ -53,7 +55,7 @@ export default function Register() {
     } catch (err) {
       console.error("Registration mutation error:", err);
       console.error("Full error object:", JSON.stringify(err, null, 2));
-      showModal("Registration failed.");
+      setModalMessage("Registration failed.");
     }
   };
 
