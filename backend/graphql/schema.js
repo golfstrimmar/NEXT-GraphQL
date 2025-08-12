@@ -31,4 +31,8 @@ export const typeDefs = gql`
     loginUser(email: String!, password: String!): AuthPayload!
     createMessage(text: String!, authorId: Int!): Message!
   }
+
+  type Subscription {
+    userCreated: User!
+  }
 `;

@@ -5,6 +5,17 @@ import prisma from "../prisma/client.js";
 const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key";
 
 export const resolvers = {
+  User: {
+    messages: async (parent) => {
+      return await prisma.message.findMany({ where: { authorId: parent.id } });
+    },
+  },
+
+  Message: {
+    author: async (parent) => {
+      return await prisma.user.findUnique({ where: { id: parent.authorId } });
+    },
+  },
   Query: {
     users: async () => {
       return await prisma.user.findMany();
@@ -20,9 +31,11 @@ export const resolvers = {
   Mutation: {
     createUser: async (_, { name, email, password }) => {
       const hashedPassword = await bcrypt.hash(password, 10);
-      return await prisma.user.create({
+      const newUser = await prisma.user.create({
         data: { name, email, password: hashedPassword },
       });
+      pubsub.publish("USER_CREATED", { userCreated: newUser });
+      return newUser;
     },
 
     loginUser: async (_, { email, password }) => {
@@ -53,15 +66,9 @@ export const resolvers = {
     },
   },
 
-  User: {
-    messages: async (parent) => {
-      return await prisma.message.findMany({ where: { authorId: parent.id } });
-    },
-  },
-
-  Message: {
-    author: async (parent) => {
-      return await prisma.user.findUnique({ where: { id: parent.authorId } });
+  Subscription: {
+    userCreated: {
+      subscribe: () => pubsub.asyncIterator(["USER_CREATED"]),
     },
   },
 };
