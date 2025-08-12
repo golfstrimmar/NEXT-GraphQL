@@ -16,7 +16,7 @@ import {
   COMMENT_DISLIKED_SUBSCRIPTION,
   POST_UPDATED_SUBSCRIPTION,
 } from "@/apolo/subscriptions";
-import { useStateContext } from "@/components/StateProvider";
+import { useStateContext } from "@/providers/StateProvider";
 const POSTS_PER_PAGE = 5;
 
 export default function useUserPostSubscriptions(

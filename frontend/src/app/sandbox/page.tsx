@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import Editor, { useMonaco } from "@monaco-editor/react";
-import { useStateContext } from "@/components/StateProvider";
+import { useStateContext } from "@/providers/StateProvider";
 import updateIframe from "@/utils/updateIframe";
 import "./sandbox.scss";
 import replaceSvg from "@/utils/replaceSvg";

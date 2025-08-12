@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import { useMutation } from "@apollo/client";
 import useHasMounted from "@/hooks/useHasMounted";
 // import { LOGOUT_USER } from "@/apolo/mutations";
-import { useStateContext } from "@/components/StateProvider";
+import { useStateContext } from "@/providers/StateProvider";
 import { User } from "@/types/user";
 import Image from "next/image";
 

@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import "./editor.scss";
 import Editor, { useMonaco } from "@monaco-editor/react";
-import { useStateContext } from "@/components/StateProvider";
+import { useStateContext } from "@/providers/StateProvider";
 import Admin from "@/components/Admin/Admin";
 import jsonToHtml from "@/utils/jsonToHtml";
 import formatHtml from "@/utils/formatHtml";

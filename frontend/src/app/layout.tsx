@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 // import ApolloWrapper from "../apolo/ApolloWrapper";
 // import Navbar from "@/components/Navbar/Navbar";
 import Navbar from "@/components/Navbar/Navbar";
-import { StateProvider } from "@/components/StateProvider";
+import { StateProvider } from "@/providers/StateProvider";
+import { ApolloProv } from "@/providers/ApoloProvider";
 import "./global.scss";
 
 export const metadata: Metadata = {
@@ -18,12 +19,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <StateProvider>
-          {/*<ApolloWrapper>*/}
-          <Navbar />
-          {children}
-          {/*</ApolloWrapper>*/}
-        </StateProvider>
+        <ApolloProv>
+          <StateProvider>
+            <Navbar />
+            {children}
+          </StateProvider>
+        </ApolloProv>
       </body>
     </html>
   );

@@ -9,7 +9,7 @@ import Button from "@/components/ui/Button/Button";
 import { LOGIN_USER, GOOGLE_LOGIN, SET_PASSWORD } from "@/apolo/mutations";
 
 import { GET_USERS } from "@/apolo/queryes";
-import { useStateContext } from "@/components/StateProvider";
+import { useStateContext } from "@/providers/StateProvider";
 
 export default function Login() {
   const router = useRouter();

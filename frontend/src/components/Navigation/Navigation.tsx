@@ -6,7 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import "./Navigation.scss";
 import { LOGOUT_USER } from "@/apolo/mutations";
 import { useMutation } from "@apollo/client";
-import { useStateContext } from "@/components/StateProvider";
+import { useStateContext } from "@/providers/StateProvider";
 const pages = [
   { title: "Home", path: "/" },
   { title: "Plaza", path: "/plaza" },

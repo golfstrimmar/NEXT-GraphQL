@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 // import { client } from "@/app/apolo/apolloClient";
 import Input from "@/components/ui/Input/Input";
 import Button from "@/components/ui/Button/Button";
-import { useStateContext } from "@/components/StateProvider";
+import { useStateContext } from "@/providers/StateProvider";
 // import { ADD_USER } from "@/apolo/mutations";
 // import useUserChatSubscriptions from "@/hooks/useUserChatSubscriptions";
 export default function Register() {

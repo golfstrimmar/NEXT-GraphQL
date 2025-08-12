@@ -1,7 +1,7 @@
 "use client";
 import transformData from "@/hooks/useTransformData";
 import Image from "next/image";
-import { useStateContext } from "@/components/StateProvider";
+import { useStateContext } from "@/providers/StateProvider";
 export default function Login() {
   const { user } = useStateContext();
   return (

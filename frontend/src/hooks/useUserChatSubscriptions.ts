@@ -8,7 +8,7 @@ import {
   USER_LOGGEDOUT_SUBSCRIPTION,
   CHAT_CREATED_SUBSCRIPTION,
 } from "@/apolo/subscriptions";
-import { useStateContext } from "@/components/StateProvider";
+import { useStateContext } from "@/providers/StateProvider";
 
 export default function useUserChatSubscriptions() {
   const { user, setUser, showModal } = useStateContext();

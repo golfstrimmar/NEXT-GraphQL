@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import "./buttonunit.scss";
-import { useStateContext } from "@/components/StateProvider";
+import { useStateContext } from "@/providers/StateProvider";
 
 interface ButtonUnitProps {
   info: string;
