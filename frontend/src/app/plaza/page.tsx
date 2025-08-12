@@ -6,7 +6,7 @@ import TestJson from "@/components/TestJson/TestJson";
 
 const Plaza = () => {
   return (
-    <div className="plaza">
+    <div className="plaza mt-20">
       <div className="container">
         <TestJson />
         <EditorComponent />

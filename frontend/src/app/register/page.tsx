@@ -3,44 +3,45 @@
 import { useState } from "react";
 import { useMutation } from "@apollo/client";
 import { useRouter } from "next/navigation";
-import { client } from "../../apolo/apolloClient";
+// import { client } from "@/app/apolo/apolloClient";
 import Input from "@/components/ui/Input/Input";
 import Button from "@/components/ui/Button/Button";
 import { useStateContext } from "@/components/StateProvider";
-import { ADD_USER } from "@/apolo/mutations";
-import useUserChatSubscriptions from "@/hooks/useUserChatSubscriptions";
+// import { ADD_USER } from "@/apolo/mutations";
+// import useUserChatSubscriptions from "@/hooks/useUserChatSubscriptions";
 export default function Register() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { showModal } = useStateContext();
-  const [addUser, { loading }] = useMutation(ADD_USER);
+  // const [addUser, { loading }] = useMutation(ADD_USER);
   // ===============================
 
-  useUserChatSubscriptions();
+  // useUserChatSubscriptions();
   // ===============================
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name || !email || !password) {
-      showModal("Please fill in all fields.");
-      return;
-    }
-    try {
-      const { data } = await addUser({ variables: { email, name, password } });
-      console.log("<=====🟢 MUTATION REGISTER NEW USER  =====>", data);
-      setEmail("");
-      setName("");
-      setPassword("");
-      showModal("Registration successful!");
-      // client.resetStore();
-      setTimeout(() => {
-        router.push("/");
-      }, 2000);
-    } catch (err) {
-      console.error("Mutation error:", err);
-      showModal("Registration failed.");
-    }
+    //   e.preventDefault();
+    //   if (!name || !email || !password) {
+    //     showModal("Please fill in all fields.");
+    //     return;
+    //   }
+    //   try {
+    //     const { data } = await addUser({ variables: { email, name, password } });
+    //     console.log("<=====🟢 MUTATION REGISTER NEW USER  =====>", data);
+    //     setEmail("");
+    //     setName("");
+    //     setPassword("");
+    //     showModal("Registration successful!");
+    //     // client.resetStore();
+    //     setTimeout(() => {
+    //       router.push("/");
+    //     }, 2000);
+    //   } catch (err) {
+    //     console.error("Registration mutation error:", err);
+    //     console.error("Full error object:", JSON.stringify(err, null, 2));
+    //     showModal("Registration failed.");
+    //   }
   };
 
   return (
@@ -78,7 +79,7 @@ export default function Register() {
           />
         </div>
         <Button
-          children={loading ? "Registering..." : "Register"}
+          // children={loading ? "Registering..." : "Register"}
           buttonType="submit"
         />
       </form>
