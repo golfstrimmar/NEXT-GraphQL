@@ -62,186 +62,186 @@ export const DELETE_USER = gql`
   }
 `;
 
-export const CREATE_CHAT = gql`
-  mutation createChat($participantId: Int!) {
-    createChat(participantId: $participantId) {
-      id
-      createdAt
-      creator {
-        id
-        email
-        name
-      }
-      participant {
-        id
-        email
-        name
-      }
-    }
-  }
-`;
+// export const CREATE_CHAT = gql`
+//   mutation createChat($participantId: Int!) {
+//     createChat(participantId: $participantId) {
+//       id
+//       createdAt
+//       creator {
+//         id
+//         email
+//         name
+//       }
+//       participant {
+//         id
+//         email
+//         name
+//       }
+//     }
+//   }
+// `;
 
-export const DELETE_CHAT = gql`
-  mutation deleteChat($id: Int!) {
-    deleteChat(id: $id) {
-      id
-    }
-  }
-`;
-export const SEND_MESSAGE = gql`
-  mutation sendMessage($chatId: Int!, $content: String!) {
-    sendMessage(chatId: $chatId, content: $content) {
-      id
-      content
-      createdAt
-      sender {
-        id
-        name
-      }
-      chat {
-        id
-      }
-    }
-  }
-`;
+// export const DELETE_CHAT = gql`
+//   mutation deleteChat($id: Int!) {
+//     deleteChat(id: $id) {
+//       id
+//     }
+//   }
+// `;
+// export const SEND_MESSAGE = gql`
+//   mutation sendMessage($chatId: Int!, $content: String!) {
+//     sendMessage(chatId: $chatId, content: $content) {
+//       id
+//       content
+//       createdAt
+//       sender {
+//         id
+//         name
+//       }
+//       chat {
+//         id
+//       }
+//     }
+//   }
+// `;
 
-export const DELETE_MESSAGE = gql`
-  mutation deleteMessage($chatId: Int, $messageId: Int!) {
-    deleteMessage(chatId: $chatId, messageId: $messageId)
-  }
-`;
+// export const DELETE_MESSAGE = gql`
+//   mutation deleteMessage($chatId: Int, $messageId: Int!) {
+//     deleteMessage(chatId: $chatId, messageId: $messageId)
+//   }
+// `;
 
-export const CREATE_POST = gql`
-  mutation createPost($category: String!, $title: String!, $text: String!) {
-    createPost(category: $category, title: $title, text: $text) {
-      id
-      category
-      title
-      text
-      createdAt
-      creator {
-        id
-        name
-        email
-      }
-      likesCount
-      dislikesCount
-      likes
-      dislikes
-    }
-  }
-`;
+// export const CREATE_POST = gql`
+//   mutation createPost($category: String!, $title: String!, $text: String!) {
+//     createPost(category: $category, title: $title, text: $text) {
+//       id
+//       category
+//       title
+//       text
+//       createdAt
+//       creator {
+//         id
+//         name
+//         email
+//       }
+//       likesCount
+//       dislikesCount
+//       likes
+//       dislikes
+//     }
+//   }
+// `;
 
-export const DELETE_POST = gql`
-  mutation deletePost($id: Int!) {
-    deletePost(id: $id)
-  }
-`;
+// export const DELETE_POST = gql`
+//   mutation deletePost($id: Int!) {
+//     deletePost(id: $id)
+//   }
+// `;
 
-export const LIKE_POST = gql`
-  mutation likePost($postId: Int!) {
-    likePost(postId: $postId) {
-      id
-      title
-      likes
-      dislikes
-      likesCount
-      dislikesCount
-    }
-  }
-`;
+// export const LIKE_POST = gql`
+//   mutation likePost($postId: Int!) {
+//     likePost(postId: $postId) {
+//       id
+//       title
+//       likes
+//       dislikes
+//       likesCount
+//       dislikesCount
+//     }
+//   }
+// `;
 
-export const DISLIKE_POST = gql`
-  mutation disLikePost($postId: Int!) {
-    dislikePost(postId: $postId) {
-      id
-      title
-      likes
-      dislikes
-      likesCount
-      dislikesCount
-    }
-  }
-`;
+// export const DISLIKE_POST = gql`
+//   mutation disLikePost($postId: Int!) {
+//     dislikePost(postId: $postId) {
+//       id
+//       title
+//       likes
+//       dislikes
+//       likesCount
+//       dislikesCount
+//     }
+//   }
+// `;
 
-export const ADD_COMMENT = gql`
-  mutation addComment($postId: Int!, $text: String!) {
-    addComment(postId: $postId, text: $text) {
-      postId
-      text
-    }
-  }
-`;
+// export const ADD_COMMENT = gql`
+//   mutation addComment($postId: Int!, $text: String!) {
+//     addComment(postId: $postId, text: $text) {
+//       postId
+//       text
+//     }
+//   }
+// `;
 
-export const DELETE_COMMENT = gql`
-  mutation deleteComment($id: Int!) {
-    deleteComment(id: $id) {
-      id
-    }
-  }
-`;
+// export const DELETE_COMMENT = gql`
+//   mutation deleteComment($id: Int!) {
+//     deleteComment(id: $id) {
+//       id
+//     }
+//   }
+// `;
 
-export const LIKE_COMMENT = gql`
-  mutation likeComment($commentId: Int!) {
-    likeComment(commentId: $commentId) {
-      id
-      text
-      createdAt
-      commentLikes {
-        id
-        user {
-          id
-          name
-        }
-      }
-      commentDislikes {
-        id
-        user {
-          id
-          name
-        }
-      }
-    }
-  }
-`;
+// export const LIKE_COMMENT = gql`
+//   mutation likeComment($commentId: Int!) {
+//     likeComment(commentId: $commentId) {
+//       id
+//       text
+//       createdAt
+//       commentLikes {
+//         id
+//         user {
+//           id
+//           name
+//         }
+//       }
+//       commentDislikes {
+//         id
+//         user {
+//           id
+//           name
+//         }
+//       }
+//     }
+//   }
+// `;
 
-export const DISLIKE_COMMENT = gql`
-  mutation dislikeComment($commentId: Int!) {
-    dislikeComment(commentId: $commentId) {
-      id
-      text
-      createdAt
-      commentLikes {
-        id
-        user {
-          id
-          name
-        }
-      }
-      commentDislikes {
-        id
-        user {
-          id
-          name
-        }
-      }
-    }
-  }
-`;
+// export const DISLIKE_COMMENT = gql`
+//   mutation dislikeComment($commentId: Int!) {
+//     dislikeComment(commentId: $commentId) {
+//       id
+//       text
+//       createdAt
+//       commentLikes {
+//         id
+//         user {
+//           id
+//           name
+//         }
+//       }
+//       commentDislikes {
+//         id
+//         user {
+//           id
+//           name
+//         }
+//       }
+//     }
+//   }
+// `;
 
-export const UPDATE_POST = gql`
-  mutation updatePost(
-    $id: Int!
-    $category: String!
-    $title: String!
-    $text: String!
-  ) {
-    updatePost(id: $id, category: $category, title: $title, text: $text) {
-      id
-      category
-      title
-      text
-      createdAt
-    }
-  }
-`;
+// export const UPDATE_POST = gql`
+//   mutation updatePost(
+//     $id: Int!
+//     $category: String!
+//     $title: String!
+//     $text: String!
+//   ) {
+//     updatePost(id: $id, category: $category, title: $title, text: $text) {
+//       id
+//       category
+//       title
+//       text
+//       createdAt
+//     }
+//   }
+// `;
