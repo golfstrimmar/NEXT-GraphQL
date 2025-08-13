@@ -15,6 +15,11 @@ export const context = async ({ req }) => {
     const payload = jwt.verify(token, JWT_SECRET);
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
     });
     return { prisma, currentUser: user };
   } catch (error) {

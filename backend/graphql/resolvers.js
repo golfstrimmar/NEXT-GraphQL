@@ -30,10 +30,13 @@ export const resolvers = {
 
   Mutation: {
     createUser: async (_, { name, email, password }) => {
+      const existingUser = await prisma.user.findUnique({ where: { email } });
+      if (existingUser) throw new Error("Email уже занят");
       const hashedPassword = await bcrypt.hash(password, 10);
       const newUser = await prisma.user.create({
         data: { name, email, password: hashedPassword },
       });
+      console.log("<====🟢 createUser====>", newUser);
       pubsub.publish("USER_CREATED", { userCreated: newUser });
       return newUser;
     },
@@ -41,7 +44,7 @@ export const resolvers = {
     loginUser: async (_, { email, password }) => {
       const user = await prisma.user.findUnique({ where: { email } });
       if (!user) {
-        throw new Error("Пользователь не найден");
+        throw new Error("Неверный email или пароль");
       }
 
       const valid = await bcrypt.compare(password, user.password);
@@ -60,8 +63,9 @@ export const resolvers = {
     },
 
     createMessage: async (_, { text, authorId }) => {
+      if (!context.currentUser) throw new Error("Not authenticated");
       return await prisma.message.create({
-        data: { text, authorId },
+        data: { text, authorId: context.currentUser.id },
       });
     },
   },

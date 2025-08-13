@@ -47,7 +47,7 @@ export default function Register() {
       setEmail("");
       setName("");
       setPassword("");
-      setModalMessage("Registration successful!");
+      setModalMessage("🟢 Registration successful!");
       // client.resetStore();
       setTimeout(() => {
         router.push("/");
