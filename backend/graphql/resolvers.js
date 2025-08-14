@@ -1,10 +1,8 @@
 import prisma from "../prisma/client.js";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import { PubSub } from "graphql-subscriptions";
+import { EventEmitter } from "events";
 
-const pubsub = new PubSub();
-const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key";
+const ee = new EventEmitter();
 
 export const resolvers = {
   Query: {
@@ -18,7 +16,10 @@ export const resolvers = {
       const newUser = await prisma.user.create({
         data: { name, email, password: hashedPassword },
       });
-      pubsub.publish("USER_CREATED", { userCreated: newUser });
+
+      // триггер события для подписки
+      ee.emit("USER_CREATED", newUser);
+
       return newUser;
     },
 
@@ -27,17 +28,6 @@ export const resolvers = {
         data: { content, senderId: Number(senderId) },
       });
     },
-
-    // loginUser: async (_, { email, password }) => {
-    //   const user = await prisma.user.findUnique({ where: { email } });
-    //   if (!user) throw new Error("Пользователь не найден");
-    //   const valid = await bcrypt.compare(password, user.password);
-    //   if (!valid) throw new Error("Неверный пароль");
-    //   const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
-    //     expiresIn: "7d",
-    //   });
-    //   return { token, user };
-    // },
   },
 
   User: {
@@ -52,7 +42,25 @@ export const resolvers = {
 
   Subscription: {
     userCreated: {
-      subscribe: () => pubsub.asyncIterator(["USER_CREATED"]),
+      subscribe: async function* () {
+        const queue = [];
+
+        const handler = (payload) => queue.push(payload);
+        ee.on("USER_CREATED", handler);
+
+        try {
+          while (true) {
+            if (queue.length === 0) {
+              // ждём события
+              await new Promise((resolve) => setTimeout(resolve, 100));
+            } else {
+              yield { userCreated: queue.shift() };
+            }
+          }
+        } finally {
+          ee.off("USER_CREATED", handler);
+        }
+      },
     },
   },
 };
