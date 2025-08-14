@@ -1,8 +1,10 @@
-import prisma from "../prisma/client.js";
 import bcrypt from "bcrypt";
 import { EventEmitter } from "events";
+import jwt from "jsonwebtoken";
+import prisma from "../prisma/client.js";
 
 const ee = new EventEmitter();
+const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key";
 
 export const resolvers = {
   Query: {
@@ -21,6 +23,29 @@ export const resolvers = {
       ee.emit("USER_CREATED", newUser);
 
       return newUser;
+    },
+
+    loginUser: async (_, { email, password }) => {
+      console.log("EMAIL FROM REQUEST:", JSON.stringify(email));
+
+      const allUsers = await prisma.user.findMany();
+      console.log(
+        "ALL USERS:",
+        allUsers.map((u) => u.email.trim().toLowerCase())
+      );
+
+      const user = await prisma.user.findUnique({ where: { email } });
+      console.log("FOUND USER:", user);
+
+      if (!user) throw new Error("Пользователь не найден");
+
+      const isValid = await bcrypt.compare(password, user.password);
+      if (!isValid) throw new Error("Неверный пароль");
+
+      const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
+        expiresIn: "7d",
+      });
+      return { token, user };
     },
 
     createMessage: async (_, { content, senderId }) => {
@@ -51,7 +76,6 @@ export const resolvers = {
         try {
           while (true) {
             if (queue.length === 0) {
-              // ждём события
               await new Promise((resolve) => setTimeout(resolve, 100));
             } else {
               yield { userCreated: queue.shift() };
