@@ -13,6 +13,7 @@ model User {
   name      String
   password  String?
   createdAt DateTime  @default(now())
+  googleId  String?   @unique
   messages  Message[] @relation("UserMessages")
 }
 

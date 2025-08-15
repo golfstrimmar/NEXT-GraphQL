@@ -1,10 +1,12 @@
 import { gql } from "graphql-tag";
+
 export const typeDefs = gql`
   type User {
     id: ID!
     email: String!
     name: String!
     createdAt: String!
+    googleId: String
     messages: [Message!]!
   }
 
@@ -14,10 +16,12 @@ export const typeDefs = gql`
     createdAt: String!
     sender: User!
   }
+
   type AuthPayload {
     token: String!
     user: User!
   }
+
   type Query {
     users: [User!]!
     messages: [Message!]!
@@ -26,6 +30,11 @@ export const typeDefs = gql`
   type Mutation {
     createUser(name: String!, email: String!, password: String!): User!
     loginUser(email: String!, password: String!): AuthPayload!
+    loginWithGoogle(
+      googleId: String!
+      name: String!
+      email: String!
+    ): AuthPayload! # <-- добавлено
     createMessage(senderId: ID!, content: String!): Message!
   }
 

@@ -51,6 +51,36 @@ export const resolvers = {
       console.log("formattedUser:", formattedUser);
       return { token, user: formattedUser };
     },
+    loginWithGoogle: async (_, { googleId, name, email }) => {
+      // Ищем пользователя по googleId
+      let user = await prisma.user.findUnique({ where: { googleId } });
+
+      // Если нет, создаем нового
+      if (!user) {
+        user = await prisma.user.create({
+          data: {
+            name,
+            email,
+            googleId,
+            password: null, // пароль пока не нужен
+          },
+        });
+
+        ee.emit("USER_CREATED", user);
+      }
+
+      // Создаём JWT токен
+      const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
+        expiresIn: "7d",
+      });
+
+      const formattedUser = {
+        ...user,
+        createdAt: new Date(user.createdAt).getTime().toString(),
+      };
+
+      return { token, user: formattedUser };
+    },
 
     createMessage: async (_, { content, senderId }) => {
       return prisma.message.create({

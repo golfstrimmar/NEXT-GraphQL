@@ -25,7 +25,24 @@ export const LOGIN_USER = gql`
     }
   }
 `;
-
+export const LOGIN_WITH_GOOGLE = gql`
+  mutation LoginWithGoogle(
+    $googleId: String!
+    $name: String!
+    $email: String!
+  ) {
+    loginWithGoogle(googleId: $googleId, name: $name, email: $email) {
+      token
+      user {
+        id
+        name
+        email
+        googleId
+        createdAt
+      }
+    }
+  }
+`;
 // Создание сообщения
 export const CREATE_MESSAGE = gql`
   mutation CreateMessage($content: String!, $senderId: Int!) {

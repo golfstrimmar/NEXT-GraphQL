@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import Navbar from "@/components/Navbar/Navbar";
 import { StateProvider } from "@/providers/StateProvider";
 import { ApolloProv } from "@/providers/ApoloProvider";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import "./global.scss";
 
 export const metadata: Metadata = {
@@ -19,12 +20,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <ApolloProv>
-          <StateProvider>
-            <Navbar />
-            {children}
-          </StateProvider>
-        </ApolloProv>
+        <GoogleOAuthProvider
+          clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}
+        >
+          <ApolloProv>
+            <StateProvider>
+              <Navbar />
+              {children}
+            </StateProvider>
+          </ApolloProv>
+        </GoogleOAuthProvider>
       </body>
     </html>
   );
