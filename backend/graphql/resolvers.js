@@ -19,7 +19,6 @@ export const resolvers = {
         data: { name, email, password: hashedPassword },
       });
 
-      // триггер события для подписки
       ee.emit("USER_CREATED", newUser);
 
       return newUser;
@@ -35,7 +34,6 @@ export const resolvers = {
       );
 
       const user = await prisma.user.findUnique({ where: { email } });
-      console.log("FOUND USER:", user);
 
       if (!user) throw new Error("Пользователь не найден");
 
@@ -45,7 +43,13 @@ export const resolvers = {
       const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
         expiresIn: "7d",
       });
-      return { token, user };
+      const formattedUser = {
+        ...user,
+        createdAt: new Date(user.createdAt).getTime().toString(),
+      };
+
+      console.log("formattedUser:", formattedUser);
+      return { token, user: formattedUser };
     },
 
     createMessage: async (_, { content, senderId }) => {

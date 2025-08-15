@@ -1,42 +1,31 @@
 import { gql } from "graphql-tag";
 
+// Получение всех пользователей с их сообщениями
 export const GET_USERS = gql`
   query GetUsers {
     users {
       id
       name
       email
+      createdAt
       messages {
         id
-        text
+        content
       }
     }
   }
 `;
 
+// Получение всех сообщений с авторами
 export const GET_MESSAGES = gql`
   query GetMessages {
     messages {
       id
-      text
+      content
       createdAt
-      author {
+      sender {
         id
         name
-      }
-    }
-  }
-`;
-
-export const GET_ME = gql`
-  query Me {
-    me {
-      id
-      name
-      email
-      messages {
-        id
-        text
       }
     }
   }

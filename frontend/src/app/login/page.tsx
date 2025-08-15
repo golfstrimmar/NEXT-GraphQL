@@ -3,29 +3,29 @@
 import { useState } from "react";
 import { useMutation, useApolloClient } from "@apollo/client";
 import { useRouter } from "next/navigation";
-import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
+// import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import Input from "@/components/ui/Input/Input";
 import Button from "@/components/ui/Button/Button";
-import { LOGIN_USER, GOOGLE_LOGIN, SET_PASSWORD } from "@/apolo/mutations";
+import { LOGIN_USER } from "@/apollo/mutations";
 
-import { GET_USERS } from "@/apolo/queryes";
+import { GET_USERS } from "@/apollo/queries";
 import { useStateContext } from "@/providers/StateProvider";
 
 export default function Login() {
   const router = useRouter();
   const client = useApolloClient();
-  const { showModal, setUser } = useStateContext();
-
+  const { setModalMessage, setUser } = useStateContext();
+  //
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const [loginUser, { loading: loginLoading }] = useMutation(LOGIN_USER);
-  const [googleLogin, { loading: googleLoading }] = useMutation(GOOGLE_LOGIN);
+  // const [googleLogin, { loading: googleLoading }] = useMutation(GOOGLE_LOGIN);
 
   const [showSetPasswordModal, setShowSetPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState("");
-  const [setPasswordMutation] = useMutation(SET_PASSWORD);
+  // const [setPasswordMutation] = useMutation(SET_PASSWORD);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +33,7 @@ export default function Login() {
 
     if (!email || !password) {
       setIsLoading(false);
-      return showModal("Please fill in all fields.");
+      return setModalMessage("Please fill in all fields.");
     }
 
     try {
@@ -42,29 +42,27 @@ export default function Login() {
 
       if (!loggedInUser) {
         setIsLoading(false);
-        return showModal("Invalid login");
+        return setModalMessage("⚠️Invalid login");
       }
       console.log("<=====🟢 MUTATION LOGIN USER  =====>", loggedInUser);
       // -------- localStorage
       const { token, ...userWithoutToken } = loggedInUser;
       const newUser = { ...userWithoutToken };
-      setUser(newUser);
       localStorage.setItem("token", token);
+      console.log("<=== 📤 User :", newUser);
+      setUser(newUser.user);
       localStorage.setItem("user", JSON.stringify(newUser));
-
       // --------
-      console.log("<=== 📤 User :", userWithoutToken);
-      setUser(userWithoutToken);
 
       // Обновляем статус пользователя в кэше Apollo
       updateUserStatusInCache(client, loggedInUser.id, true);
 
-      showModal("Login successful!");
+      setModalMessage("🟢Login successful!");
 
       setTimeout(() => {
         setEmail("");
         setPassword("");
-        router.push("/chats");
+        router.push("/");
       }, 2000);
     } catch (err) {
       console.error("Login error:", err);
@@ -72,7 +70,7 @@ export default function Login() {
       const errorMessage = err?.message;
 
       if (errorMessage === "GoogleOnlyAccount") {
-        showModal(
+        setModalMessage(
           "Account registered via Google. Please set a password first."
         );
         setTimeout(() => setShowSetPasswordModal(true), 2000);
@@ -80,72 +78,72 @@ export default function Login() {
       }
 
       if (errorMessage === "Invalid password") {
-        showModal("Incorrect password.");
+        setModalMessage("⚠️Incorrect password.");
         return;
       }
 
-      showModal("User not found. Redirecting...");
+      setModalMessage("⚠️User not found. Redirecting...");
       setTimeout(() => router.push("/register"), 2000);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGoogleLoginSuccess = async (response: CredentialResponse) => {
-    if (!response.credential) return showModal("No credential from Google");
+  // const handleGoogleLoginSuccess = async (response: CredentialResponse) => {
+  //   if (!response.credential) return showModal("No credential from Google");
 
-    setIsLoading(true);
+  //   setIsLoading(true);
 
-    try {
-      const { data } = await googleLogin({
-        variables: { idToken: response.credential },
-      });
+  //   try {
+  //     const { data } = await googleLogin({
+  //       variables: { idToken: response.credential },
+  //     });
 
-      const loggedInUser = data?.googleLogin;
+  //     const loggedInUser = data?.googleLogin;
 
-      if (!loggedInUser) {
-        setIsLoading(false);
-        return showModal("Google login failed");
-      }
-      // -------- localStorage
-      const { token, ...userWithoutToken } = loggedInUser;
-      const newUser = { ...userWithoutToken };
-      setUser(newUser);
-      console.log("<====GOOGLE LOGIN token====>", token);
-      console.log("<====GOOGLE LOGIN userWithoutToken====>", userWithoutToken);
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(newUser));
+  //     if (!loggedInUser) {
+  //       setIsLoading(false);
+  //       return showModal("Google login failed");
+  //     }
+  //     // -------- localStorage
+  //     const { token, ...userWithoutToken } = loggedInUser;
+  //     const newUser = { ...userWithoutToken };
+  //     setUser(newUser);
+  //     console.log("<====GOOGLE LOGIN token====>", token);
+  //     console.log("<====GOOGLE LOGIN userWithoutToken====>", userWithoutToken);
+  //     localStorage.setItem("token", token);
+  //     localStorage.setItem("user", JSON.stringify(newUser));
 
-      // --------
+  //     // --------
 
-      console.log("<=== GOOGLE LOGIN ===>", loggedInUser);
+  //     console.log("<=== GOOGLE LOGIN ===>", loggedInUser);
 
-      // Обновляем кэш Apollo — добавляем или обновляем пользователя с isLoggedIn: true
-      client.cache.updateQuery({ query: GET_USERS }, (prev: any) => {
-        const exists = prev?.users?.some((u: any) => u.id === loggedInUser.id);
-        const updatedUser = { ...loggedInUser, isLoggedIn: true };
-        return {
-          users: exists
-            ? prev.users.map((u: any) =>
-                u.id === loggedInUser.id ? updatedUser : u
-              )
-            : [...(prev?.users || []), updatedUser],
-        };
-      });
+  //     // Обновляем кэш Apollo — добавляем или обновляем пользователя с isLoggedIn: true
+  //     client.cache.updateQuery({ query: GET_USERS }, (prev: any) => {
+  //       const exists = prev?.users?.some((u: any) => u.id === loggedInUser.id);
+  //       const updatedUser = { ...loggedInUser, isLoggedIn: true };
+  //       return {
+  //         users: exists
+  //           ? prev.users.map((u: any) =>
+  //               u.id === loggedInUser.id ? updatedUser : u
+  //             )
+  //           : [...(prev?.users || []), updatedUser],
+  //       };
+  //     });
 
-      showModal("Google login successful!");
-      setTimeout(() => router.push("/chats"), 2000);
-    } catch (err) {
-      console.error("Google login error:", err);
-      showModal("Google login failed");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //     showModal("Google login successful!");
+  //     setTimeout(() => router.push("/chats"), 2000);
+  //   } catch (err) {
+  //     console.error("Google login error:", err);
+  //     showModal("Google login failed");
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
-  const handleGoogleLoginFailure = () => {
-    showModal("Google login failed.");
-  };
+  // const handleGoogleLoginFailure = () => {
+  //   showModal("Google login failed.");
+  // };
 
   //------- Обновляет статус пользователя в Apollo cache
   function updateUserStatusInCache(
@@ -187,20 +185,6 @@ export default function Login() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-
-        <div className="my-4">
-          {googleLoading || isLoading ? (
-            <span>Loading...</span>
-          ) : (
-            <GoogleLogin
-              onSuccess={handleGoogleLoginSuccess}
-              onError={handleGoogleLoginFailure}
-              text="signin_with"
-              shape="rectangular"
-              logo_alignment="left"
-            />
-          )}
-        </div>
 
         <Button
           children={isLoading || loginLoading ? "Loading..." : "Log In"}
@@ -261,3 +245,17 @@ export default function Login() {
     </div>
   );
 }
+
+//  <div className="my-4">
+//    {googleLoading || isLoading ? (
+//      <span>Loading...</span>
+//    ) : (
+//      <GoogleLogin
+//        onSuccess={handleGoogleLoginSuccess}
+//        onError={handleGoogleLoginFailure}
+//        text="signin_with"
+//        shape="rectangular"
+//        logo_alignment="left"
+//      />
+//    )}
+//  </div>;

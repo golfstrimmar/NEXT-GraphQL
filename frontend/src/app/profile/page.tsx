@@ -1,12 +1,13 @@
 "use client";
+import React, { useEffect } from "react";
 import transformData from "@/hooks/useTransformData";
 import Image from "next/image";
 import { useStateContext } from "@/providers/StateProvider";
 export default function Login() {
   const { user } = useStateContext();
+
   return (
     <div>
-      <h1>Profile</h1>
       {user && (
         <div className="mt-[150px]">
           <div className="container ">

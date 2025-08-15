@@ -14,9 +14,9 @@ export const MESSAGE_CREATED = gql`
   subscription MessageCreated {
     messageCreated {
       id
-      text
+      content
       createdAt
-      author {
+      sender {
         id
         name
       }

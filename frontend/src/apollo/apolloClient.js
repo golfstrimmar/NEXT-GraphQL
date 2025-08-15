@@ -2,27 +2,42 @@ import { ApolloClient, InMemoryCache, split, HttpLink } from "@apollo/client";
 import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
 import { createClient } from "graphql-ws";
 import { getMainDefinition } from "@apollo/client/utilities";
+import { setContext } from "@apollo/client/link/context";
 
-// HTTP-соединение для обычных запросов
+// HTTP-соединение
 const httpLink = new HttpLink({
   uri: "http://localhost:4000/graphql",
 });
 
-// WebSocket-соединение для подписок
+// Динамическое добавление токена
+const authLink = setContext((_, { headers }) => {
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : "";
+  return {
+    headers: {
+      ...headers,
+      Authorization: token ? `Bearer ${token}` : "",
+    },
+  };
+});
+
+// WebSocket-соединение
 const wsLink =
   typeof window !== "undefined"
     ? new GraphQLWsLink(
         createClient({
           url: "ws://localhost:4000/graphql",
-          connectionParams: {
-            // Можно передать токен авторизации, если нужно
-            // authorization: localStorage.getItem("token"),
+          connectionParams: () => {
+            const token = localStorage.getItem("token");
+            return {
+              Authorization: token ? `Bearer ${token}` : "",
+            };
           },
         })
       )
     : null;
 
-// Разделяем HTTP и WebSocket в зависимости от типа операции
+// Разделяем HTTP и WS
 const splitLink = wsLink
   ? split(
       ({ query }) => {
@@ -33,11 +48,10 @@ const splitLink = wsLink
         );
       },
       wsLink,
-      httpLink
+      authLink.concat(httpLink)
     )
-  : httpLink;
+  : authLink.concat(httpLink);
 
-// Создаём Apollo Client
 const client = new ApolloClient({
   link: splitLink,
   cache: new InMemoryCache(),

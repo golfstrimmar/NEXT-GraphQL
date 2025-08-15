@@ -12,6 +12,9 @@ const ModalMessage = dynamic(
   () => import("@/components/ModalMessage/ModalMessage"),
   { ssr: false }
 );
+import { USER_CREATED } from "@/apollo/subscriptions";
+import { GET_USERS } from "@/apollo/queries";
+import { useQuery, useSubscription } from "@apollo/client";
 type HtmlNode = {
   type: string;
   attributes?: {
@@ -24,7 +27,12 @@ type HtmlNode = {
 type nodeToAdd = {
   type: number;
 };
-
+type User = {
+  id: string;
+  email: string;
+  name: string;
+  createdAt: string;
+};
 interface StateContextType {
   htmlJson: HtmlNode[];
   setHtmlJson: React.Dispatch<React.SetStateAction<HtmlNode[]>>;
@@ -47,12 +55,15 @@ interface StateContextType {
   setResScss: React.Dispatch<React.SetStateAction<string>>;
   user: User | null;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
+  users: User[] | null;
+  setUsers: React.Dispatch<React.SetStateAction<User[] | null>>;
 }
 
 const StateContext = createContext<StateContextType | null>(null);
 
 export function StateProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [users, setUsers] = useState<User[] | null>(null);
   const [htmlJson, setHtmlJson] = useState<HtmlNode[]>([]);
   const [nodeToAdd, setNodeToAdd] = useState<nodeToAdd | null>(null);
   const [result, setResult] = useState<string>();
@@ -62,6 +73,24 @@ export function StateProvider({ children }: { children: ReactNode }) {
   const [transformTo, setTransformTo] = useState<boolean>(false);
   const [resHtml, setResHtml] = useState<string>("");
   const [resScss, setResScss] = useState<string>("");
+  const { data, loading, error, refetch } = useQuery(GET_USERS);
+  const { data: subscriptionData } = useSubscription(USER_CREATED);
+  useEffect(() => {
+    if (data?.users) {
+      console.log("<====data?.users====>", data.users);
+      setUsers(data.users);
+    }
+  }, [data]);
+  useEffect(() => {
+    if (subscriptionData?.userCreated) {
+      console.log(
+        "<====subscriptionData?.userCreated====>",
+        subscriptionData.userCreated
+      );
+      setUsers((prev) => [...(prev || []), subscriptionData.userCreated]);
+      refetch();
+    }
+  }, [subscriptionData]);
   const showModal = (message: string, duration = 2000) => {
     setModalMessage(message);
     setIsModalOpen(true);
@@ -137,7 +166,8 @@ export function StateProvider({ children }: { children: ReactNode }) {
       const storedUser = localStorage.getItem("user");
       if (storedUser) {
         const parsedUser = JSON.parse(storedUser) as User;
-        setUser(parsedUser);
+        console.log("<====💥💥💥 parsedUser====>", parsedUser.user);
+        setUser(parsedUser.user);
       }
     } catch (err) {
       console.error("Error restoring user:", err);
@@ -162,6 +192,8 @@ export function StateProvider({ children }: { children: ReactNode }) {
         setResScss,
         user,
         setUser,
+        users,
+        setUsers,
       }}
     >
       {showIsModal && (

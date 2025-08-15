@@ -1,5 +1,6 @@
 import { gql } from "graphql-tag";
 
+// Создание пользователя
 export const CREATE_USER = gql`
   mutation CreateUser($name: String!, $email: String!, $password: String!) {
     createUser(name: $name, email: $email, password: $password) {
@@ -10,6 +11,7 @@ export const CREATE_USER = gql`
   }
 `;
 
+// Логин пользователя
 export const LOGIN_USER = gql`
   mutation LoginUser($email: String!, $password: String!) {
     loginUser(email: $email, password: $password) {
@@ -18,30 +20,34 @@ export const LOGIN_USER = gql`
         id
         name
         email
+        createdAt
       }
     }
   }
 `;
 
-export const LOGOUT_USER = gql`
-  mutation LogoutUser($id: Int!) {
-    logoutUser(id: $id) {
-      id
-      isLoggedIn
-    }
-  }
-`;
-
+// Создание сообщения
 export const CREATE_MESSAGE = gql`
-  mutation CreateMessage($text: String!, $authorId: Int!) {
-    createMessage(text: $text, authorId: $authorId) {
+  mutation CreateMessage($content: String!, $senderId: Int!) {
+    createMessage(content: $content, senderId: $senderId) {
       id
-      text
+      content
       createdAt
-      author {
+      sender {
         id
         name
       }
+    }
+  }
+`;
+
+// Подписка на создание пользователя
+export const USER_CREATED_SUBSCRIPTION = gql`
+  subscription UserCreated {
+    userCreated {
+      id
+      name
+      email
     }
   }
 `;

@@ -33,26 +33,17 @@ const Navbar: React.FC = () => {
     // { title: "Functions", path: "/functions" },
     // { title: "Inputs", path: "/inputs" },
   ];
+
   useEffect(() => {
     setActiveLink(pathname);
   }, [pathname, isOpen]);
 
-  // const handleLogout = async () => {
-  //   try {
-  //     const { data } = await logoutUser();
-  //     if (data?.logoutUser) {
-  //       setUser(null);
-  //       localStorage.removeItem("token");
-  //       localStorage.removeItem("user");
-  //       router.push("/chats");
-  //     } else {
-  //       console.log("Logout failed on server side.");
-  //     }
-  //   } catch (err) {
-  //     console.error("Logout error:", err);
-  //     console.log("------Failed to log out. Please try again.-------");
-  //   }
-  // };
+  const handleLogout = async () => {
+    setUser(null);
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    router.push("/plaza");
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -158,37 +149,36 @@ const Navbar: React.FC = () => {
               </>
             ) : (
               <>
-                {/* //   <li className="flex items-center gap-2 text-white">
-            //     {user.picture ? (
-            //       <Image
-            //         src={user.picture}
-            //         alt="User"
-            //         width={25}
-            //         height={25}
-            //         className="rounded-full"
-            //       />
-            //     ) : (
-            //       <Image
-            //         src="./svg/avatar.svg"
-            //         alt="User"
-            //         width={25}
-            //         height={25}
-            //         className="rounded-full"
-            //       />
-            //     )}
-            //     <Link href="/profile" onClick={() => setIsOpen(false)}>
-            //       Hello, <strong>{user.name || "User"}</strong>
-            //     </Link>
-            //   </li>
-            //   <li>
-            //     <button
-            //       onClick={handleLogout}
-            //       disabled={loading}
-            //       className="text-white hover:text-gray-300 transition-colors duration-200 border border-white px-2 py-1 rounded-md cursor-pointer hover:border-gray-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
-            //     >
-            //       {loading ? "Logging out..." : "Logout"}
-            //     </button>
-            //   </li> */}
+                <li className="flex items-center gap-2 text-white">
+                  {user.picture ? (
+                    <Image
+                      src={user.picture}
+                      alt="User"
+                      width={25}
+                      height={25}
+                      className="rounded-full"
+                    />
+                  ) : (
+                    <Image
+                      src="./svg/avatar.svg"
+                      alt="User"
+                      width={25}
+                      height={25}
+                      className="rounded-full"
+                    />
+                  )}
+                  <Link href="/profile" onClick={() => setIsOpen(false)}>
+                    Hello, <strong>{user.name || "User"}</strong>
+                  </Link>
+                </li>
+                <li>
+                  <button
+                    onClick={handleLogout}
+                    className=" hover:text-gray-600 transition-colors duration-200 border mx-4  px-2 py-1 rounded-md cursor-pointer"
+                  >
+                    Logout
+                  </button>
+                </li>
               </>
             )}
           </ul>
