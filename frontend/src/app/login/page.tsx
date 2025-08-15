@@ -6,7 +6,11 @@ import { useRouter } from "next/navigation";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import Input from "@/components/ui/Input/Input";
 import Button from "@/components/ui/Button/Button";
-import { LOGIN_USER, LOGIN_WITH_GOOGLE } from "@/apollo/mutations";
+import {
+  LOGIN_USER,
+  LOGIN_WITH_GOOGLE,
+  SET_PASSWORD,
+} from "@/apollo/mutations";
 
 import { GET_USERS } from "@/apollo/queries";
 import { useStateContext } from "@/providers/StateProvider";
@@ -21,12 +25,12 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
 
   const [loginUser, { loading: loginLoading }] = useMutation(LOGIN_USER);
-  const [googleLogin, { loading: googleLoading }] =
+  const [LoginWithGoogle, { loading: googleLoading }] =
     useMutation(LOGIN_WITH_GOOGLE);
 
   const [showSetPasswordModal, setShowSetPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState("");
-  // const [setPasswordMutation] = useMutation(SET_PASSWORD);
+  const [setPasswordMutation] = useMutation(SET_PASSWORD);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,22 +67,21 @@ export default function Login() {
       setTimeout(() => {
         setEmail("");
         setPassword("");
-        router.push("/");
+        router.push("/profile");
       }, 2000);
     } catch (err) {
       console.error("Login error:", err);
 
-      const errorMessage = err?.message;
-
-      if (errorMessage === "GoogleOnlyAccount") {
-        setModalMessage(
-          "Account registered via Google. Please set a password first."
-        );
+      if (
+        err?.message ===
+        "This account was registered via Google. User must set a password."
+      ) {
+        setModalMessage(err?.message);
         setTimeout(() => setShowSetPasswordModal(true), 2000);
         return;
       }
 
-      if (errorMessage === "Invalid password") {
+      if (errorCode === "Invalid password") {
         setModalMessage("⚠️Incorrect password.");
         return;
       }
@@ -90,99 +93,59 @@ export default function Login() {
     }
   };
 
-  // const handleGoogleLoginSuccess = async (response: CredentialResponse) => {
-  //   if (!response.credential)
-  //     return setModalMessage("No credential from Google");
-
-  //   setIsLoading(true);
-
-  //   try {
-  //     const { data } = await googleLogin({
-  //       variables: { idToken: response.credential },
-  //     });
-
-  //     const loggedInUser = data?.googleLogin;
-
-  //     if (!loggedInUser) {
-  //       setIsLoading(false);
-  //       return setModalMessage("Google login failed");
-  //     }
-  //     // -------- localStorage
-  //     const { token, ...userWithoutToken } = loggedInUser;
-  //     const newUser = { ...userWithoutToken };
-  //     setUser(newUser);
-  //     console.log("<====GOOGLE LOGIN token====>", token);
-  //     console.log("<====GOOGLE LOGIN userWithoutToken====>", userWithoutToken);
-  //     localStorage.setItem("token", token);
-  //     localStorage.setItem("user", JSON.stringify(newUser));
-
-  //     // --------
-
-  //     console.log("<=== GOOGLE LOGIN ===>", loggedInUser);
-
-  //     // Обновляем кэш Apollo — добавляем или обновляем пользователя с isLoggedIn: true
-  //     client.cache.updateQuery({ query: GET_USERS }, (prev: any) => {
-  //       const exists = prev?.users?.some((u: any) => u.id === loggedInUser.id);
-  //       const updatedUser = { ...loggedInUser, isLoggedIn: true };
-  //       return {
-  //         users: exists
-  //           ? prev.users.map((u: any) =>
-  //               u.id === loggedInUser.id ? updatedUser : u
-  //             )
-  //           : [...(prev?.users || []), updatedUser],
-  //       };
-  //     });
-
-  //     setModalMessage("Google login successful!");
-  //     setTimeout(() => router.push("/chats"), 2000);
-  //   } catch (err) {
-  //     console.error("Google login error:", err);
-  //     setModalMessage("Google login failed");
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
   const handleGoogleLoginSuccess = async (response: CredentialResponse) => {
+    console.log("<====== GOOGLE LOGIN RESPONSE =====>", response.credential);
     if (!response.credential)
       return setModalMessage("No credential from Google");
 
     setIsLoading(true);
 
     try {
-      const { data } = await googleLogin({
+      const { data } = await LoginWithGoogle({
         variables: { idToken: response.credential },
       });
-
-      const loggedInUser = data?.googleLogin;
+      console.log("<====data====>", data);
+      const loggedInUser = data?.loginWithGoogle.user;
 
       if (!loggedInUser) {
         setIsLoading(false);
         return setModalMessage("Google login failed");
       }
-
-      const { token, ...userWithoutToken } = loggedInUser;
-      const newUser = { ...userWithoutToken };
-      setUser(newUser);
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(newUser));
-
-      client.cache.updateQuery({ query: GET_USERS }, (prev: any) => {
-        const exists = prev?.users?.some((u: any) => u.id === loggedInUser.id);
-        const updatedUser = { ...loggedInUser, isLoggedIn: true };
-        return {
-          users: exists
-            ? prev.users.map((u: any) =>
-                u.id === loggedInUser.id ? updatedUser : u
-              )
-            : [...(prev?.users || []), updatedUser],
-        };
-      });
-
+      const loggedInToken = data?.loginWithGoogle.token;
+      // ----------------------
+      localStorage.setItem("token", loggedInToken);
+      console.log("<====👤👤👤loggedInUser====>", loggedInUser);
+      setUser(loggedInUser);
+      localStorage.setItem("user", JSON.stringify(loggedInUser));
+      // ----------------------
       setModalMessage("Google login successful!");
-      setTimeout(() => router.push("/chats"), 2000);
-    } catch (err) {
-      console.error("Google login error:", err);
-      setModalMessage("Google login failed");
+      setTimeout(() => router.push("/profile"), 2000);
+    } catch (err: any) {
+      console.error("Login error:", err);
+
+      // Проверяем GraphQL ошибки
+      const graphQLError = err?.graphQLErrors?.[0];
+
+      if (graphQLError?.extensions?.code === "ACCOUNT_NEEDS_PASSWORD") {
+        setModalMessage(
+          "Account registered via Google. Please set a password first."
+        );
+        setTimeout(() => setShowSetPasswordModal(true), 2000);
+        return;
+      }
+
+      if (graphQLError?.message === "Invalid password") {
+        setModalMessage("⚠️Incorrect password.");
+        return;
+      }
+
+      if (graphQLError?.message === "User not found") {
+        setModalMessage("⚠️User not found. Redirecting...");
+        setTimeout(() => router.push("/register"), 2000);
+        return;
+      }
+      // Любая другая ошибка
+      setModalMessage("⚠️Something went wrong. Try again.");
     } finally {
       setIsLoading(false);
     }
@@ -248,7 +211,7 @@ export default function Login() {
           buttonType="submit"
         />
       </form>
-      {/* {showSetPasswordModal && (
+      {showSetPasswordModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
             <h3 className="text-lg font-bold mb-4 text-center">
@@ -280,7 +243,7 @@ export default function Login() {
 
                   try {
                     await setPasswordMutation({
-                      variables: { email, newPassword },
+                      variables: { email, password },
                     });
                     setModalMessage("Password set successfully!");
 
@@ -298,7 +261,7 @@ export default function Login() {
             </div>
           </div>
         </div>
-      )} */}
+      )}
     </div>
   );
 }

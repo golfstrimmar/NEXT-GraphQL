@@ -25,13 +25,19 @@ export const LOGIN_USER = gql`
     }
   }
 `;
+export const SET_PASSWORD = gql`
+  mutation setPasswordMutation($email: String!, $password: String!) {
+    setPassword(email: $email, password: $password) {
+      id
+      name
+      email
+      createdAt
+    }
+  }
+`;
 export const LOGIN_WITH_GOOGLE = gql`
-  mutation LoginWithGoogle(
-    $googleId: String!
-    $name: String!
-    $email: String!
-  ) {
-    loginWithGoogle(googleId: $googleId, name: $name, email: $email) {
+  mutation LoginWithGoogle($idToken: String!) {
+    loginWithGoogle(idToken: $idToken) {
       token
       user {
         id
@@ -43,6 +49,7 @@ export const LOGIN_WITH_GOOGLE = gql`
     }
   }
 `;
+
 // Создание сообщения
 export const CREATE_MESSAGE = gql`
   mutation CreateMessage($content: String!, $senderId: Int!) {

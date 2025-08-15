@@ -30,12 +30,9 @@ export const typeDefs = gql`
   type Mutation {
     createUser(name: String!, email: String!, password: String!): User!
     loginUser(email: String!, password: String!): AuthPayload!
-    loginWithGoogle(
-      googleId: String!
-      name: String!
-      email: String!
-    ): AuthPayload! # <-- добавлено
+    loginWithGoogle(idToken: String!): AuthPayload!
     createMessage(senderId: ID!, content: String!): Message!
+    setPassword(email: String!, password: String!): User!
   }
 
   type Subscription {
