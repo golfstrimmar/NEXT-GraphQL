@@ -61,7 +61,7 @@ const Navbar: React.FC = () => {
       <div className="container">
         <div className="relative flex items-center ">
           <Link href="/">
-            <div className="logoContainer">
+            <div className="logoContainer ">
               <Image
                 src="/logo.png"
                 width={140}
@@ -108,18 +108,20 @@ const Navbar: React.FC = () => {
                       className="navigationItem"
                       initial={false}
                       onClick={() => setIsOpen(false)}
-                      // animate={{
-                      //   color:
-                      //     pathname === path ? "var(--grey-00)" : "var(--grey-90)",
-                      // }}
+                      animate={{
+                        color:
+                          pathname === "/register"
+                            ? "var(--grey-00)"
+                            : "var(--grey-90)",
+                      }}
                     >
-                      {/* {pathname === path && (
-                      <motion.div
-                        className="indicator"
-                        layoutId="indicator"
-                        style={{ borderRadius: 32 }}
-                      />
-                    )} */}
+                      {pathname === "/register" && (
+                        <motion.div
+                          className="indicator"
+                          layoutId="indicator"
+                          style={{ borderRadius: 32 }}
+                        />
+                      )}
                       Register
                     </motion.button>
                   </Link>
@@ -130,18 +132,20 @@ const Navbar: React.FC = () => {
                       className="navigationItem"
                       initial={false}
                       onClick={() => setIsOpen(false)}
-                      // animate={{
-                      //   color:
-                      //     pathname === path ? "var(--grey-00)" : "var(--grey-90)",
-                      // }}
+                      animate={{
+                        color:
+                          pathname === "/login"
+                            ? "var(--grey-00)"
+                            : "var(--grey-90)",
+                      }}
                     >
-                      {/* {pathname === path && (
-                      <motion.div
-                        className="indicator"
-                        layoutId="indicator"
-                        style={{ borderRadius: 32 }}
-                      />
-                    )} */}
+                      {pathname === "/login" && (
+                        <motion.div
+                          className="indicator"
+                          layoutId="indicator"
+                          style={{ borderRadius: 32 }}
+                        />
+                      )}
                       Login
                     </motion.button>
                   </Link>

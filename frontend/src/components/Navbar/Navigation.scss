@@ -3,7 +3,7 @@
   border-bottom: 1px var(--slate-800) solid;
   padding: 20px 0;
   background: var(--slate-200);
-  
+
   .container {
     display: flex;
     justify-content: space-between;
@@ -17,6 +17,9 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  box-shadow: inset 0 0 4px 18px rgba(225, 225, 225, 1);
+  border-radius: 5px;
+  padding: 3px 10px;
 }
 
 .starterKitBanner {
@@ -36,7 +39,7 @@
   .dashboard {
     display: none;
   }
-  
+
   .logoContainer {
     display: none;
   }
@@ -94,6 +97,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(359deg);
   }

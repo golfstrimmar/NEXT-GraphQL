@@ -3,6 +3,10 @@
   gap: 20px;
 }
 
+.logoContainer {
+  box-shadow: 0 0 4px 8px rgba(225, 225, 225, 0.3);
+}
+
 @media (max-width: 767px) {
   .navbar-menu {
     position: absolute;

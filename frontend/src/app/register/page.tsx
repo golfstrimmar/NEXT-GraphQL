@@ -58,27 +58,26 @@ export default function Register() {
         className="bg-white p-6 rounded shadow-md w-full max-w-sm"
       >
         <h2 className="text-2xl font-bold mb-4 text-center">Register</h2>
-        <Input
-          typeInput="text"
-          data="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="mb-4"
-        />
-        <Input
-          typeInput="email"
-          data="E-mail"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="mb-4"
-        />
-        <Input
-          typeInput="password"
-          data="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="mb-4"
-        />
+        <div className="flex flex-col gap-4 mb-4">
+          <Input
+            typeInput="text"
+            data="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+          <Input
+            typeInput="email"
+            data="E-mail"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <Input
+            typeInput="password"
+            data="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
         <Button buttonType="submit">
           {loading ? "Registering..." : "Register"}
         </Button>
