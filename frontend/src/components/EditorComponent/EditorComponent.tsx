@@ -12,7 +12,7 @@ import dropHandler from "@/utils/dropHandler";
 import RenderJson from "@/utils/RenderJson";
 import ToAdd from "@/utils/ToAdd";
 import { ToBase } from "@/utils/ToBase";
-import Input from "@/components/ui/Input/Input";
+
 import "@/components/ui/InputRadio/InputRadio.scss";
 import Image from "next/image";
 import htmlToJSON from "@/utils/htmlToJson";
@@ -22,10 +22,12 @@ import removeTailwindClasses from "@/utils/removeTailwindClasses";
 import addClass from "@/utils/addClass";
 import { motion, AnimatePresence } from "framer-motion";
 import { Router } from "next/router";
+import ModalProject from "@/components/ModalProject/ModalProject";
 // ♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️
 const EditorComponent = () => {
   const monaco = useMonaco();
   const {
+    user,
     htmlJson,
     setHtmlJson,
     nodeToAdd,
@@ -50,6 +52,7 @@ const EditorComponent = () => {
   const [isMarker, setIsMarker] = useState<boolean>(false);
   const [commonClass, setCommonClass] = useState<string>("");
   const editorRef = useRef<any>(null);
+  const [openModalProject, setOpenModalProject] = useState<boolean>(false);
   // -------------------------------
   // -----🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹--monaco
   useEffect(() => {
@@ -423,7 +426,7 @@ const EditorComponent = () => {
                 alt="left"
               />
             </button>
-          )}{" "}
+          )}
           {code && (
             <button
               onClick={() => {
@@ -459,7 +462,18 @@ const EditorComponent = () => {
           >
             To Sandbox as project ⇨
           </button>
+          {user && (
+            <button
+              className="btn btn-empty px-2"
+              onClick={() => {
+                setOpenModalProject(true);
+              }}
+            >
+              Save as a project
+            </button>
+          )}
         </div>
+
         <div className="preview-wrap">
           {/* 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 */}
           <div id="preview" data-index="0"></div>
@@ -520,6 +534,12 @@ const EditorComponent = () => {
           />
         </div>
       </div>
+      {user && (
+        <ModalProject
+          open={openModalProject}
+          setOpenModalProject={setOpenModalProject}
+        />
+      )}
     </div>
   );
 };

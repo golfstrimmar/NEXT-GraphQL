@@ -7,14 +7,15 @@ export const typeDefs = gql`
     name: String!
     createdAt: String!
     googleId: String
-    messages: [Message!]!
+    projects: [String!]! # только названия проектов
   }
 
-  type Message {
+  type Project {
     id: ID!
-    content: String!
+    name: String!
+    data: String! # JSON в виде строки
     createdAt: String!
-    sender: User!
+    owner: User!
   }
 
   type AuthPayload {
@@ -24,14 +25,14 @@ export const typeDefs = gql`
 
   type Query {
     users: [User!]!
-    messages: [Message!]!
+    project(id: ID!): Project
   }
 
   type Mutation {
     createUser(name: String!, email: String!, password: String!): User!
     loginUser(email: String!, password: String!): AuthPayload!
     loginWithGoogle(idToken: String!): AuthPayload!
-    createMessage(senderId: ID!, content: String!): Message!
+    createProject(ownerId: ID!, name: String!, data: String!): Project!
     setPassword(email: String!, password: String!): User!
   }
 

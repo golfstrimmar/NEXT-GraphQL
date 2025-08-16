@@ -15,7 +15,7 @@ export default function Users() {
         {users &&
           users.map((u) => (
             <li key={u.id}>
-              {u.name} ({u.email}) ({transformData(u.createdAt)})
+              {u.name} ({u.email}) ({transformData(u.createdAt)}){u.projects}
             </li>
           ))}
       </ul>

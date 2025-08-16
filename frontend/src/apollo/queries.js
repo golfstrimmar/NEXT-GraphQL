@@ -5,28 +5,25 @@ export const GET_USERS = gql`
   query GetUsers {
     users {
       id
-      name
       email
+      name
       createdAt
-      messages {
-        id
-        content
-      }
+      projects
     }
   }
 `;
 
-// Получение всех сообщений с авторами
-export const GET_MESSAGES = gql`
-  query GetMessages {
-    messages {
-      id
-      content
-      createdAt
-      sender {
-        id
-        name
-      }
-    }
-  }
-`;
+// // Получение всех сообщений с авторами
+// export const GET_MESSAGES = gql`
+//   query GetMessages {
+//     messages {
+//       id
+//       content
+//       createdAt
+//       sender {
+//         id
+//         name
+//       }
+//     }
+//   }
+// `;

@@ -14,13 +14,15 @@ model User {
   password  String?
   createdAt DateTime  @default(now())
   googleId  String?   @unique
-  messages  Message[] @relation("UserMessages")
+  projects  Project[] @relation("UserProjects")
 }
 
-model Message {
+model Project {
   id        Int      @id @default(autoincrement())
-  content   String
+  name      String
+  data      Json     // JSON-объект с данными проекта
   createdAt DateTime @default(now())
-  sender    User     @relation("UserMessages", fields: [senderId], references: [id], onDelete: Cascade)
-  senderId  Int
+
+  owner     User     @relation("UserProjects", fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId   Int
 }

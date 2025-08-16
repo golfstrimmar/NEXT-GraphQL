@@ -3,25 +3,29 @@ import { EventEmitter } from "events";
 import jwt from "jsonwebtoken";
 import prisma from "../prisma/client.js";
 import { OAuth2Client } from "google-auth-library";
-// import { UserInputError } from "@apollo/server";
+
 const ee = new EventEmitter();
 const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key";
 const SALT_ROUNDS = 10;
+
 export const resolvers = {
   Query: {
-    users: () => prisma.user.findMany({ include: { messages: true } }),
-    messages: () => prisma.message.findMany({ include: { sender: true } }),
+    users: () => prisma.user.findMany(),
+    project: (_, { id }) =>
+      prisma.project.findUnique({
+        where: { id: Number(id) },
+        include: { owner: true },
+      }),
   },
 
   Mutation: {
     createUser: async (_, { name, email, password }) => {
-      const hashedPassword = await bcrypt.hash(password, 10);
+      const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
       const newUser = await prisma.user.create({
         data: { name, email, password: hashedPassword },
       });
 
       ee.emit("USER_CREATED", newUser);
-
       return newUser;
     },
 
@@ -41,6 +45,7 @@ export const resolvers = {
       } else {
         console.log("👤👤👤USER FOUND", user);
       }
+
       if (!user.password) {
         const error = new Error(
           "This account was registered via Google. User must set a password."
@@ -48,12 +53,14 @@ export const resolvers = {
         error.code = "ACCOUNT_NEEDS_PASSWORD";
         throw error;
       }
+
       const isValid = await bcrypt.compare(password, user.password);
       if (!isValid) throw new Error("Invalid password");
 
       const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
         expiresIn: "7d",
       });
+
       const formattedUser = {
         ...user,
         createdAt: new Date(user.createdAt).getTime().toString(),
@@ -62,13 +69,12 @@ export const resolvers = {
       console.log("formattedUser:", formattedUser);
       return { token, user: formattedUser };
     },
+
     setPassword: async (_, { email, password }) => {
-      console.log("<=====👤👤👤setPassword====>", email, password);
       if (!email || !password) {
         throw new Error("Email and password are required.");
       }
 
-      // Находим пользователя
       const user = await prisma.user.findUnique({ where: { email } });
       if (!user) {
         throw new Error("User not found.");
@@ -78,10 +84,8 @@ export const resolvers = {
         throw new Error("User already has a password. Use login instead.");
       }
 
-      // Хешируем новый пароль
-      const hashedPassword = await bcrypt.hash(password, 10);
+      const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
-      // Обновляем пользователя
       const updatedUser = await prisma.user.update({
         where: { email },
         data: { password: hashedPassword },
@@ -94,8 +98,6 @@ export const resolvers = {
     loginWithGoogle: async (_, { idToken }) => {
       const client = new OAuth2Client();
 
-      console.log("<====👤👤👤idToken====>", idToken);
-      // Проверяем idToken через Google
       const ticket = await client.verifyIdToken({
         idToken,
         audience: process.env.GOOGLE_CLIENT_ID,
@@ -106,10 +108,8 @@ export const resolvers = {
 
       const { sub: googleId, email, name } = payload;
 
-      // Ищем пользователя по googleId
       let user = await prisma.user.findUnique({ where: { googleId } });
 
-      // Если нет, создаём нового
       if (!user) {
         user = await prisma.user.create({
           data: {
@@ -123,7 +123,6 @@ export const resolvers = {
         ee.emit("USER_CREATED", user);
       }
 
-      // Создаём JWT токен для нашего приложения
       const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
         expiresIn: "7d",
       });
@@ -135,21 +134,29 @@ export const resolvers = {
       console.log("<====👤👤👤formattedUser====>", formattedUser);
       return { token, user: formattedUser };
     },
-    createMessage: async (_, { content, senderId }) => {
-      return prisma.message.create({
-        data: { content, senderId: Number(senderId) },
+
+    // createMessage -> createProject
+    // Возвращаем СТРОКУ — имя созданного проекта.
+    createProject: async (_, { ownerId, name, data }) => {
+      return prisma.project.create({
+        data: { name, data, ownerId: Number(ownerId) },
       });
     },
   },
 
   User: {
-    messages: (parent) =>
-      prisma.message.findMany({ where: { senderId: parent.id } }),
+    projects: (parent) =>
+      prisma.project
+        .findMany({
+          where: { ownerId: parent.id },
+          select: { name: true },
+        })
+        .then((projects) => projects.map((p) => p.name)),
   },
 
-  Message: {
-    sender: (parent) =>
-      prisma.user.findUnique({ where: { id: parent.senderId } }),
+  Project: {
+    owner: (parent) =>
+      prisma.user.findUnique({ where: { id: parent.ownerId } }),
   },
 
   Subscription: {
