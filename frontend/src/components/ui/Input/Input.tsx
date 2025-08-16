@@ -1,6 +1,5 @@
 "use client";
 import React, { RefObject } from "react";
-// import "./input.scss";
 
 interface InputProps {
   typeInput:
