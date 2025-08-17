@@ -7,6 +7,12 @@ export const CREATE_USER = gql`
       id
       name
       email
+      googleId
+      picture
+      projects {
+        id
+        name
+      }
     }
   }
 `;
@@ -21,6 +27,12 @@ export const LOGIN_USER = gql`
         name
         email
         createdAt
+        googleId
+        picture
+        projects {
+          id
+          name
+        }
       }
     }
   }
@@ -44,28 +56,55 @@ export const LOGIN_WITH_GOOGLE = gql`
         name
         email
         googleId
+        picture
         createdAt
+        projects {
+          id
+          name
+        }
       }
     }
   }
 `;
 
 // Создание сообщения
-export const CREATE_MESSAGE = gql`
-  mutation CreateMessage($content: String!, $senderId: Int!) {
-    createMessage(content: $content, senderId: $senderId) {
+// export const CREATE_PROJECT = gql`
+//   mutation CreateProject($ownerId: ID!, $name: String!, $data: String!) {
+//     createProject(ownerId: $ownerId, name: $name, data: $data) {
+//       id
+//       name
+//       data
+//       owner {
+//         id
+//         name
+//       }
+//     }
+//   }
+// `;
+export const CREATE_PROJECT = gql`
+  mutation CreateProject($ownerId: ID!, $name: String!, $data: String!) {
+    createProject(ownerId: $ownerId, name: $name, data: $data) {
       id
-      content
-      createdAt
-      sender {
-        id
-        name
-      }
+      name
     }
   }
 `;
 
-// Подписка на создание пользователя
+export const FIND_PROJECT = gql`
+  mutation FindProject($projectId: ID!) {
+    findProject(projectId: $projectId) {
+      id
+      name
+      data
+    }
+  }
+`;
+export const REMOVE_PROJECT = gql`
+  mutation RemoveProject($projectId: ID!) {
+    removeProject(projectId: $projectId)
+  }
+`;
+
 export const USER_CREATED_SUBSCRIPTION = gql`
   subscription UserCreated {
     userCreated {

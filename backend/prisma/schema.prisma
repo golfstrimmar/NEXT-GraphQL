@@ -14,6 +14,7 @@ model User {
   password  String?
   createdAt DateTime  @default(now())
   googleId  String?   @unique
+  picture   String?
   projects  Project[] @relation("UserProjects")
 }
 
@@ -25,4 +26,6 @@ model Project {
 
   owner     User     @relation("UserProjects", fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId   Int
+
+  @@unique([ownerId, name])
 }

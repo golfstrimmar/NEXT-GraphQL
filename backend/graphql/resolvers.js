@@ -10,7 +10,12 @@ const SALT_ROUNDS = 10;
 
 export const resolvers = {
   Query: {
-    users: () => prisma.user.findMany(),
+    users: () =>
+      prisma.user.findMany({
+        include: {
+          projects: true,
+        },
+      }),
     project: (_, { id }) =>
       prisma.project.findUnique({
         where: { id: Number(id) },
@@ -23,6 +28,7 @@ export const resolvers = {
       const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
       const newUser = await prisma.user.create({
         data: { name, email, password: hashedPassword },
+        include: { projects: true },
       });
 
       ee.emit("USER_CREATED", newUser);
@@ -38,7 +44,10 @@ export const resolvers = {
         allUsers.map((u) => u.email.trim().toLowerCase())
       );
 
-      const user = await prisma.user.findUnique({ where: { email } });
+      const user = await prisma.user.findUnique({
+        where: { email },
+        include: { projects: true },
+      });
       if (!user) {
         console.log("⚠️USER NOT FOUND");
         throw new Error("User not found");
@@ -106,9 +115,12 @@ export const resolvers = {
       const payload = ticket.getPayload();
       if (!payload) throw new Error("Invalid Google token");
 
-      const { sub: googleId, email, name } = payload;
+      const { sub: googleId, email, name, picture } = payload;
 
-      let user = await prisma.user.findUnique({ where: { googleId } });
+      let user = await prisma.user.findUnique({
+        where: { email },
+        include: { projects: true },
+      });
 
       if (!user) {
         user = await prisma.user.create({
@@ -117,7 +129,9 @@ export const resolvers = {
             email,
             googleId,
             password: null,
+            picture,
           },
+          include: { projects: true },
         });
 
         ee.emit("USER_CREATED", user);
@@ -137,21 +151,42 @@ export const resolvers = {
 
     // createMessage -> createProject
     // Возвращаем СТРОКУ — имя созданного проекта.
+
     createProject: async (_, { ownerId, name, data }) => {
-      return prisma.project.create({
-        data: { name, data, ownerId: Number(ownerId) },
+      try {
+        const project = await prisma.project.create({
+          data: { name, data, ownerId: Number(ownerId) },
+        });
+        return { id: project.id, name: project.name };
+      } catch (error) {
+        if (error.code === "P2002") {
+          throw new Error("Project with this name already exists.");
+        }
+        throw error;
+      }
+    },
+
+    findProject: async (_, { projectId }) => {
+      const project = await prisma.project.findUnique({
+        where: { id: Number(projectId) },
       });
+      return project;
+    },
+
+    removeProject: async (_, { projectId }) => {
+      const project = await prisma.project.delete({
+        where: { id: Number(projectId) },
+      });
+      return project.id;
     },
   },
 
   User: {
     projects: (parent) =>
-      prisma.project
-        .findMany({
-          where: { ownerId: parent.id },
-          select: { name: true },
-        })
-        .then((projects) => projects.map((p) => p.name)),
+      prisma.project.findMany({
+        where: { ownerId: parent.id },
+        select: { id: true, name: true },
+      }),
   },
 
   Project: {

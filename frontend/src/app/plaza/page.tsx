@@ -8,7 +8,7 @@ const Plaza = () => {
   return (
     <div className="plaza mt-20">
       <div className="container">
-        <TestJson />
+        {/* <TestJson /> */}
         <EditorComponent />
       </div>
     </div>

@@ -63,6 +63,25 @@ const StateContext = createContext<StateContextType | null>(null);
 
 export function StateProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    if (user) {
+      localStorage.setItem("user", JSON.stringify(user));
+    } else {
+      localStorage.removeItem("user");
+    }
+  }, [user]);
   const [users, setUsers] = useState<User[] | null>(null);
   const [htmlJson, setHtmlJson] = useState<HtmlNode[]>([]);
   const [nodeToAdd, setNodeToAdd] = useState<nodeToAdd | null>(null);
@@ -161,18 +180,7 @@ export function StateProvider({ children }: { children: ReactNode }) {
       console.log("<====💥💥💥 resScss====>", resScss);
     }
   }, [resScss]);
-  useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem("user");
-      if (storedUser) {
-        const parsedUser = JSON.parse(storedUser) as User;
-        console.log("<====💥💥💥 parsedUser====>", parsedUser.user);
-        setUser(parsedUser.user);
-      }
-    } catch (err) {
-      console.error("Error restoring user:", err);
-    }
-  }, []);
+
   // ----------------------------------------------
   return (
     <StateContext.Provider

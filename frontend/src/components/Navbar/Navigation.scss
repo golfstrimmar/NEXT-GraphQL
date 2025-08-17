@@ -50,11 +50,17 @@
   left: 50%;
   transform: translateX(-50%);
   display: flex;
+  gap: var(--token-16);
+  align-items: center;
   padding: var(--token-02);
   border: 1px var(--grey-30) solid;
   border-radius: var(--token-64);
   box-shadow: var(--box-shadow);
   background: var(--grey-00);
+
+  li a {
+    white-space: nowrap;
+  }
 }
 
 @media (max-width: 900px) {

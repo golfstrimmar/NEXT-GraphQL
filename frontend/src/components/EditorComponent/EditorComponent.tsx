@@ -12,7 +12,6 @@ import dropHandler from "@/utils/dropHandler";
 import RenderJson from "@/utils/RenderJson";
 import ToAdd from "@/utils/ToAdd";
 import { ToBase } from "@/utils/ToBase";
-
 import "@/components/ui/InputRadio/InputRadio.scss";
 import Image from "next/image";
 import htmlToJSON from "@/utils/htmlToJson";
@@ -20,9 +19,8 @@ import convertHtml from "@/utils/convertHtml";
 import htmlToScss from "@/utils/htmlToScss";
 import removeTailwindClasses from "@/utils/removeTailwindClasses";
 import addClass from "@/utils/addClass";
-import { motion, AnimatePresence } from "framer-motion";
-import { Router } from "next/router";
 import ModalProject from "@/components/ModalProject/ModalProject";
+import Projects from "@/components/Projects/Projects";
 // ♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️
 const EditorComponent = () => {
   const monaco = useMonaco();
@@ -35,19 +33,14 @@ const EditorComponent = () => {
     setModalMessage,
     transformTo,
     setTransformTo,
-    resHtml,
     setResHtml,
-    resScss,
     setResScss,
   } = useStateContext();
   const router = useRouter();
   const [editorInstance, setEditorInstance] = useState<any>(null);
-  const decorationIds = React.useRef<string[]>([]);
   const [editorHeight, setEditorHeight] = useState(500);
-  const [buff, setBuff] = useState<string>("");
   const [code, setCode] = useState<string>("");
   const nodeToDragRef = useRef<HTMLElement | null>(null);
-  const ListOfClasses = ["flex-col", "flex-row", "grid"];
   const [classToAdd, setClassToAdd] = useState<string>("");
   const [isMarker, setIsMarker] = useState<boolean>(false);
   const [commonClass, setCommonClass] = useState<string>("");
@@ -95,21 +88,15 @@ const EditorComponent = () => {
   }, [editorInstance]);
 
   // -----🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹
-  // -----🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹
-  // -----🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹
   useEffect(() => {
     if (!htmlJson) return;
     const formattedCode = RenderJson(htmlJson);
-    // console.log("<=====♻️formattedCode  ♻️====>", formattedCode);
     setCode(formattedCode);
   }, [htmlJson]);
-  // -----🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹
-  // -----🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹
   // -----🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹
 
   useEffect(() => {
     if (!htmlJson) return;
-
     const codeOrdered = orderIndexes(htmlJson);
     const codeRendered = jsonToHtml(codeOrdered);
     const formattedCode = formatHtml(codeRendered);
@@ -117,9 +104,7 @@ const EditorComponent = () => {
     setCode(formattedCode);
     const previewEl = document.getElementById("preview");
     previewEl.innerHTML = formattedCode;
-
     const elements = previewEl.querySelectorAll("[data-index]");
-
     elements.forEach((el: HTMLElement) => {
       const nodeId = el.getAttribute("data-index");
       el.style.cursor = "grabbing";
@@ -163,7 +148,6 @@ const EditorComponent = () => {
     });
   }, [htmlJson]);
   // 🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂
-  const ALLOWED_CONTAINERS = ["div", "section", "article", "main", "nav", "p"];
   useEffect(() => {
     console.log("<=====🔂nodeToAdd🔂=====>", nodeToAdd);
     if (!nodeToAdd) return;
@@ -403,135 +387,138 @@ const EditorComponent = () => {
 
   return (
     <div className="editor">
-      <Admin
-        commonClass={commonClass}
-        setCommonClass={setCommonClass}
-        classToAdd={classToAdd}
-        setClassToAdd={setClassToAdd}
-        isMarker={isMarker}
-      />
-      <div className="editor__plaza">
-        <div className="flex items-center gap-2 editor__controls">
-          {code && (
+      {user && <Projects />}
+      <div className="editor__workspace">
+        <Admin
+          commonClass={commonClass}
+          setCommonClass={setCommonClass}
+          classToAdd={classToAdd}
+          setClassToAdd={setClassToAdd}
+          isMarker={isMarker}
+        />
+        <div className="editor__plaza">
+          <div className="flex items-center gap-2 editor__controls">
+            {code && (
+              <button
+                onClick={() => {
+                  handleUndo();
+                }}
+                className="btn "
+              >
+                <Image
+                  src="./svg/left-arrow.svg"
+                  width={28}
+                  height={28}
+                  alt="left"
+                />
+              </button>
+            )}
+            {code && (
+              <button
+                onClick={() => {
+                  formatCode();
+                }}
+                className="btn btn-primary"
+              >
+                Format Code
+              </button>
+            )}
+            {code && (
+              <button
+                onClick={() => {
+                  handleRedo();
+                }}
+                className="btn"
+              >
+                <Image
+                  src="./svg/right-arrow.svg"
+                  width={28}
+                  height={28}
+                  alt="right"
+                />
+              </button>
+            )}
             <button
-              onClick={() => {
-                handleUndo();
+              onClick={(e) => {
+                handleTransform();
+                setTimeout(() => handleToSandbox(e), 1000);
               }}
-              className="btn "
+              className={`btn btn-empty px-2 ${transformTo ? "shadow-[0px_0px_3px_2px_rgb(58_243_8)] hover:shadow-[0px_0px_3px_2px_rgb(58_243_8)]! " : ""} ${codeIs ? "opacity-100" : "opacity-20 hover:shadow-[0px_0px_3px_2px_rgb(58_243_8_0)]!"}`}
+              disabled={!codeIs}
             >
-              <Image
-                src="./svg/left-arrow.svg"
-                width={28}
-                height={28}
-                alt="left"
-              />
+              To Sandbox as project ⇨
             </button>
-          )}
-          {code && (
-            <button
-              onClick={() => {
-                formatCode();
-              }}
-              className="btn btn-primary"
-            >
-              Format Code
-            </button>
-          )}
-          {code && (
-            <button
-              onClick={() => {
-                handleRedo();
-              }}
-              className="btn"
-            >
-              <Image
-                src="./svg/right-arrow.svg"
-                width={28}
-                height={28}
-                alt="right"
-              />
-            </button>
-          )}
-          <button
-            onClick={(e) => {
-              handleTransform();
-              setTimeout(() => handleToSandbox(e), 1000);
-            }}
-            className={`btn btn-empty px-2 ${transformTo ? "shadow-[0px_0px_3px_2px_rgb(58_243_8)] hover:shadow-[0px_0px_3px_2px_rgb(58_243_8)]! " : ""} ${codeIs ? "opacity-100" : "opacity-20 hover:shadow-[0px_0px_3px_2px_rgb(58_243_8_0)]!"}`}
-            disabled={!codeIs}
-          >
-            To Sandbox as project ⇨
-          </button>
-          {user && (
-            <button
-              className="btn btn-empty px-2"
-              onClick={() => {
-                setOpenModalProject(true);
-              }}
-            >
-              Save as a project
-            </button>
-          )}
-        </div>
+            {user && htmlJson.length > 1 && (
+              <button
+                className="btn btn-empty px-2"
+                onClick={() => {
+                  setOpenModalProject(true);
+                }}
+              >
+                Save as a project
+              </button>
+            )}
+          </div>
 
-        <div className="preview-wrap">
-          {/* 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 */}
-          <div id="preview" data-index="0"></div>
-          {/* 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 */}
-          <button
-            onClick={() => {
-              handleCartClear();
-            }}
-            className="w-8 h-8  mt-[-20px] mb-8 z-40 relative  rounded-full  flex items-center justify-center cursor-pointer"
-          >
-            🗑️
-          </button>
-        </div>
-        <div>
-          <Editor
-            height={editorHeight}
-            defaultLanguage="html"
-            defaultValue={code}
-            value={code}
-            onChange={(value) => {
-              setCode(value || "");
-            }}
-            options={{
-              fontSize: 14,
-              fontFamily: "Fira Code, monospace",
-              scrollBeyondLastLine: true,
-              minimap: {
-                enabled: true,
-                size: "fit",
-                showSlider: "always",
-                renderCharacters: false,
-              },
-              scrollbar: {
-                verticalScrollbarSize: 20,
-                horizontalScrollbarSize: 20,
-                handleMouseWheel: true,
-              },
-              hover: {
-                enabled: false,
-              },
-              parameterHints: {
-                enabled: false,
-              },
-            }}
-            onMount={handleEditorMount}
-            beforeMount={() => {
-              if (monaco) {
-                monaco.editor.defineTheme("myCustomTheme", {
-                  base: "vs-dark",
-                  inherit: true,
-                  rules: [],
-                  colors: {
-                    "editor.background": "#1e1e1e",
-                  },
-                });
-              }
-            }}
-          />
+          <div className="preview-wrap">
+            {/* 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 */}
+            <div id="preview" data-index="0"></div>
+            {/* 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 */}
+            <button
+              onClick={() => {
+                handleCartClear();
+              }}
+              className="w-8 h-8  mt-[-20px] mb-8 z-40 relative  rounded-full  flex items-center justify-center cursor-pointer"
+            >
+              🗑️
+            </button>
+          </div>
+          <div>
+            <Editor
+              height={editorHeight}
+              defaultLanguage="html"
+              defaultValue={code}
+              value={code}
+              onChange={(value) => {
+                setCode(value || "");
+              }}
+              options={{
+                fontSize: 14,
+                fontFamily: "Fira Code, monospace",
+                scrollBeyondLastLine: true,
+                minimap: {
+                  enabled: true,
+                  size: "fit",
+                  showSlider: "always",
+                  renderCharacters: false,
+                },
+                scrollbar: {
+                  verticalScrollbarSize: 20,
+                  horizontalScrollbarSize: 20,
+                  handleMouseWheel: true,
+                },
+                hover: {
+                  enabled: false,
+                },
+                parameterHints: {
+                  enabled: false,
+                },
+              }}
+              onMount={handleEditorMount}
+              beforeMount={() => {
+                if (monaco) {
+                  monaco.editor.defineTheme("myCustomTheme", {
+                    base: "vs-dark",
+                    inherit: true,
+                    rules: [],
+                    colors: {
+                      "editor.background": "#1e1e1e",
+                    },
+                  });
+                }
+              }}
+            />
+          </div>
         </div>
       </div>
       {user && (

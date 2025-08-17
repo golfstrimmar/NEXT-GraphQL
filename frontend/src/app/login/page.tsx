@@ -81,7 +81,7 @@ export default function Login() {
         return;
       }
 
-      if (errorCode === "Invalid password") {
+      if (err?.message === "Invalid password") {
         setModalMessage("⚠️Incorrect password.");
         return;
       }

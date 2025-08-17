@@ -38,6 +38,22 @@ export default function Login() {
                 <small>Joined:</small>
                 <strong> {transformData(user.createdAt)}</strong>
               </p>
+              {user.projects && user.projects.length > 0 ? (
+                <div>
+                  <p>
+                    <small>Projects:</small>
+                  </p>
+                  <ul>
+                    {user.projects.map((p) => (
+                      <li key={p.id}>
+                        {p.id}: {p.name}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <p>No projects yet</p>
+              )}
             </div>
           </div>
         </div>

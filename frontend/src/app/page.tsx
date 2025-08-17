@@ -9,13 +9,25 @@ export default function Users() {
   const { users } = useStateContext();
   return (
     <div className="container ">
-      <div className="mt-[80px] w-full">All users</div>
-
-      <ul>
+      <ul className="mt-[150px] ">
         {users &&
           users.map((u) => (
-            <li key={u.id}>
-              {u.name} ({u.email}) ({transformData(u.createdAt)}){u.projects}
+            <li
+              key={u.id}
+              className="mt-2 flex flex-col gap-1 border rounded p-2"
+            >
+              <span>id: {u.id}</span>
+              <h3>Name: {u.name}</h3>
+              <p>Email: {u.email}</p>
+              <p>CreatedAt: {transformData(u.createdAt)}</p>
+              <h4>Projects:</h4>
+              <ul className="pl-4">
+                {u.projects.map((p) => (
+                  <li key={p.id}>
+                    {p.id}: {p.name}
+                  </li>
+                ))}
+              </ul>
             </li>
           ))}
       </ul>

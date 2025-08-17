@@ -2,15 +2,17 @@
   {
     "type": "div",
     "attributes": {
-      "class": "imgs m-0! p-0! border-none bg-transparent "
+      "data-label": "",
+      "style": "",
+      "class": "imgs m-0! p-0! border-none bg-transparent  "
     },
     "children": [
       {
         "type": "img",
+
         "attributes": {
-          "class": " m-0! p-0! border-none bg-transparent ",
           "src": "https://res.cloudinary.com/dke0nudcz/image/upload/v1745696143/events/odqmrgyyqrvlovzmtaag.png",
-          "alt": "logo"
+          "alt": "cloudinary"
         }
       }
     ]
