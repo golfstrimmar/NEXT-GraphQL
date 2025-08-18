@@ -25,14 +25,21 @@ export const resolvers = {
 
   Mutation: {
     createUser: async (_, { name, email, password }) => {
-      const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-      const newUser = await prisma.user.create({
-        data: { name, email, password: hashedPassword },
-        include: { projects: true },
-      });
+      try {
+        const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+        const newUser = await prisma.user.create({
+          data: { name, email, password: hashedPassword },
+          include: { projects: true },
+        });
 
-      ee.emit("USER_CREATED", newUser);
-      return newUser;
+        ee.emit("USER_CREATED", newUser);
+        return newUser;
+      } catch (err) {
+        if (err.code === "P2002") {
+          throw new Error("User with this email already exists.");
+        }
+        throw err;
+      }
     },
 
     loginUser: async (_, { email, password }) => {

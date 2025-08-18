@@ -7,14 +7,13 @@ import {
   useState,
 } from "react";
 import dynamic from "next/dynamic";
-
+import { useQuery } from "@apollo/client";
+import { GET_USERS } from "@/apollo/queries";
+import { USER_CREATED } from "@/apollo/subscriptions";
 const ModalMessage = dynamic(
   () => import("@/components/ModalMessage/ModalMessage"),
   { ssr: false }
 );
-import { USER_CREATED } from "@/apollo/subscriptions";
-import { GET_USERS } from "@/apollo/queries";
-import { useQuery, useSubscription } from "@apollo/client";
 type HtmlNode = {
   type: string;
   attributes?: {
@@ -92,24 +91,29 @@ export function StateProvider({ children }: { children: ReactNode }) {
   const [transformTo, setTransformTo] = useState<boolean>(false);
   const [resHtml, setResHtml] = useState<string>("");
   const [resScss, setResScss] = useState<string>("");
-  const { data, loading, error, refetch } = useQuery(GET_USERS);
-  const { data: subscriptionData } = useSubscription(USER_CREATED);
+  const { data, subscribeToMore } = useQuery(GET_USERS, {
+    fetchPolicy: "cache-and-network",
+  });
+
   useEffect(() => {
-    if (data?.users) {
-      console.log("<====data?.users====>", data.users);
-      setUsers(data.users);
-    }
-  }, [data]);
-  useEffect(() => {
-    if (subscriptionData?.userCreated) {
-      console.log(
-        "<====subscriptionData?.userCreated====>",
-        subscriptionData.userCreated
-      );
-      setUsers((prev) => [...(prev || []), subscriptionData.userCreated]);
-      refetch();
-    }
-  }, [subscriptionData]);
+    if (data?.users) setUsers(data.users);
+
+    const unsubscribe = subscribeToMore({
+      document: USER_CREATED,
+      updateQuery: (prev, { subscriptionData }) => {
+        if (!subscriptionData.data) return prev;
+        const newUser = subscriptionData.data.userCreated;
+
+        setUsers((prevUsers) => [...prevUsers, newUser]);
+
+        return {
+          users: [...prev.users, newUser],
+        };
+      },
+    });
+
+    return () => unsubscribe();
+  }, [data, subscribeToMore]);
   const showModal = (message: string, duration = 2000) => {
     setModalMessage(message);
     setIsModalOpen(true);

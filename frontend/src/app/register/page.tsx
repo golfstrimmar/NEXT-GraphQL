@@ -37,8 +37,13 @@ export default function Register() {
       setPassword("");
       setModalMessage("🟢 Registration successful!");
       setTimeout(() => router.push("/"), 2000);
-    } catch {
-      setModalMessage("Registration failed.");
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      if (error.message.includes("already exists")) {
+        setModalMessage("❌ User with this email already exists.");
+      } else {
+        setModalMessage("⚠️ Registration failed. Try again later.");
+      }
     }
   };
   useEffect(() => {
