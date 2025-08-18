@@ -20,8 +20,7 @@ export default function Select({
   selectItems,
   value,
   onChange,
-  name = "sort-order", // Изменено по умолчанию на sort-order для сортировки
-  className = "w-full",
+  name = "sort-order",
 }: SelectProps) {
   const [isOpen, setIsOpen] = useState(false);
 

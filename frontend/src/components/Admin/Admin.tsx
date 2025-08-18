@@ -80,6 +80,7 @@ const Admin = ({
   const headersByPanel = {
     elements: [
       "section",
+      "container",
       "div",
 
       "p",

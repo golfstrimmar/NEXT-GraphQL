@@ -37,7 +37,7 @@
       {
         "type": "div",
         "attributes": {
-          "class": "search-field__submit m-0! p-0! border-none! bg-transparent shadow-[0_0_6px_4px_transparent]!"
+          "class": "search-field__submit m-0! p-0! border-none! bg-white  "
         },
         "children": [
           {

@@ -1,76 +1,48 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
-
-interface TabProps {
-  length: number;
-  details: string[];
+import React, { useEffect, useRef } from "react";
+import "./Tab.scss";
+import ButtonTab from "@/components/ui/ButtonTab/ButtonTab";
+interface TabsProps {
+  handlerburgerClick: () => void;
+  isOpen: boolean;
 }
 
-const Tab: React.FC<TabProps> = ({ length, details }) => {
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-  const tabRef = useRef<HTMLDivElement>(null);
-
+const Tabs: React.FC<TabsProps> = () => {
+  const refs = useRef<(HTMLButtonElement | null)[]>([]);
+  // ----------------------------------------
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (tabRef.current && !tabRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
+    const handleClickOutside = (e: MouseEvent) => {
+      e.stopPropagation();
+
+      if (
+        e.target instanceof Node &&
+        !e.target.closest(".button-tab") &&
+        !e.target.closest(".next-hidden")
+      ) {
+        refs.current.forEach((btn) => {
+          if (btn && btn.classList.contains("run")) {
+            btn.classList.remove("run");
+          }
+        });
       }
     };
-
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("click", handleClickOutside);
     };
   }, []);
 
+  // ----------------------------------------
   return (
-    <div className="tab-container relative" ref={tabRef}>
-      <div className="tab   overflow-hidden">
-        <button
-          className={`tab-header flex items-center justify-center  p-1 cursor-pointer gap-1 ${
-            length === 0 ? "opacity-30 cursor-not-allowed" : ""
-          }`}
-          onClick={() => setIsOpen(!isOpen)}
-          disabled={length === 0}
-        >
-          <span className="text-amber-200 font-medium hover:text-amber-600 transition-colors">
-            {length}
-          </span>
-          <Image
-            src="./svg/click-darck.svg"
-            alt="arrow-down"
-            width={25}
-            height={25}
-            className={`${
-              isOpen ? "rotate-180" : ""
-            }  transition-transform duration-300 ease-in-out`}
-          />
-        </button>
-
-        <AnimatePresence>
-          {isOpen && length > 0 && (
-            <motion.div
-              initial={{ height: 0 }}
-              animate={{ height: "auto" }}
-              exit={{ height: 0 }}
-              transition={{ duration: 0.4, ease: "easeInOut" }}
-              className="absolute left-0 top-full bg-amber-100 text-amber-600 border border-gray-200 rounded-b-md shadow-md z-10 w-fit min-w-[150px] max-w-full overflow-hidden"
-            >
-              <div className="p-1 space-y-2">
-                {details.map((detail, index) => (
-                  <div key={index} className="flex justify-between">
-                    <span className=" font-medium">{detail}</span>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+    <div className="tabs">
+      <div>
+        <ButtonTab refs={refs} name="test" />
+        <div className="next-hidden">
+          <div className="next-hidden__wrap">test content</div>
+        </div>
       </div>
     </div>
   );
 };
 
-export default Tab;
+export default Tabs;

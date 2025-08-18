@@ -1,0 +1,33 @@
+.next-hidden {
+  display: grid;
+  grid-template-rows: 0fr;
+  overflow: hidden;
+  transition: all 0.3s ease-in-out;
+
+  .next-hidden__wrap {
+    min-height: 0;
+  }
+}
+
+
+.run {
+  background-color: #CBD5E1;
+  border-radius: 4px;
+
+  &+.next-hidden {
+    grid-template-rows: 1fr;
+
+    .select-list {
+      transition: all 0.3s ease-in-out;
+      border-radius: 4px;
+    }
+
+  }
+}
+
+.select-custom.run {
+  &+.next-hidden .select-list {
+    border: 1px solid #CBD5E1;
+    border-color: #CBD5E1;
+  }
+}
