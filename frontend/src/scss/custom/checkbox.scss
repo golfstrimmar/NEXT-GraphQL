@@ -64,6 +64,8 @@
     display: none;
   }
 
+
+
   input[type="checkbox"]:checked+label>span,
   input[type="checkbox"]:not(:checked)+label>span {
     content: "";

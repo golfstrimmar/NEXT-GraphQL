@@ -162,7 +162,7 @@ const Admin = ({
         for (const delim of delimiters) {
           const index = foo.indexOf(delim);
           if (index !== -1) {
-            cleaned = foo.slice(index + delim.length); // удаляем всё до и включая разделитель
+            cleaned = foo.slice(index + delim.length);
             break;
           }
         }
@@ -181,7 +181,7 @@ const Admin = ({
         <div key={key} className="relative flex flex-col items-center">
           <button
             onClick={() => togglePanel(key as keyof typeof openPanels)}
-            className="bg-amber-500 hover:shadow-[0px_0px_6px_4px_rgba(255,255,255,0.8)_inset] py-1 px-1 text-sm rounded w-full"
+            className="bg-[var(--primary)] text-[var(--blue-100)] hover:shadow-[0px_0px_6px_4px_rgba(255,255,255,0.8)_inset] py-1 px-1 text-sm rounded w-full"
           >
             ⇩ {key}
           </button>
@@ -225,7 +225,7 @@ const Admin = ({
 
       <button
         onClick={() => setOpenPanelClasses(!openPanelClasses)}
-        className="bg-blue-700 hover:shadow-[0px_0px_6px_4px_rgba(255,255,255,0.8)_inset] py-1 px-1 text-sm text-white rounded w-full"
+        className="bg-[var(--blue-900)]  hover:shadow-[0px_0px_6px_4px_rgba(255,255,255,0.8)_inset] py-1 px-1 text-sm text-white rounded w-full"
       >
         ⇩ add class
       </button>
@@ -239,7 +239,7 @@ const Admin = ({
             className=" bg-gray-400  p-1 w-[95%] m-[0_auto_2rem]
                         border-2  rounded-sm   border-slate-500"
           >
-            <form className=" mb-2 ">
+            <form className=" mb-2 bg-gray-200 rounded">
               <Input
                 typeInput="text"
                 value={commonClass}
@@ -269,7 +269,7 @@ const Admin = ({
                   });
                   setCommonClass("");
                 }}
-                className="btn btn-empty bg-[#fdfdfb] w-full  px-2 "
+                className="btn btn-empty bg-[var(--blue-700)] text-white w-full  px-2 "
               >
                 reset common class
               </button>
@@ -281,7 +281,7 @@ const Admin = ({
                     setClassToAdd(commonClass);
                   }
                 }}
-                className="btn btn-empty bg-[#fdfdfb] w-full  px-2 "
+                className="btn btn-empty bg-[var(--blue-700)] text-white w-full  px-2 "
               >
                 add common class ↗️
               </button>
@@ -295,7 +295,7 @@ const Admin = ({
                         AddCommonClass(delim);
                       }
                     }}
-                    className="btn btn-empty bg-[#fdfdfb] w-full  px-2"
+                    className="btn btn-empty bg-[var(--blue-700)] text-white w-full  px-2"
                   >
                     ⇩ common class + divider {delim}
                   </button>
@@ -314,19 +314,20 @@ const Admin = ({
                 }}
               >
                 {checkClasses.map((item, index) => (
-                  <div key={index} className="form-check">
+                  <div key={index} className={`form-radio checkClasses`}>
                     <input
                       onChange={(e) => {
+                        console.log("clicked", e.target.value);
                         setClassToAdd(e.target.value);
                       }}
                       disabled={!isMarker}
                       type="radio"
-                      id={item}
-                      name="example"
+                      id={`radio-${index}`}
+                      name="checkClasses"
                       value={item}
                       checked={classToAdd === item}
                     />
-                    <label htmlFor={item}>{item}</label>
+                    <label htmlFor={`radio-${index}`}>{item}</label>
                   </div>
                 ))}
               </div>
@@ -342,19 +343,22 @@ const Admin = ({
                 }}
               >
                 {NamenClasses?.map((item, index) => (
-                  <div key={index} className="form-check form-check--devider  ">
+                  <div
+                    key={index}
+                    className="form-radio form-check--devider checkClasses "
+                  >
                     <input
                       onChange={(e) => {
                         setClassToAdd(e.target.value);
                       }}
                       disabled={!isMarker}
                       type="radio"
-                      id={item}
-                      name="example"
+                      id={`radio-${index + 100}`}
+                      name="exampleClasses"
                       value={item}
                       checked={classToAdd === item}
                     />
-                    <label htmlFor={item}>{item}</label>
+                    <label htmlFor={`radio-${index + 100}`}>{item}</label>
                   </div>
                 ))}
               </div>

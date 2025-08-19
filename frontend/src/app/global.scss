@@ -6,7 +6,7 @@
 @import "@/scss/custom/textarea.scss";
 @import "@/scss/custom/search.scss";
 @import "@/scss/custom/checkbox.scss";
-@import "@/scss/custom/radio.scss";
+// @import "@/scss/custom/radio.scss";
 
 
 
@@ -313,5 +313,83 @@ li {
 @media (max-width: 900px) {
   .rootLayout {
     padding: var(--token-64) var(--token-24) var(--token-64) var(--token-24);
+  }
+}
+
+
+// ---------------------------------
+.checkClasses {
+  // .form-check {
+  //   min-height: 30px;
+  // }
+  position: relative;
+
+  input[type="radio"]:checked,
+  input[type="radio"]:not(:checked) {
+    position: fixed !important;
+    left: -9999px !important;
+    height: 0px;
+    width: 0px;
+  }
+
+  input[type="radio"]:checked+label,
+  input[type="radio"]:not(:checked)+label {
+    display: inline-block;
+    position: relative;
+    cursor: pointer;
+    opacity: 1;
+    line-height: 19px;
+    padding: 0 0 0 26px;
+    transition: all 0.2s;
+    color: var(--blue-50);
+
+    &:hover {
+      color: color-mix(in srgb, var(--blue-50) 70%, white);
+    }
+  }
+
+
+
+
+
+  input[type="radio"]:checked+label::before,
+  input[type="radio"]:not(:checked)+label::before {
+    content: "";
+    position: absolute;
+    left: 0px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    background-color: transparent !important;
+    transition: all .3s;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    border: solid 2px #cfd4da;
+  }
+
+
+
+
+  input[type="radio"]:checked+label::after,
+  input[type="radio"]:not(:checked)+label::after {
+    content: "";
+    position: absolute !important;
+    width: 12px;
+    height: 12px;
+    border-radius: 100%;
+    top: 50%;
+    left: 4px;
+    transform: translate(1%, -50%);
+    border: solid 2px var(--blue-100);
+    background-color: var(--blue-100);
+    transition: all .3s;
+  }
+
+  input[type="radio"]:checked+label::after {
+    opacity: 1;
+  }
+
+  input[type="radio"]:not(:checked)+label::after {
+    opacity: 0;
   }
 }

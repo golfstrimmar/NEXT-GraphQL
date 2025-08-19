@@ -9,17 +9,3 @@ export const USER_CREATED = gql`
     }
   }
 `;
-
-export const MESSAGE_CREATED = gql`
-  subscription MessageCreated {
-    messageCreated {
-      id
-      content
-      createdAt
-      sender {
-        id
-        name
-      }
-    }
-  }
-`;

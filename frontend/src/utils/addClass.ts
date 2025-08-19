@@ -45,7 +45,11 @@ const updateElementClasses = (
   // Add the new class(es)
   // Special handling for grid and flex which are composite
   if (newClass === "grid") {
-    element.classList.add("grid", "grid-cols-[repeat(auto-fit,_minmax(150px,_1fr))]", "gap-2");
+    element.classList.add(
+      "grid",
+      "grid-cols-[repeat(auto-fit,_minmax(150px,_1fr))]",
+      "gap-2"
+    );
   } else if (newClass === "flex-row") {
     element.classList.add("flex", "flex-row");
   } else if (newClass === "flex-col") {
@@ -53,7 +57,7 @@ const updateElementClasses = (
   } else {
     element.classList.add(newClass);
   }
-  
+
   element.setAttribute("data-label", newLabel);
 };
 
@@ -93,19 +97,33 @@ const addClass = (
 
   // Determine which classes to remove based on the new class being added
   if (classGroups.display.includes(foo)) {
-    classesToRemove = [...classGroups.display, ...classGroups.justify, ...classGroups.items];
+    classesToRemove = [
+      ...classGroups.display,
+      ...classGroups.justify,
+      ...classGroups.items,
+    ];
   } else if (classGroups.justify.includes(foo)) {
-    if (parentMarker.classList.contains("flex") || parentMarker.classList.contains("grid")) {
+    if (
+      parentMarker.classList.contains("flex") ||
+      parentMarker.classList.contains("grid")
+    ) {
       classesToRemove = classGroups.justify;
     } else {
-      setModalMessage("Justify properties only work with flex or grid containers.");
+      setModalMessage(
+        "Justify properties only work with flex or grid containers."
+      );
       return; // Or handle as needed
     }
   } else if (classGroups.items.includes(foo)) {
-     if (parentMarker.classList.contains("flex") || parentMarker.classList.contains("grid")) {
+    if (
+      parentMarker.classList.contains("flex") ||
+      parentMarker.classList.contains("grid")
+    ) {
       classesToRemove = classGroups.items;
     } else {
-      setModalMessage("Align items properties only work with flex or grid containers.");
+      setModalMessage(
+        "Align items properties only work with flex or grid containers."
+      );
       return; // Or handle as needed
     }
   }
@@ -120,7 +138,7 @@ const addClass = (
 
   setTimeout(() => {
     setClassToAdd("");
-  }, 2000);
+  }, 1000);
 };
 
 export default addClass;

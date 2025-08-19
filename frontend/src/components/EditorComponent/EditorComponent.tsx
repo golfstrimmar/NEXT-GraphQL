@@ -12,7 +12,7 @@ import dropHandler from "@/utils/dropHandler";
 import RenderJson from "@/utils/RenderJson";
 import ToAdd from "@/utils/ToAdd";
 import { ToBase } from "@/utils/ToBase";
-import "@/components/ui/InputRadio/InputRadio.scss";
+// import "@/components/ui/InputRadio/InputRadio.scss";
 import Image from "next/image";
 import htmlToJSON from "@/utils/htmlToJson";
 import convertHtml from "@/utils/convertHtml";
@@ -266,6 +266,10 @@ const EditorComponent = () => {
   // +++++++++++++++++++++++++
 
   useEffect(() => {
+    console.log(
+      "<=====🔂🔂🔂🔂🔂🔂🔂🔂classToAdd🔂🔂🔂🔂🔂🔂🔂=====>",
+      classToAdd
+    );
     if (classToAdd) {
       if (isMarker) {
         addClass(
