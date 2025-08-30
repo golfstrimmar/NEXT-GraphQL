@@ -2,7 +2,7 @@
   {
     "type": "table",
     "attributes": {
-      "class": "  bg-yellow-400"
+      "class": "bg-yellow-400"
     },
     "children": "table"
   }

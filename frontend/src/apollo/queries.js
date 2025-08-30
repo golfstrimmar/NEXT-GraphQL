@@ -14,3 +14,13 @@ export const GET_USERS = gql`
     }
   }
 `;
+export const GET_JSON_DOCUMENT = gql`
+  query GetJsonDocument($name: String!) {
+    jsonDocumentByName(name: $name) {
+      id
+      name
+      content
+      createdAt
+    }
+  }
+`;

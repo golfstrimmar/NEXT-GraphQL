@@ -5,10 +5,9 @@ import { useStateContext } from "@/providers/StateProvider";
 
 interface ButtonUnitProps {
   info: string;
-  renderTag: (tag: string) => void;
 }
 
-const ButtonUnit: React.FC<ButtonUnitProps> = ({ info, renderTag }) => {
+const ButtonUnit: React.FC<ButtonUnitProps> = ({ info }) => {
   const { setNodeToAdd } = useStateContext();
   return (
     <button

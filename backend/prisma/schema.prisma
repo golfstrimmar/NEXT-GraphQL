@@ -29,3 +29,10 @@ model Project {
 
   @@unique([ownerId, name])
 }
+
+model JsonDocument {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  content   Json     // здесь хранится JSON-структура
+  createdAt DateTime @default(now())
+}

@@ -5,7 +5,7 @@ export const typeDefs = gql`
     id: ID!
     name: String!
   }
-
+  scalar JSON
   type User {
     id: ID!
     email: String!
@@ -15,7 +15,12 @@ export const typeDefs = gql`
     picture: String
     projects: [ProjectSummary!]! # массив проектов с id и name
   }
-
+  type JsonDocument {
+    id: ID!
+    name: String!
+    content: JSON! # теперь JSON-объект
+    createdAt: String!
+  }
   type Project {
     id: ID!
     name: String!
@@ -32,7 +37,9 @@ export const typeDefs = gql`
   type Query {
     users: [User!]!
     project(id: ID!): Project
+    jsonDocumentByName(name: String!): JsonDocument
   }
+
   type ProjectResponse {
     id: ID!
     name: String!

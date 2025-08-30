@@ -57,7 +57,7 @@ const Navbar: React.FC = () => {
   if (!hasMounted) return null;
 
   return (
-    <nav className="fixed top-0 left-0 w-full bg-[#30344c] blue-500 py-4 shadow-md z-50">
+    <nav className="fixed top-0 left-0 w-full bg-[#30344c] blue-500 py-4 shadow-md z-500">
       <div className="container">
         <div className="relative flex items-center ">
           <Link href="/">

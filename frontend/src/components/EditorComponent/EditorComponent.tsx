@@ -46,6 +46,7 @@ const EditorComponent = () => {
   const [commonClass, setCommonClass] = useState<string>("");
   const editorRef = useRef<any>(null);
   const [openModalProject, setOpenModalProject] = useState<boolean>(false);
+  const [codeIs, setCodeIs] = useState<boolean>(false);
   // -------------------------------
   // -----🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹--monaco
   useEffect(() => {
@@ -192,7 +193,20 @@ const EditorComponent = () => {
 
   useEffect(() => {
     const preview = document.getElementById("preview");
-
+    const handleDoubleClick = (e: MouseEvent) => {
+      document.querySelector("[data-marker]")?.remove();
+      const target = e.target as HTMLElement;
+      if (target.getAttribute("id") === "preview") return;
+      const block = target.closest("[data-index]") as HTMLElement;
+      if (!block || !preview?.contains(block)) return;
+      console.log("<=====🔂block====>", block);
+      block.remove();
+      setTimeout(() => {
+        const newHtmlJson = htmlToJSON(preview.innerHTML);
+        const htmlOrdered = orderIndexes(newHtmlJson);
+        setHtmlJson(htmlOrdered);
+      }, 200);
+    };
     const handleClick = (e: MouseEvent) => {
       document.querySelector("[data-marker]")?.remove();
       const target = e.target as HTMLElement;
@@ -252,8 +266,13 @@ const EditorComponent = () => {
       }
     };
 
-    preview?.addEventListener("click", handleClick);
+    preview?.addEventListener("click", (e) => {
+      setTimeout(() => handleClick(e), 300);
+    });
+
+    preview?.addEventListener("dblclick", handleDoubleClick);
     return () => preview?.removeEventListener("click", handleClick);
+    return () => preview?.removeEventListener("dblclick", handleDoubleClick);
   }, []);
 
   // 🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂
@@ -338,7 +357,7 @@ const EditorComponent = () => {
   };
   // ♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️
   // 💥💥💥💥💥💥💥💥
-  const [codeIs, setCodeIs] = useState<boolean>(false);
+
   useEffect(() => {
     const preview = document.querySelector("#preview");
 
@@ -459,7 +478,7 @@ const EditorComponent = () => {
                   setOpenModalProject(true);
                 }}
               >
-                Save as a project
+                Save as a project ⇨
               </button>
             )}
           </div>

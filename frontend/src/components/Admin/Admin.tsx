@@ -15,7 +15,13 @@ const Admin = ({
   const { setHtmlJson, setModalMessage, setTransformTo } = useStateContext();
   const [openPanel, setOpenPanel] = useState<boolean>(false);
   const [openPanelClasses, setOpenPanelClasses] = useState<boolean>(false);
-
+  const [openPanels, setOpenPanels] = useState({
+    snippets: false,
+    elements: false,
+    headers: false,
+    inputs: false,
+    // tables: false,
+  });
   const [NamenClasses, setNamenClasses] = useState<string[]>([
     "wrap",
     "blocks",
@@ -113,29 +119,21 @@ const Admin = ({
       "hero",
     ],
     headers: ["h1", "h2", "h3", "h4", "h5", "h6"],
-    tables: [
-      "table1",
-      "table",
-      "tr",
-      "td",
-      "th",
-      "thead",
-      "tbody",
-      "tfoot",
-      "test-button-1",
-      "test-button-2",
-    ],
+    // tables: [
+    //   "table1",
+    //   "table",
+    //   "tr",
+    //   "td",
+    //   "th",
+    //   "thead",
+    //   "tbody",
+    //   "tfoot",
+    //   "test-button-1",
+    //   "test-button-2",
+    // ],
     inputs: ["input", "textarea", "search", "checkbox", "radio"],
   };
 
-  const [openPanels, setOpenPanels] = useState({
-    snippets: false,
-    elements: false,
-    headers: false,
-
-    inputs: false,
-    tables: false,
-  });
   // 📌📌📌📌📌📌📌📌📌📌📌
   const togglePanel = (panel: keyof typeof openPanels) => {
     setOpenPanel(true);
@@ -239,7 +237,37 @@ const Admin = ({
             className=" bg-gray-400  p-1 w-[95%] m-[0_auto_2rem]
                         border-2  rounded-sm   border-slate-500"
           >
-            <form className=" mb-2 bg-gray-200 rounded">
+            <div
+              className=" fildset-radio bg-[#4d6a92] px-1 border-2 border-slate-500 rounded-sm flex flex-col gap-1 "
+              onClick={(e) => {
+                e.stopPropagation();
+                console.log("<===== 🙍🙍🙍 admin isMarker=====>", isMarker);
+                if (!isMarker) {
+                  setModalMessage("🙍 You need to place a marker first");
+                  setClassToAdd("");
+                }
+              }}
+            >
+              {checkClasses.map((item, index) => (
+                <div key={index} className={`form-radio checkClasses`}>
+                  <input
+                    onChange={(e) => {
+                      console.log("clicked", e.target.value);
+                      setClassToAdd(e.target.value);
+                    }}
+                    disabled={!isMarker}
+                    type="radio"
+                    id={`radio-${index}`}
+                    name="checkClasses"
+                    value={item}
+                    checked={classToAdd === item}
+                  />
+                  <label htmlFor={`radio-${index}`}>{item}</label>
+                </div>
+              ))}
+            </div>
+            <hr className="mt-4 mb-4 h-[1px] border-0 bg-[var(--primary)]" />
+            <form className="mb-2 bg-gray-200 rounded">
               <Input
                 typeInput="text"
                 value={commonClass}
@@ -302,35 +330,6 @@ const Admin = ({
                 ))}
             </div>
             <div className="flex flex-col gap-2 ">
-              <div
-                className=" fildset-radio bg-[#4d6a92] px-1 border-2 border-slate-500 rounded-sm flex flex-col gap-1 "
-                onClick={(e) => {
-                  e.stopPropagation();
-                  console.log("<===== 🙍🙍🙍 admin isMarker=====>", isMarker);
-                  if (!isMarker) {
-                    setModalMessage("🙍 You need to place a marker first");
-                    setClassToAdd("");
-                  }
-                }}
-              >
-                {checkClasses.map((item, index) => (
-                  <div key={index} className={`form-radio checkClasses`}>
-                    <input
-                      onChange={(e) => {
-                        console.log("clicked", e.target.value);
-                        setClassToAdd(e.target.value);
-                      }}
-                      disabled={!isMarker}
-                      type="radio"
-                      id={`radio-${index}`}
-                      name="checkClasses"
-                      value={item}
-                      checked={classToAdd === item}
-                    />
-                    <label htmlFor={`radio-${index}`}>{item}</label>
-                  </div>
-                ))}
-              </div>
               <div
                 className=" fildset-radio bg-[#0891b2] px-1 border-2 border-slate-500 rounded-sm flex flex-col gap-1 "
                 onClick={(e) => {

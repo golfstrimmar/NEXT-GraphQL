@@ -3,12 +3,14 @@ import { EventEmitter } from "events";
 import jwt from "jsonwebtoken";
 import prisma from "../prisma/client.js";
 import { OAuth2Client } from "google-auth-library";
+import { GraphQLJSON } from "graphql-type-json";
 
 const ee = new EventEmitter();
 const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key";
 const SALT_ROUNDS = 10;
 
 export const resolvers = {
+  JSON: GraphQLJSON,
   Query: {
     users: () =>
       prisma.user.findMany({
@@ -20,6 +22,10 @@ export const resolvers = {
       prisma.project.findUnique({
         where: { id: Number(id) },
         include: { owner: true },
+      }),
+    jsonDocumentByName: (_, { name }) =>
+      prisma.jsonDocument.findFirst({
+        where: { name },
       }),
   },
 
