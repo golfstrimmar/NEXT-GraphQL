@@ -230,7 +230,7 @@ const EditorComponent = () => {
       const clickX = e.clientX;
       const clickY = e.clientY;
 
-      const check = ["flex-row", "flex", "grid"];
+      const check = ["flex-row", "grid"];
       const isHorizontal = check.some((item) => block.classList.contains(item));
       console.log("<=====🔂isHorizontal====>", isHorizontal);
       // ----------------------------------
