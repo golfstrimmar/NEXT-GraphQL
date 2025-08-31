@@ -98,10 +98,11 @@
   display: inline-block;
   background: red;
   z-index: 200;
-  width: 13px !important;
-  height: 13px !important;
+  width: 23px !important;
+  height: 23px !important;
   border-radius: 50%;
   transition: all 0.5s ease-in-out;
+  background: red url('/assets/svg/target.svg') no-repeat center center;
 
   &::after {
     display: none;
