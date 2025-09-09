@@ -9,3 +9,10 @@ export function trackUserActivity() {
     window.addEventListener(event, setLastActivity);
   });
 }
+export function clearStorageOnExit() {
+  window.addEventListener("beforeunload", () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("lastActivity");
+  });
+}

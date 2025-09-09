@@ -6,7 +6,7 @@ import Navbar from "@/components/Navbar/Navbar";
 import { StateProvider } from "@/providers/StateProvider";
 import { ApolloProv } from "@/providers/ApoloProvider";
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import { trackUserActivity } from "@/utils/lastActivity";
+import { trackUserActivity, clearStorageOnExit } from "@/utils/lastActivity";
 
 export default function ClientLayout({
   children,
@@ -15,6 +15,7 @@ export default function ClientLayout({
 }) {
   useEffect(() => {
     trackUserActivity();
+    clearStorageOnExit();
     checkInactivity();
     const interval = setInterval(checkInactivity, 60 * 1000);
     return () => clearInterval(interval);
@@ -34,7 +35,7 @@ export default function ClientLayout({
   );
 }
 
-function checkInactivity(timeout = 30 * 60 * 1000) {
+function checkInactivity(timeout = 1 * 60 * 1000) {
   const last = localStorage.getItem("lastActivity");
   if (!last) return;
 
