@@ -35,7 +35,7 @@ export default function ClientLayout({
   );
 }
 
-function checkInactivity(timeout = 1 * 60 * 1000) {
+function checkInactivity(timeout = 30 * 60 * 1000) {
   const last = localStorage.getItem("lastActivity");
   if (!last) return;
 
