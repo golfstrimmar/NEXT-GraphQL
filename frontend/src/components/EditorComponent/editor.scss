@@ -87,8 +87,13 @@
   align-items: center;
   gap: 5px;
 
-  width: calc(100%);
+  width: 100%;
   min-height: 80px;
+  border: 8px solid;
+  border-image: repeating-linear-gradient(45deg,
+      black 0 20px,
+      yellow 20px 40px) 8;
+
 }
 
 .marker {
