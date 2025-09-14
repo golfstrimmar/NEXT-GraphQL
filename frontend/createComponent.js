@@ -61,7 +61,6 @@ export default ${componentName};
 
   // Шаблон SCSS
   const scssContent = `
-@import '@/scss/common/colors';
 
 .${componentName.toLowerCase()} {
   &__item {
