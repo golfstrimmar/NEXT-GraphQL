@@ -13,22 +13,24 @@ import { resolvers } from "./graphql/resolvers.js";
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
-// Настройка CORS с явным указанием разрешенных источников
-const corsOptions = {
-  origin: ["http://localhost:3002"], // Добавьте домен фронтенда, если он на Railway
-  credentials: true,
-  allowedHeaders: ["Content-Type", "Authorization"],
-  methods: ["GET", "POST", "OPTIONS"],
-};
-
+// Создаём Apollo Server
 const server = new ApolloServer({ schema });
 await server.start();
 
 const app = express();
-
-// Применяем CORS ко всем маршрутам
-app.use(cors(corsOptions));
-app.use("/graphql", bodyParser.json(), expressMiddleware(server));
+app.use(
+  // "/graphql",
+  cors({
+    origin: [
+      "http://localhost:3002", // локалка
+      // "https://react-2024-blog.vercel.app", // твой фронт
+      // "https://твой-проект.vercel.app", // будущий продакшн
+    ],
+    credentials: true,
+  }),
+  bodyParser.json(),
+  expressMiddleware(server)
+);
 
 // Создаём HTTP сервер
 const httpServer = http.createServer(app);
@@ -41,6 +43,10 @@ const wsServer = new WebSocketServer({
 useServer({ schema }, wsServer);
 
 const PORT = process.env.PORT || 4000;
+// httpServer.listen(PORT, () => {
+//   console.log(`🚀 Query/Mutation: https://ulon.up.railway.app`);
+//   console.log(`🚀 Subscriptions: wss://ulon.up.railway.app/graphql`);
+// });
 httpServer.listen(PORT, () => {
   console.log(`🚀 GraphQL server running on port ${PORT}`);
 });
