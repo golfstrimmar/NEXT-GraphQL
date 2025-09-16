@@ -11,7 +11,7 @@ const nextConfig = {
     return [
       {
         source: "/api/graphql",
-        destination: "http://localhost:4000/graphql",
+        destination: process.env.NEXT_PUBLIC_GRAPHQL_URL,
       },
     ];
   },

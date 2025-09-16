@@ -26,7 +26,7 @@ const wsLink =
   typeof window !== "undefined"
     ? new GraphQLWsLink(
         createClient({
-          url: "ws://localhost:4000/graphql",
+          url: process.env.NEXT_PUBLIC_GRAPHQL_WS_URL,
           connectionParams: () => {
             const token = localStorage.getItem("token");
             return {

@@ -18,7 +18,19 @@ const server = new ApolloServer({ schema });
 await server.start();
 
 const app = express();
-app.use("/graphql", cors(), bodyParser.json(), expressMiddleware(server));
+app.use(
+  // "/graphql",
+  cors({
+    origin: [
+      "http://localhost:3002", // локалка
+      // "https://react-2024-blog.vercel.app", // твой фронт
+      // "https://твой-проект.vercel.app", // будущий продакшн
+    ],
+    credentials: true,
+  }),
+  bodyParser.json(),
+  expressMiddleware(server)
+);
 
 // Создаём HTTP сервер
 const httpServer = http.createServer(app);
@@ -30,9 +42,11 @@ const wsServer = new WebSocketServer({
 });
 useServer({ schema }, wsServer);
 
-// Запуск
-const PORT = 4000;
+const PORT = process.env.PORT || 4000;
+// httpServer.listen(PORT, () => {
+//   console.log(`🚀 Query/Mutation: https://ulon.up.railway.app`);
+//   console.log(`🚀 Subscriptions: wss://ulon.up.railway.app/graphql`);
+// });
 httpServer.listen(PORT, () => {
-  console.log(`🚀 Query/Mutation: http://localhost:${PORT}/graphql`);
-  console.log(`🚀 Subscriptions: ws://localhost:${PORT}/graphql`);
+  console.log(`🚀 GraphQL server running on port ${PORT}`);
 });
