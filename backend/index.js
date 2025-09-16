@@ -22,7 +22,7 @@ app.use(
   // "/graphql",
   cors({
     origin: [
-      "http://localhost:3002", // локалка
+      "*", // локалка
       // "https://react-2024-blog.vercel.app", // твой фронт
       // "https://твой-проект.vercel.app", // будущий продакшн
     ],
@@ -42,7 +42,7 @@ const wsServer = new WebSocketServer({
 });
 useServer({ schema }, wsServer);
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 8080;
 // httpServer.listen(PORT, () => {
 //   console.log(`🚀 Query/Mutation: https://ulon.up.railway.app`);
 //   console.log(`🚀 Subscriptions: wss://ulon.up.railway.app/graphql`);
