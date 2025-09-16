@@ -32,7 +32,7 @@ app.use(
 // HTTP сервер
 const PORT = process.env.PORT || 4000;
 const httpServer = http.createServer(app);
-
+console.log("ENV PORT:", process.env.PORT);
 httpServer.listen(PORT, () => {
   console.log(`🚀 GraphQL server running on port ${PORT}`);
 });
