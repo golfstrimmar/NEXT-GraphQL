@@ -15,8 +15,10 @@ const schema = makeExecutableSchema({ typeDefs, resolvers });
 
 // Настройка CORS с явным указанием разрешенных источников
 const corsOptions = {
-  origin: "http://localhost:3002", // Разрешаем запросы с вашего фронтенда
-  credentials: true, // Если используете куки или заголовки авторизации
+  origin: ["http://localhost:3002"], // Добавьте домен фронтенда, если он на Railway
+  credentials: true,
+  allowedHeaders: ["Content-Type", "Authorization"],
+  methods: ["GET", "POST", "OPTIONS"],
 };
 
 const server = new ApolloServer({ schema });
