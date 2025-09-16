@@ -22,7 +22,7 @@ const app = express();
 app.use(
   "/graphql",
   cors({
-    origin: ["http://localhost:3002"], // фронт локальный + прод
+    origin: "http://localhost:3002", // фронт локальный + прод
     credentials: true,
   }),
   bodyParser.json(),
