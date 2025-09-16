@@ -31,15 +31,24 @@ const app = express();
 //   bodyParser.json(),
 //   expressMiddleware(server)
 // );
-app.use(
+app.options(
+  "/graphql",
   cors({
-    origin: ["http://localhost:3002"], // укажи локалку явно
+    origin: ["http://localhost:3002"], // фронт локальный
     credentials: true,
   })
 );
 
-app.use(bodyParser.json());
-app.use("/graphql", expressMiddleware(server));
+app.use(
+  "/graphql",
+  cors({
+    // ещё раз для POST
+    origin: ["http://localhost:3002"],
+    credentials: true,
+  }),
+  bodyParser.json(),
+  expressMiddleware(server)
+);
 // Создаём HTTP сервер
 const httpServer = http.createServer(app);
 
