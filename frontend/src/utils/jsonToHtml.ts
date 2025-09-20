@@ -126,7 +126,7 @@ const jsonToHtml = (nodes: any[]): string => {
   console.log("<=====♻️nodes♻️=====>", nodes);
 
   const newClasses =
-    "border  p-3  m-4  shadow-[0px_0px_6px_4px_rgba(255,255,255,0.8)]";
+    "border  p-2  m-2  shadow-[0px_0px_6px_4px_rgba(255,255,255,0.8)]";
 
   // Если nodes — массив, обрабатываем каждый узел рекурсивно
   const processedNodes = Array.isArray(nodes)
