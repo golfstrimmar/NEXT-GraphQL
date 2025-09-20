@@ -7,6 +7,6 @@ export default async function UsersPage() {
     query: GET_USERS,
     fetchPolicy: "cache-first",
   });
-
+ 
   return <UsersList initialUsers={data.users} />;
 }

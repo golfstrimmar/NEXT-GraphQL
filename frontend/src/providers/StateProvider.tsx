@@ -61,8 +61,16 @@ interface StateContextType {
 const StateContext = createContext<StateContextType | null>(null);
 
 export function StateProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-
+  const [user, setUser] = useState<User | null>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("user");
+      return stored ? JSON.parse(stored) : null;
+    }
+    return null;
+  });
+  useEffect(() => {
+    console.log("User changed:", user);
+  }, [user]);
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedUser = localStorage.getItem("user");
