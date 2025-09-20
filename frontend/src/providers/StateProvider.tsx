@@ -138,7 +138,6 @@ export function StateProvider({ children }: { children: ReactNode }) {
   }, [modalMessage]);
   const initialize = async () => {
     try {
-      // Проверяем доступность localStorage
       if (typeof window === "undefined") return;
 
       const stored = localStorage.getItem("htmlJson");
@@ -154,7 +153,7 @@ export function StateProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       console.error("Initialization error:", error);
-      setHtmlJson([]); // Fallback пустого состояния
+      setHtmlJson([]);
     }
   };
 
