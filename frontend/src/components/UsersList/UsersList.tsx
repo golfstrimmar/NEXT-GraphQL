@@ -25,7 +25,7 @@ export default function UsersList({ initialUsers }: { initialUsers: User[] }) {
   }, [users]);
   return (
     <div className="container">
-      <ul className="mt-[150px]">
+      <ul className="mt-[150px] mb-[150px]">
         {usersToShow &&
           usersToShow?.map((u) => (
             <li
