@@ -5,6 +5,8 @@ import { useStateContext } from "@/providers/StateProvider";
 import ButtonUnit from "@/components/ButtonUnit/ButtonUnit";
 import { AnimatePresence, motion } from "framer-motion";
 import Input from "@/components/ui/Input/Input";
+import { useQuery } from "@apollo/client";
+import { GET_JSON_DOCUMENT } from "@/apollo/queries";
 const Admin = ({
   commonClass,
   setCommonClass,
@@ -22,6 +24,12 @@ const Admin = ({
     inputs: false,
     // tables: false,
   });
+
+  const { data } = useQuery(GET_JSON_DOCUMENT, {
+    variables: { name: "initialTags" },
+    fetchPolicy: "cache-and-network",
+  });
+
   const [NamenClasses, setNamenClasses] = useState<string[]>([
     "wrap",
     "blocks",
@@ -146,12 +154,11 @@ const Admin = ({
   // 🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️
   const clearStoreJsonHtml = async () => {
     setTransformTo(false);
-    const res = await fetch("/data/initialTags.json");
-    if (!res.ok) throw new Error("Failed to fetch initial tags");
-    const json = await res.json();
-    localStorage.setItem("htmlJson", JSON.stringify(json));
-    setHtmlJson(json);
+    const res = data?.jsonDocumentByName?.content;
+    localStorage.setItem("htmlJson", JSON.stringify(res));
+    setHtmlJson(res);
   };
+  // 🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️
   const AddCommonClass = (str: string) => {
     setNamenClasses((prevClasses) => {
       return prevClasses.map((foo) => {

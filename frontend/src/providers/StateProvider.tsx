@@ -8,7 +8,7 @@ import {
 } from "react";
 import dynamic from "next/dynamic";
 import { useQuery } from "@apollo/client";
-import { GET_USERS } from "@/apollo/queries";
+import { GET_USERS, GET_JSON_DOCUMENT } from "@/apollo/queries";
 import { USER_CREATED } from "@/apollo/subscriptions";
 const ModalMessage = dynamic(
   () => import("@/components/ModalMessage/ModalMessage"),
@@ -99,14 +99,21 @@ export function StateProvider({ children }: { children: ReactNode }) {
   const [transformTo, setTransformTo] = useState<boolean>(false);
   const [resHtml, setResHtml] = useState<string>("");
   const [resScss, setResScss] = useState<string>("");
-  const { data, subscribeToMore } = useQuery(GET_USERS, {
+  const { data: usersData, subscribeToMore: subscribeToUsers } = useQuery(
+    GET_USERS,
+    {
+      fetchPolicy: "cache-and-network",
+    }
+  );
+  const { data } = useQuery(GET_JSON_DOCUMENT, {
+    variables: { name: "initialTags" },
     fetchPolicy: "cache-and-network",
   });
 
   useEffect(() => {
-    if (data?.users) setUsers(data.users);
+    if (usersData?.users) setUsers(usersData.users);
 
-    const unsubscribe = subscribeToMore({
+    const unsubscribe = subscribeToUsers({
       document: USER_CREATED,
       updateQuery: (prev, { subscriptionData }) => {
         if (!subscriptionData.data) return prev;
@@ -121,7 +128,7 @@ export function StateProvider({ children }: { children: ReactNode }) {
     });
 
     return () => unsubscribe();
-  }, [data, subscribeToMore]);
+  }, [usersData, subscribeToUsers]);
   const showModal = (message: string, duration = 2000) => {
     setModalMessage(message);
     setIsModalOpen(true);
@@ -136,30 +143,33 @@ export function StateProvider({ children }: { children: ReactNode }) {
       showModal(modalMessage);
     }
   }, [modalMessage]);
+
+  // --- инициализация htmlJson
   const initialize = async () => {
     try {
       if (typeof window === "undefined") return;
-
       const stored = localStorage.getItem("htmlJson");
       if (stored) {
         setHtmlJson(JSON.parse(stored));
       } else {
-        const res = await fetch("/data/initialTags.json");
-        // const res = await fetch("/data/flex-col.json");
-        if (!res.ok) throw new Error("Failed to fetch initial tags");
-        const json = await res.json();
-        localStorage.setItem("htmlJson", JSON.stringify(json));
-        setHtmlJson(json);
+        const jsonToAdd = data?.jsonDocumentByName?.content;
+        console.log("<=====🧪jsonToAdd🧪====>", jsonToAdd);
+        if (jsonToAdd) {
+          localStorage.setItem("htmlJson", JSON.stringify(jsonToAdd));
+          setHtmlJson(jsonToAdd);
+        } else {
+          console.warn("Failed to fetch initial tags");
+          setHtmlJson([]);
+        }
       }
     } catch (error) {
       console.error("Initialization error:", error);
       setHtmlJson([]);
     }
   };
-
   useEffect(() => {
     initialize();
-  }, []);
+  }, [data]);
 
   useEffect(() => {
     if (htmlJson && htmlJson.length > 0) {
