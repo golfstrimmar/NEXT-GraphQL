@@ -12,7 +12,6 @@ import dropHandler from "@/utils/dropHandler";
 import RenderJson from "@/utils/RenderJson";
 import ToAdd from "@/utils/ToAdd";
 import { ToBase } from "@/utils/ToBase";
-// import "@/components/ui/InputRadio/InputRadio.scss";
 import Image from "next/image";
 import htmlToJSON from "@/utils/htmlToJson";
 import convertHtml from "@/utils/convertHtml";
@@ -21,9 +20,10 @@ import removeTailwindClasses from "@/utils/removeTailwindClasses";
 import addClass from "@/utils/addClass";
 import ModalProject from "@/components/ModalProject/ModalProject";
 import Projects from "@/components/Projects/Projects";
-// ♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️
-const EditorComponent = () => {
+
+const EditorComponent: React.FC = () => {
   const monaco = useMonaco();
+  const router = useRouter();
   const {
     user,
     htmlJson,
@@ -36,84 +36,82 @@ const EditorComponent = () => {
     setResHtml,
     setResScss,
   } = useStateContext();
-  const router = useRouter();
-  const [editorInstance, setEditorInstance] = useState<any>(null);
-  const [editorHeight, setEditorHeight] = useState(500);
+
+  const [editorInstance, setEditorInstance] =
+    useState<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const [editorHeight, setEditorHeight] = useState<number>(500);
   const [code, setCode] = useState<string>("");
   const nodeToDragRef = useRef<HTMLElement | null>(null);
   const [classToAdd, setClassToAdd] = useState<string>("");
   const [isMarker, setIsMarker] = useState<boolean>(false);
   const [commonClass, setCommonClass] = useState<string>("");
-  const editorRef = useRef<any>(null);
+  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const [openModalProject, setOpenModalProject] = useState<boolean>(false);
   const [codeIs, setCodeIs] = useState<boolean>(false);
-  // -------------------------------
-  // -----🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹--monaco
+
+  // ------------------------------- Monaco Theme
   useEffect(() => {
-    if (monaco) {
-      monaco.editor.defineTheme("myCustomTheme", {
-        base: "vs-dark", // или "vs" для светлой темы
-        inherit: true,
-        rules: [
-          { token: "comment", foreground: "a0a0a0", fontStyle: "italic" },
-          { token: "string", foreground: "ce9178" },
-          { token: "keyword", foreground: "569cd6" },
-        ],
-        colors: {
-          "editor.background": "#1e1e1e",
-          "editorLineNumber.foreground": "#858585",
-        },
-      });
+    if (!monaco) return;
 
-      monaco.editor.setTheme("myCustomTheme");
-    }
+    monaco.editor.defineTheme("myCustomTheme", {
+      base: "vs-dark",
+      inherit: true,
+      rules: [
+        { token: "comment", foreground: "a0a0a0", fontStyle: "italic" },
+        { token: "string", foreground: "ce9178" },
+        { token: "keyword", foreground: "569cd6" },
+      ],
+      colors: {
+        "editor.background": "#1e1e1e",
+        "editorLineNumber.foreground": "#858585",
+      },
+    });
+
+    monaco.editor.setTheme("myCustomTheme");
   }, [monaco]);
-  //   // 2. Дополнительно применяем тему при монтировании редактора
-  const handleEditorMount = (editor: any) => {
-    // Принудительно устанавливаем тему
-    if (monaco) {
-      monaco.editor.setTheme("myCustomTheme");
-    }
 
+  const handleEditorMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
+    if (monaco) monaco.editor.setTheme("myCustomTheme");
     editor.setScrollTop(0);
     editor.revealLine(1);
     setEditorInstance(editor);
     editorRef.current = editor;
   };
+
   useEffect(() => {
     return () => {
-      if (editorInstance) {
-        editorInstance.dispose();
-      }
+      editorInstance?.dispose();
     };
   }, [editorInstance]);
 
-  // -----🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹
+  // ------------------------------- Update code from htmlJson
   useEffect(() => {
     if (!htmlJson) return;
-    const formattedCode = RenderJson(htmlJson);
-    setCode(formattedCode);
+    setCode(RenderJson(htmlJson));
   }, [htmlJson]);
-  // -----🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹
 
   useEffect(() => {
     if (!htmlJson) return;
     const codeOrdered = orderIndexes(htmlJson);
     const codeRendered = jsonToHtml(codeOrdered);
     const formattedCode = formatHtml(codeRendered);
-    // console.log("<===🟢🟢🟢=formattedCode====>", formattedCode);
+
     setCode(formattedCode);
+
     const previewEl = document.getElementById("preview");
+    if (!previewEl) return;
+
     previewEl.innerHTML = formattedCode;
-    const elements = previewEl.querySelectorAll("[data-index]");
-    elements.forEach((el: HTMLElement) => {
-      const nodeId = el.getAttribute("data-index");
+
+    const elements = previewEl.querySelectorAll<HTMLElement>("[data-index]");
+    elements.forEach((el) => {
       el.style.cursor = "grabbing";
-      // 🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢--Start
+
       el.addEventListener("dragstart", (e) => {
         e.stopPropagation();
         const target = e.target as HTMLElement;
         if (target.classList.contains("cart")) return;
+
         const dragGhost = target.cloneNode(true) as HTMLElement;
         dragGhost.style.position = "absolute";
         dragGhost.style.top = "-9999px";
@@ -130,98 +128,96 @@ const EditorComponent = () => {
 
         nodeToDragRef.current = target;
       });
-      // 🔵🔵🔵🔵🔵🔵🔵🔵🔵 --Over
+
       el.addEventListener("dragover", (e) => {
         e.preventDefault();
         e.stopPropagation();
-        e.currentTarget.style.outline = "2px dashed #f87171";
+        el.style.outline = "2px dashed #f87171";
       });
-      // 🟡🟡🟡🟡🟡🟡🟡🟡🟡 dragleave
+
       el.addEventListener("dragleave", () => {
         el.style.outline = "none";
       });
-      // 🔴🔴🔴🔴🔴🔴🔴🔴🔴 drop
+
       dropHandler(el, nodeToDragRef, htmlJson, setHtmlJson, previewEl);
-      // 🧹🧹🧹🧹🧹🧹🧹🧹 dragend
+
       el.addEventListener("dragend", () => {
         el.style.opacity = "1";
       });
     });
   }, [htmlJson]);
-  // 🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂
-  useEffect(() => {
-    console.log("<=====🔂nodeToAdd🔂=====>", nodeToAdd);
-    if (!nodeToAdd) return;
-    const marker = document.querySelector("[data-marker]");
-    if (!marker) {
-      const previewEl = document.getElementById("preview");
-      (async () => {
-        const htmlString = await ToAdd(nodeToAdd, htmlJson);
-        console.log("<=====htmlString=====>", htmlString);
-        if (!htmlString) return;
-        const cartBlock = previewEl.querySelector(".cart");
-        cartBlock.insertAdjacentHTML("beforebegin", htmlString.trim());
-        ToBase(setHtmlJson);
-        setNodeToAdd(null);
-      })();
-      return;
-    }
 
-    const insertNode = (fragment: DocumentFragment) => {
-      const marker = document.querySelector("[data-marker]") as HTMLElement;
-      if (!marker) return;
-      const block = marker.closest("[data-index]") as HTMLElement;
-      if (!block) return;
-      block.replaceChild(fragment, marker);
-    };
-    (async () => {
+  // ------------------------------- Handle nodeToAdd
+  useEffect(() => {
+    if (!nodeToAdd) return;
+
+    const insertHtml = async () => {
+      const previewEl = document.getElementById("preview");
+      if (!previewEl) return;
+
       const htmlString = await ToAdd(nodeToAdd, htmlJson);
       if (!htmlString) return;
+
+      const marker = document.querySelector(
+        "[data-marker]"
+      ) as HTMLElement | null;
+      if (!marker) {
+        const cartBlock = previewEl.querySelector(".cart");
+        cartBlock?.insertAdjacentHTML("beforebegin", htmlString.trim());
+        ToBase(setHtmlJson);
+        setNodeToAdd(null);
+        return;
+      }
+
       const temp = document.createElement("div");
       temp.innerHTML = htmlString.trim();
       const fragment = document.createDocumentFragment();
-      while (temp.firstChild) {
-        fragment.appendChild(temp.firstChild);
-      }
-      insertNode(fragment);
+      while (temp.firstChild) fragment.appendChild(temp.firstChild);
+
+      const block = marker.closest<HTMLElement>("[data-index]");
+      block?.replaceChild(fragment, marker);
       marker.remove();
       setIsMarker(false);
       ToBase(setHtmlJson);
       setNodeToAdd(null);
-    })();
+    };
+
+    insertHtml();
   }, [nodeToAdd]);
 
+  // ------------------------------- Preview click/dblclick
   useEffect(() => {
     const preview = document.getElementById("preview");
+    if (!preview) return;
+
     const handleDoubleClick = (e: MouseEvent) => {
       document.querySelector("[data-marker]")?.remove();
       const target = e.target as HTMLElement;
-      if (target.getAttribute("id") === "preview") return;
-      const block = target.closest("[data-index]") as HTMLElement;
-      if (!block || !preview?.contains(block)) return;
-      console.log("<=====🔂block====>", block);
+      if (target.id === "preview") return;
+
+      const block = target.closest<HTMLElement>("[data-index]");
+      if (!block || !preview.contains(block)) return;
+
       block.remove();
       setTimeout(() => {
-        const newHtmlJson = htmlToJSON(preview.innerHTML);
-        const htmlOrdered = orderIndexes(newHtmlJson);
-        setHtmlJson(htmlOrdered);
+        setHtmlJson(orderIndexes(htmlToJSON(preview.innerHTML)));
       }, 200);
     };
+
     const handleClick = (e: MouseEvent) => {
       document.querySelector("[data-marker]")?.remove();
       const target = e.target as HTMLElement;
-      if (target.getAttribute("id") === "preview") return;
-      const block = target.closest("[data-index]") as HTMLElement;
-      if (!block || !preview?.contains(block)) return;
+      if (target.id === "preview") return;
 
-      //----- Создаём маркер
+      const block = target.closest<HTMLElement>("[data-index]");
+      if (!block || !preview.contains(block)) return;
+
       const marker = document.createElement("span");
       marker.setAttribute("data-marker", "true");
       marker.className = "marker";
       marker.style.setProperty("position", "relative", "important");
       marker.style.minWidth = "13px";
       setIsMarker(true);
-      //-----
 
       const children = Array.from(block.children).filter(
         (el) => !el.hasAttribute("data-marker")
@@ -229,66 +225,51 @@ const EditorComponent = () => {
 
       const clickX = e.clientX;
       const clickY = e.clientY;
+      const isHorizontal = ["flex-row", "grid"].some((cls) =>
+        block.classList.contains(cls)
+      );
 
-      const check = ["flex-row", "grid"];
-      const isHorizontal = check.some((item) => block.classList.contains(item));
-      console.log("<=====🔂isHorizontal====>", isHorizontal);
-      // ----------------------------------
-      if (isHorizontal) {
-        let insertBeforeElement = null;
-        for (let i = 0; i < children.length; i++) {
-          const current = children[i];
-          const rect = current.getBoundingClientRect();
-
+      let insertBeforeElement: HTMLElement | null = null;
+      for (let i = 0; i < children.length; i++) {
+        const current = children[i];
+        const rect = current.getBoundingClientRect();
+        if (isHorizontal) {
           if (
-            Math.abs(clickY - rect.top) < rect.height && // На одной строке (плюс-минус)
+            Math.abs(clickY - rect.top) < rect.height &&
             clickX < rect.left + 13
           ) {
             insertBeforeElement = current;
             break;
           }
-        }
-        block.insertBefore(marker, insertBeforeElement);
-      } else {
-        let insertBeforeElement = null;
-        for (let i = 0; i < children.length; i++) {
-          const current = children[i];
-          const rect = current.getBoundingClientRect();
-          console.log("<====clickY====>", clickY);
-          console.log("<====rect.top====>", rect.top);
-
+        } else {
           if (clickY < rect.top + 13) {
             insertBeforeElement = current;
             break;
           }
         }
-        block.insertBefore(marker, insertBeforeElement);
       }
+
+      block.insertBefore(marker, insertBeforeElement);
     };
 
-    preview?.addEventListener("click", (e) => {
-      setTimeout(() => handleClick(e), 300);
-    });
+    preview.addEventListener("click", (e) =>
+      setTimeout(() => handleClick(e), 300)
+    );
+    preview.addEventListener("dblclick", handleDoubleClick);
 
-    preview?.addEventListener("dblclick", handleDoubleClick);
-    return () => preview?.removeEventListener("click", handleClick);
-    return () => preview?.removeEventListener("dblclick", handleDoubleClick);
+    return () => {
+      preview.removeEventListener("click", handleClick);
+      preview.removeEventListener("dblclick", handleDoubleClick);
+    };
   }, []);
 
-  // 🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂🔂
-  // 🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️🗑️
+  // ------------------------------- Cart / Class logic
   const handleCartClear = () => {
-    const previewEl = document.getElementById("preview");
-    document.querySelector(".cart").innerHTML = "";
+    document.querySelector(".cart")!.innerHTML = "";
     ToBase(setHtmlJson);
   };
-  // +++++++++++++++++++++++++
 
   useEffect(() => {
-    console.log(
-      "<=====🔂🔂🔂🔂🔂🔂🔂🔂classToAdd🔂🔂🔂🔂🔂🔂🔂=====>",
-      classToAdd
-    );
     if (classToAdd) {
       if (isMarker) {
         addClass(
@@ -306,44 +287,23 @@ const EditorComponent = () => {
     }
   }, [classToAdd]);
 
-  // +++++++++++++++++++++++++
+  // ------------------------------- Undo / Redo / Format
   const handleUndo = () => {
-    if (editorRef.current) {
-      editorRef.current.trigger("keyboard", "undo", null);
-
-      const currentCode = editorRef.current.getValue();
-      const newHtmlJson = htmlToJSON(currentCode);
-      const htmlOrdered = orderIndexes(newHtmlJson);
-      setHtmlJson(htmlOrdered);
-    } else {
-      console.warn("Editor is not ready for Undo");
-    }
+    editorRef.current?.trigger("keyboard", "undo", null);
+    if (editorRef.current)
+      setHtmlJson(orderIndexes(htmlToJSON(editorRef.current.getValue())));
   };
-
   const handleRedo = () => {
-    if (editorRef.current) {
-      editorRef.current.trigger("keyboard", "redo", null);
-
-      const currentCode = editorRef.current.getValue();
-      const newHtmlJson = htmlToJSON(currentCode);
-      const htmlOrdered = orderIndexes(newHtmlJson);
-      setHtmlJson(htmlOrdered);
-    } else {
-      console.warn("Editor is not ready for Redo");
-    }
+    editorRef.current?.trigger("keyboard", "redo", null);
+    if (editorRef.current)
+      setHtmlJson(orderIndexes(htmlToJSON(editorRef.current.getValue())));
   };
-
   const formatCode = () => {
-    if (editorRef.current) {
-      const currentCode = editorRef.current.getValue();
-      const newHtmlJson = htmlToJSON(currentCode);
-      const htmlOrdered = orderIndexes(newHtmlJson);
-      setHtmlJson(htmlOrdered);
-    }
+    if (editorRef.current)
+      setHtmlJson(orderIndexes(htmlToJSON(editorRef.current.getValue())));
   };
 
-  // ♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️
-
+  // ------------------------------- Transform / Sandbox
   const handleTransform = () => {
     setTransformTo(true);
     let cleanedCode = convertHtml(code);
@@ -351,16 +311,16 @@ const EditorComponent = () => {
     cleanedCode = removeTailwindClasses(cleanedCode);
     setResHtml(cleanedCode);
     setResScss(cleanedScss);
-    // console.log("<==== 💥cleanedScss====>", cleanedScss);
-    // console.log("<==== 💥cleanedCode====>", cleanedCode);
-    // console.log("<==== 💥resultPug====>", resultPug);
   };
-  // ♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️
-  // 💥💥💥💥💥💥💥💥
 
+  const handleToSandbox = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    router.push("/sandbox");
+  };
+
+  // ------------------------------- Code observer
   useEffect(() => {
     const preview = document.querySelector("#preview");
-
     if (!preview) return;
 
     const checkContent = () => {
@@ -370,44 +330,30 @@ const EditorComponent = () => {
     };
 
     checkContent();
-
-    const observer = new MutationObserver(() => {
-      checkContent();
-    });
-
+    const observer = new MutationObserver(checkContent);
     observer.observe(preview, {
       childList: true,
       subtree: true,
       characterData: true,
     });
 
-    return () => {
-      observer.disconnect();
-    };
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
-    if (codeIs) {
-      console.log("<====💥💥💥💥💥💥💥💥 codeIs====>", codeIs);
-    } else {
+    if (!codeIs) {
       setResHtml("");
       setResScss("");
     }
   }, [codeIs]);
+
   useEffect(() => {
     setTransformTo(false);
     setResHtml("");
     setResScss("");
-    // }
   }, [code]);
-  // 💥💥💥💥💥💥💥💥
-  // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
-  const handleToSandbox = (e) => {
-    e.preventDefault();
-    router.push("/sandbox");
-  };
-  // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
 
+  // ------------------------------- Render
   return (
     <div className="editor">
       {user && <Projects />}
@@ -422,12 +368,7 @@ const EditorComponent = () => {
         <div className="editor__plaza">
           <div className="flex items-center gap-2 editor__controls">
             {code && (
-              <button
-                onClick={() => {
-                  handleUndo();
-                }}
-                className="btn "
-              >
+              <button onClick={handleUndo} className="btn">
                 <Image
                   src="./svg/left-arrow.svg"
                   width={28}
@@ -437,22 +378,12 @@ const EditorComponent = () => {
               </button>
             )}
             {code && (
-              <button
-                onClick={() => {
-                  formatCode();
-                }}
-                className="btn btn-primary"
-              >
+              <button onClick={formatCode} className="btn btn-primary">
                 Format Code
               </button>
             )}
             {code && (
-              <button
-                onClick={() => {
-                  handleRedo();
-                }}
-                className="btn"
-              >
+              <button onClick={handleRedo} className="btn">
                 <Image
                   src="./svg/right-arrow.svg"
                   width={28}
@@ -466,7 +397,7 @@ const EditorComponent = () => {
                 handleTransform();
                 setTimeout(() => handleToSandbox(e), 1000);
               }}
-              className={`btn btn-empty px-2 ${transformTo ? "shadow-[0px_0px_3px_2px_rgb(58_243_8)] hover:shadow-[0px_0px_3px_2px_rgb(58_243_8)]! " : ""} ${codeIs ? "opacity-100" : "opacity-20 hover:shadow-[0px_0px_3px_2px_rgb(58_243_8_0)]!"}`}
+              className={`btn btn-empty px-2 ${transformTo ? "shadow-[0px_0px_3px_2px_rgb(58_243_8)] hover:shadow-[0px_0px_3px_2px_rgb(58_243_8)]!" : ""} ${codeIs ? "opacity-100" : "opacity-20 hover:shadow-[0px_0px_3px_2px_rgb(58_243_8_0)]!"}`}
               disabled={!codeIs}
             >
               To Sandbox as project ⇨
@@ -474,9 +405,7 @@ const EditorComponent = () => {
             {user && htmlJson.length > 1 && (
               <button
                 className="btn btn-empty px-2"
-                onClick={() => {
-                  setOpenModalProject(true);
-                }}
+                onClick={() => setOpenModalProject(true)}
               >
                 Save as a project ⇨
               </button>
@@ -484,64 +413,51 @@ const EditorComponent = () => {
           </div>
 
           <div className="preview-wrap">
-            {/* 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 */}
             <div id="preview" data-index="0"></div>
-            {/* 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 */}
             <button
-              onClick={() => {
-                handleCartClear();
-              }}
-              className="w-8 h-8 text-l bg-red-500  mt-[-20px] mb-8 z-40 relative  rounded-full  flex items-center justify-center cursor-pointer"
+              onClick={handleCartClear}
+              className="w-8 h-8 text-l bg-red-500 mt-[-20px] mb-8 z-40 relative rounded-full flex items-center justify-center cursor-pointer"
             >
               🗑️
             </button>
           </div>
-          <div>
-            <Editor
-              height={editorHeight}
-              defaultLanguage="html"
-              defaultValue={code}
-              value={code}
-              onChange={(value) => {
-                setCode(value || "");
-              }}
-              options={{
-                fontSize: 14,
-                fontFamily: "Fira Code, monospace",
-                scrollBeyondLastLine: true,
-                minimap: {
-                  enabled: true,
-                  size: "fit",
-                  showSlider: "always",
-                  renderCharacters: false,
-                },
-                scrollbar: {
-                  verticalScrollbarSize: 20,
-                  horizontalScrollbarSize: 20,
-                  handleMouseWheel: true,
-                },
-                hover: {
-                  enabled: false,
-                },
-                parameterHints: {
-                  enabled: false,
-                },
-              }}
-              onMount={handleEditorMount}
-              beforeMount={() => {
-                if (monaco) {
-                  monaco.editor.defineTheme("myCustomTheme", {
-                    base: "vs-dark",
-                    inherit: true,
-                    rules: [],
-                    colors: {
-                      "editor.background": "#1e1e1e",
-                    },
-                  });
-                }
-              }}
-            />
-          </div>
+
+          <Editor
+            height={editorHeight}
+            defaultLanguage="html"
+            defaultValue={code}
+            value={code}
+            onChange={(value) => setCode(value || "")}
+            options={{
+              fontSize: 14,
+              fontFamily: "Fira Code, monospace",
+              scrollBeyondLastLine: true,
+              minimap: {
+                enabled: true,
+                size: "fit",
+                showSlider: "always",
+                renderCharacters: false,
+              },
+              scrollbar: {
+                verticalScrollbarSize: 20,
+                horizontalScrollbarSize: 20,
+                handleMouseWheel: true,
+              },
+              hover: { enabled: false },
+              parameterHints: { enabled: false },
+            }}
+            onMount={handleEditorMount}
+            beforeMount={() => {
+              if (monaco) {
+                monaco.editor.defineTheme("myCustomTheme", {
+                  base: "vs-dark",
+                  inherit: true,
+                  rules: [],
+                  colors: { "editor.background": "#1e1e1e" },
+                });
+              }
+            }}
+          />
         </div>
       </div>
       {user && (

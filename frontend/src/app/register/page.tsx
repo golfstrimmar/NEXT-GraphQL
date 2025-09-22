@@ -20,6 +20,13 @@ export default function Register() {
   const [createUser, { loading }] = useMutation(CREATE_USER);
   const { data: subscriptionData } = useSubscription(USER_CREATED);
 
+  // --------------------------
+  useEffect(() => {
+    setName("");
+    setEmail("");
+    setPassword("");
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !email || !password) {
