@@ -12,7 +12,7 @@ export default function ClientLayout({
   children: React.ReactNode;
 }) {
   useEffect(() => {
-    const TIMEOUT = 30 * 60 * 1000;
+    const TIMEOUT = 1 * 60 * 1000;
 
     // Проверка на момент загрузки
     const last = localStorage.getItem("lastActivity");
