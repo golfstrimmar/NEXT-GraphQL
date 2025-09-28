@@ -105,12 +105,91 @@ export const REMOVE_PROJECT = gql`
   }
 `;
 
+// === Figma-проекты ===
+
+// Получить один Figma-проект
+export const GET_FIGMA_PROJECT = gql`
+  query getFigmaProject($id: ID!) {
+    figmaProject(id: $id) {
+      id
+      name
+      fileKey
+      nodeId
+      token
+      owner {
+        id
+        name
+      }
+    }
+  }
+`;
+
+// Получить все Figma-проекты пользователя
+export const GET_FIGMA_PROJECTS_BY_USER = gql`
+  query figmaProjectsByUser($userId: ID!) {
+    figmaProjectsByUser(userId: $userId) {
+      id
+      name
+      fileKey
+      nodeId
+      token
+    }
+  }
+`;
+
+// Создать Figma-проект
+export const CREATE_FIGMA_PROJECT = gql`
+  mutation createFigmaProject(
+    $ownerId: ID!
+    $name: String!
+    $fileKey: String!
+    $nodeId: String!
+    $token: String!
+  ) {
+    createFigmaProject(
+      ownerId: $ownerId
+      name: $name
+      fileKey: $fileKey
+      nodeId: $nodeId
+      token: $token
+    ) {
+      id
+      name
+    }
+  }
+`;
+
+// Удалить Figma-проект
+export const REMOVE_FIGMA_PROJECT = gql`
+  mutation removeFigmaProject($figmaProjectId: ID!) {
+    removeFigmaProject(figmaProjectId: $figmaProjectId)
+  }
+`;
+// ==========================
 export const USER_CREATED_SUBSCRIPTION = gql`
   subscription UserCreated {
     userCreated {
       id
       name
       email
+    }
+  }
+`;
+
+export const FIGMA_PROJECT_CREATED_SUBSCRIPTION = gql`
+  subscription FigmaProjectCreated {
+    figmaProjectCreated {
+      id
+      name
+      fileKey
+      nodeId
+      token
+      owner {
+        id
+        name
+        email
+      }
+      createdAt
     }
   }
 `;

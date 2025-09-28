@@ -11,6 +11,12 @@ export const GET_USERS = gql`
         id
         name
       }
+      figmaProjects {
+        id
+        name
+        fileKey
+        nodeId
+      }
     }
   }
 `;
@@ -21,6 +27,48 @@ export const GET_JSON_DOCUMENT = gql`
       name
       content
       createdAt
+    }
+  }
+`;
+// Получить один Figma-проект
+export const GET_FIGMA_PROJECT = gql`
+  query GetFigmaProject($id: ID!) {
+    figmaProject(id: $id) {
+      id
+      name
+      fileKey
+      nodeId
+      token
+      owner {
+        id
+        name
+      }
+    }
+  }
+`;
+
+// Получить все Figma-проекты пользователя
+export const GET_FIGMA_PROJECTS_BY_USER = gql`
+  query GetFigmaProjectsByUser($userId: ID!) {
+    figmaProjectsByUser(userId: $userId) {
+      id
+      name
+      fileKey
+      nodeId
+    }
+  }
+`;
+
+// Получить полный проект Figma (изображения, nodes, стили, шрифты и т.д.)
+export const GET_FIGMA_PROJECT_DATA = gql`
+  query GetFigmaProjectData($projectId: ID!) {
+    getFigmaProjectData(projectId: $projectId) {
+      id
+      name
+      fileKey
+      nodeId
+      images
+      file
     }
   }
 `;

@@ -27,6 +27,49 @@ export const resolvers = {
       prisma.jsonDocument.findFirst({
         where: { name },
       }),
+    figmaProject: (_, { id }) =>
+      prisma.figmaProject.findUnique({
+        where: { id: Number(id) },
+        include: { owner: true },
+      }),
+    getFigmaProjectData: async (_, { projectId }) => {
+      const project = await prisma.figmaProject.findUnique({
+        where: { id: Number(projectId) },
+      });
+      if (!project) throw new Error("Project not found");
+
+      const headers = { "X-Figma-Token": project.token };
+
+      // 1. Изображения
+      const imagesRes = await fetch(
+        `https://api.figma.com/v1/images/${project.fileKey}?ids=${project.nodeId}&scale=1`,
+        { headers }
+      );
+      if (!imagesRes.ok) throw new Error("Failed to fetch images");
+      const imagesData = await imagesRes.json();
+
+      // 2. Полный документ Figma (nodes, styles, fonts и т.д.)
+      const fileRes = await fetch(
+        `https://api.figma.com/v1/files/${project.fileKey}`,
+        { headers }
+      );
+      if (!fileRes.ok) throw new Error("Failed to fetch file data");
+      const fileData = await fileRes.json();
+
+      return {
+        id: project.id,
+        name: project.name,
+        fileKey: project.fileKey,
+        nodeId: project.nodeId,
+        images: imagesData.images,
+        file: fileData, // здесь все nodes, styles, fonts, colors и т.д.
+      };
+    },
+    figmaProjectsByUser: (_, { userId }) =>
+      prisma.figmaProject.findMany({
+        where: { ownerId: Number(userId) },
+        include: { owner: true },
+      }),
   },
 
   Mutation: {
@@ -192,6 +235,36 @@ export const resolvers = {
       });
       return project.id;
     },
+    createFigmaProject: async (
+      _,
+      { ownerId, name, fileKey, nodeId, token }
+    ) => {
+      console.log("<====👤👤👤createFigmaProject====>", name);
+      try {
+        const project = await prisma.figmaProject.create({
+          data: {
+            name,
+            fileKey,
+            nodeId,
+            token,
+            ownerId: Number(ownerId),
+          },
+        });
+        ee.emit("FIGMA_PROJECT_CREATED", project);
+        return { id: project.id, name: project.name };
+      } catch (error) {
+        if (error.code === "P2002") {
+          throw new Error("Figma project with this name already exists.");
+        }
+        throw error;
+      }
+    },
+    removeFigmaProject: async (_, { figmaProjectId }) => {
+      const project = await prisma.figmaProject.delete({
+        where: { id: Number(figmaProjectId) },
+      });
+      return project.id;
+    },
   },
 
   User: {
@@ -200,9 +273,18 @@ export const resolvers = {
         where: { ownerId: parent.id },
         select: { id: true, name: true },
       }),
+    figmaProjects: (parent) =>
+      prisma.figmaProject.findMany({
+        where: { ownerId: parent.id },
+        select: { id: true, name: true, fileKey: true, nodeId: true },
+      }),
   },
 
   Project: {
+    owner: (parent) =>
+      prisma.user.findUnique({ where: { id: parent.ownerId } }),
+  },
+  FigmaProject: {
     owner: (parent) =>
       prisma.user.findUnique({ where: { id: parent.ownerId } }),
   },
@@ -225,6 +307,23 @@ export const resolvers = {
           }
         } finally {
           ee.off("USER_CREATED", handler);
+        }
+      },
+    },
+    figmaProjectCreated: {
+      subscribe: async function* () {
+        const queue = [];
+        const handler = (payload) => queue.push(payload);
+        ee.on("FIGMA_PROJECT_CREATED", handler);
+
+        try {
+          while (true) {
+            if (queue.length === 0)
+              await new Promise((r) => setTimeout(r, 100));
+            else yield { figmaProjectCreated: queue.shift() };
+          }
+        } finally {
+          ee.off("FIGMA_PROJECT_CREATED", handler);
         }
       },
     },

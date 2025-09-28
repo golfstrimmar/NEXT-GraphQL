@@ -22,6 +22,7 @@ const Navbar: React.FC = () => {
   // const [logoutUser, { loading }] = useMutation(LOGOUT_USER);
   const pages = [
     { title: "Home", path: "/" },
+    { title: "Figma", path: "/figma" },
     { title: "Plaza", path: "/plaza" },
     { title: "Sandbox", path: "/sandbox" },
     // { title: "Register", path: "/register" },

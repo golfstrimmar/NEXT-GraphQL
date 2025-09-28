@@ -16,6 +16,7 @@ model User {
   googleId  String?   @unique
   picture   String?
   projects  Project[] @relation("UserProjects")
+  figmaProjects FigmaProject[] @relation("UserFigmaProjects")
 }
 
 model Project {
@@ -29,7 +30,18 @@ model Project {
 
   @@unique([ownerId, name])
 }
+model FigmaProject {
+  id        Int      @id @default(autoincrement())
+  name      String
+  fileKey   String   // ключ файла Figma (из URL)
+  nodeId    String   // ID нужного фрейма
+  token     String   // персональный токен пользователя
+  createdAt DateTime @default(now())
+  owner     User     @relation("UserFigmaProjects", fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId   Int
 
+  @@unique([ownerId, name])
+}
 model JsonDocument {
   id        Int      @id @default(autoincrement())
   name      String   @unique
