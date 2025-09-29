@@ -4,7 +4,9 @@ import jwt from "jsonwebtoken";
 import prisma from "../prisma/client.js";
 import { OAuth2Client } from "google-auth-library";
 import { GraphQLJSON } from "graphql-type-json";
+// import { PubSub } from "graphql-subscriptions";
 
+// const pubsub = new PubSub();
 const ee = new EventEmitter();
 const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key";
 const SALT_ROUNDS = 10;
@@ -250,7 +252,9 @@ export const resolvers = {
             ownerId: Number(ownerId),
           },
         });
+        // Публикуем событие для подписчиков
         ee.emit("FIGMA_PROJECT_CREATED", project);
+
         return { id: project.id, name: project.name };
       } catch (error) {
         if (error.code === "P2002") {
@@ -293,7 +297,6 @@ export const resolvers = {
     userCreated: {
       subscribe: async function* () {
         const queue = [];
-
         const handler = (payload) => queue.push(payload);
         ee.on("USER_CREATED", handler);
 
@@ -318,9 +321,11 @@ export const resolvers = {
 
         try {
           while (true) {
-            if (queue.length === 0)
-              await new Promise((r) => setTimeout(r, 100));
-            else yield { figmaProjectCreated: queue.shift() };
+            if (queue.length === 0) {
+              await new Promise((resolve) => setTimeout(resolve, 100));
+            } else {
+              yield { figmaProjectCreated: queue.shift() };
+            }
           }
         } finally {
           ee.off("FIGMA_PROJECT_CREATED", handler);

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useStateContext } from "@/providers/StateProvider";
+import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useSubscription } from "@apollo/client";
 import {
   CREATE_FIGMA_PROJECT,
@@ -16,21 +17,23 @@ import client from "@/apollo/apolloClient";
 import Image from "next/image";
 import Button from "@/components/ui/Button/Button";
 import Loading from "@/components/ui/Loading/Loading";
+import Input from "@/components/ui/Input/Input";
+import { AnimatePresence, motion } from "framer-motion";
 import "./figma.scss";
+import { set } from "lodash";
 
 export default function FigmaPage() {
   const { user } = useStateContext();
+  const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
   const [projects, setProjects] = useState<any[]>([]);
-
+  const { setModalMessage } = useStateContext();
   const [name, setName] = useState("");
   const [fileKey, setFileKey] = useState("");
   const [nodeId, setNodeId] = useState("");
   const [token, setToken] = useState("");
   const [loadingImg, setLoadingImg] = useState(false);
-  // для отображения результата
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const { data } = useQuery(GET_FIGMA_PROJECTS_BY_USER, {
     variables: { userId: user?.id },
     skip: !user,
@@ -61,14 +64,22 @@ export default function FigmaPage() {
     }
   }, [data]);
   const handleSubmit = async (e: React.FormEvent) => {
+    router.push("/login");
+    console.log(
+      "<====name, fileKey, nodeId, token====>",
+      name,
+      fileKey,
+      nodeId,
+      token
+    );
     e.preventDefault();
-    if (!user) {
-      setError("You must be logged in to create a project.");
+
+    if (name === "" || fileKey === "" || nodeId === "" || token === "") {
+      setModalMessage("All fields are required.");
       return;
     }
-
     try {
-      setError(null);
+      setModalMessage(null);
       const { data } = await createFigmaProject({
         variables: { ownerId: user.id, name, fileKey, nodeId, token },
       });
@@ -103,7 +114,7 @@ export default function FigmaPage() {
       setNodeId("");
       setToken("");
     } catch (err: any) {
-      setError(err.message);
+      setModalMessage(err.message);
     }
   };
   const fetchFigmaImage = async (project: any) => {
@@ -111,7 +122,7 @@ export default function FigmaPage() {
 
     try {
       setLoadingImg(true);
-      setError(null);
+      setModalMessage(null);
 
       // GraphQL-запрос к серверу за полными данными проекта
       const { data } = await client.query({
@@ -130,7 +141,7 @@ export default function FigmaPage() {
 
       setImageUrl(url);
     } catch (err: any) {
-      setError(err.message);
+      setModalMessage(err.message);
     } finally {
       setLoadingImg(false);
     }
@@ -139,101 +150,41 @@ export default function FigmaPage() {
     const removedProject = await removeFigmaProject({
       variables: { figmaProjectId: id },
     });
+    setProjects((prev) => {
+      return prev.filter((p) => p.id !== id);
+    });
     console.log("<====removedProject====>", removedProject);
   };
   return (
     <div className="figma">
       <div className="container">
         <div className="figma-projects">
-          <h1>Figma projects</h1>
-          <div className="inline-block">
-            {!modalOpen && (
-              <Button
-                onClick={() => setModalOpen(true)}
-                buttonText="Create project Figma"
-              />
-            )}
-          </div>
+          <h1 className="text-center mb-4">Figma projects</h1>
 
-          {modalOpen && (
-            <div onClick={() => setModalOpen(false)}>
-              <div onClick={(e) => e.stopPropagation()}>
-                <h2>Creating Figma project</h2>
-                <form onSubmit={handleSubmit}>
-                  <input
-                    type="text"
-                    placeholder="Project Name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                  />
-                  <input
-                    type="text"
-                    placeholder="File Key"
-                    value={fileKey}
-                    onChange={(e) => setFileKey(e.target.value)}
-                    required
-                  />
-                  <input
-                    type="text"
-                    placeholder="Node ID"
-                    value={nodeId}
-                    onChange={(e) => setNodeId(e.target.value)}
-                    required
-                  />
-                  <input
-                    type="text"
-                    placeholder="Figma Token"
-                    value={token}
-                    onChange={(e) => setToken(e.target.value)}
-                    required
-                  />
-
-                  {error && <p className="error">{error}</p>}
-
-                  <div className="flex gap-2">
-                    <button
-                      className="btn btn-primary "
-                      type="submit"
-                      disabled={loading}
-                    >
-                      {loading ? "Saving..." : "Save"}
-                    </button>
-                    <button
-                      className="btn btn-allert"
-                      type="button"
-                      onClick={() => setModalOpen(false)}
-                    >
-                      Отмена
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
           {projects.length === 0 && <p>No projects found</p>}
-          <ul>
+          <ul className="flex flex-col gap-2">
             {projects.map((proj) => (
-              <li key={proj.id} className="project-card">
+              <li key={proj.id} className="bg-[#f3f3f3] p-2">
                 <div className="flex gap-2 items-center">
                   <p>Project name:</p>
-                  <h3
-                    className="cursor-pointer"
-                    onClick={() => fetchFigmaImage(proj)}
-                  >
-                    {proj.name}
-                  </h3>
-                  <Image
+                  <h3>{proj.name}</h3>
+                  {/* <Image
                     src="./svg/click.svg"
                     alt="figma"
                     width={15}
                     height={15}
                     className="opacity-30 "
-                  />
+                  /> */}
                 </div>
                 <p>File Key: {proj.fileKey}</p>
                 <p>Node ID: {proj.nodeId}</p>
-                <div className="flex gap-2">
+                <div className="flex gap-2 mt-4">
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => fetchFigmaImage(proj)}
+                  >
+                    See details
+                  </button>
                   <button
                     className="btn btn-allert"
                     onClick={() => handleRemoved(proj.id)}
@@ -244,17 +195,138 @@ export default function FigmaPage() {
               </li>
             ))}
           </ul>
+          <div className="inline-block mt-2">
+            {!modalOpen && (
+              <Button
+                onClick={() => {
+                  if (!user) {
+                    setModalMessage(
+                      "You must be logged in to create a project."
+                    );
+                    setTimeout(() => {
+                      router.push("/login");
+                      return;
+                    }, 2000);
+                  } else {
+                    setModalOpen(true);
+                  }
+                }}
+                buttonText="Create project Figma"
+              />
+            )}
+          </div>
         </div>
 
         {loadingImg && <Loading />}
+
         {imageUrl && (
-          <div className="preview">
-            <h2>Figma project Preview:</h2>
-            <img src={imageUrl} alt="Figma Preview" />
+          <div className="p-1  mt-4 mb-4">
+            <div className="flex gap-2 items-center">
+              <h2>Figma project Preview</h2>
+              <button
+                className="btn btn-allert cursor-pointer"
+                onClick={() => setImageUrl("")}
+              >
+                Clear
+              </button>
+            </div>
+            <img
+              src={imageUrl}
+              alt="Figma Preview"
+              className="border mt-2 rounded-sm shadow-[0_0_10px_0_rgba(0,0,0,0.4)]"
+            />
           </div>
         )}
       </div>
+      <AnimatePresence>
+        {modalOpen && (
+          <div onClick={() => setModalOpen(false)}>
+            <motion.div
+              initial={{
+                opacity: 0,
+                scale: 0.8,
+                y: -100,
+              }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: -100 }}
+              transition={{ duration: 0.3 }}
+              className=" w-[100vw] h-[100vh] fixed top-0 left-0 flex items-center justify-center bg-black bg-opacity-90 z-50"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (
+                  !e.target.closest(".modal-content") &&
+                  !e.target.classList.contains("modal-content")
+                ) {
+                  setModalOpen(false);
+                }
+              }}
+            >
+              <button className="absolute top-[65px] right-2 z-3000">
+                <Image
+                  src="./svg/cross.svg"
+                  alt="close"
+                  width={20}
+                  height={20}
+                  onClick={() => setModalOpen(false)}
+                />
+              </button>
+              <form
+                onSubmit={handleSubmit}
+                className="modal-content flex flex-col min-w-[500px] bg-white p-6 rounded-lg gap-4"
+              >
+                <Input
+                  typeInput="text"
+                  id="name"
+                  data="Project Name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+
+                <Input
+                  typeInput="text"
+                  id="name"
+                  data="File Key"
+                  value={fileKey}
+                  onChange={(e) => setFileKey(e.target.value)}
+                />
+
+                <Input
+                  typeInput="text"
+                  id="name"
+                  data="Node ID"
+                  value={nodeId}
+                  onChange={(e) => setNodeId(e.target.value)}
+                />
+
+                <Input
+                  typeInput="text"
+                  id="name"
+                  data="Figma Token"
+                  value={token}
+                  onChange={(e) => setToken(e.target.value)}
+                />
+
+                <div className="flex gap-2">
+                  <button
+                    className="btn btn-primary "
+                    type="submit"
+                    disabled={loading}
+                  >
+                    {loading ? "Saving..." : "Save"}
+                  </button>
+                  <button
+                    className="btn btn-allert"
+                    type="button"
+                    onClick={() => setModalOpen(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
-// https://www.figma.com/design/wd09PaQQG0CuUfeHxSCccC/dreambit--Copy-?node-id=986-1860&t=B6WLVmoD0b7nCrIL-4

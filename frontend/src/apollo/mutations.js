@@ -183,7 +183,6 @@ export const FIGMA_PROJECT_CREATED_SUBSCRIPTION = gql`
       name
       fileKey
       nodeId
-      token
       owner {
         id
         name

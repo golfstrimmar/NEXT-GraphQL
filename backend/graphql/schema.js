@@ -64,14 +64,7 @@ export const typeDefs = gql`
     figmaProjectsByUser(userId: ID!): [FigmaProject!]!
     getFigmaProjectData(projectId: ID!): FigmaProjectData!
   }
-  type FigmaProjectData {
-    id: ID!
-    name: String!
-    fileKey: String!
-    nodeId: String!
-    images: JSON
-    file: JSON
-  }
+
   type ProjectResponse {
     id: ID!
     name: String!

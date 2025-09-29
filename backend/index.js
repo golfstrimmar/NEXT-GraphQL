@@ -5,6 +5,8 @@ import { expressMiddleware } from "@as-integrations/express5";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import bodyParser from "body-parser";
 import cors from "cors";
+import { WebSocketServer } from "ws";
+import { useServer } from "graphql-ws/use/ws";
 
 import { typeDefs } from "./graphql/schema.js";
 import { resolvers } from "./graphql/resolvers.js";
@@ -12,11 +14,36 @@ import { resolvers } from "./graphql/resolvers.js";
 // Создаём схему
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
-// Apollo Server
-const server = new ApolloServer({ schema });
-await server.start();
-
 const app = express();
+const httpServer = http.createServer(app);
+
+// ✅ ДОБАВЛЯЕМ WebSocket сервер для подписок
+const wsServer = new WebSocketServer({
+  server: httpServer,
+  path: "/graphql", // тот же путь что и HTTP
+});
+
+// ✅ Подключаем GraphQL к WebSocket серверу
+const serverCleanup = useServer({ schema }, wsServer);
+
+// Apollo Server
+const server = new ApolloServer({
+  schema,
+  // ✅ Важно: добавляем плагин для корректного закрытия WebSocket
+  plugins: [
+    {
+      async serverWillStart() {
+        return {
+          async drainServer() {
+            await serverCleanup.dispose();
+          },
+        };
+      },
+    },
+  ],
+});
+
+await server.start();
 
 // ✅ CORS один раз для /graphql
 app.use(
@@ -29,13 +56,16 @@ app.use(
   expressMiddleware(server)
 );
 
-// HTTP сервер
 const PORT = process.env.PORT || 4000;
-const httpServer = http.createServer(app);
 console.log("ENV PORT:", process.env.PORT);
+
 app.get("/", (req, res) => {
   res.send("✅ Server is alive");
 });
+
 httpServer.listen(PORT, () => {
   console.log(`🚀 GraphQL server running on port ${PORT}`);
+  console.log(
+    `📡 WebSocket subscriptions ready at ws://localhost:${PORT}/graphql`
+  );
 });
