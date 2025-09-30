@@ -19,19 +19,22 @@ import Button from "@/components/ui/Button/Button";
 import Loading from "@/components/ui/Loading/Loading";
 import Input from "@/components/ui/Input/Input";
 import { AnimatePresence, motion } from "framer-motion";
-
+import GoogleFontsImporter from "@/components/GoogleFontsImporter/GoogleFontsImporter";
 import "./figma.scss";
 
 export default function FigmaPage() {
   const { user } = useStateContext();
   const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
+  // ---
   const [projects, setProjects] = useState<any[]>([]);
   const { setModalMessage } = useStateContext();
   const [name, setName] = useState("");
   const [fileKey, setFileKey] = useState("");
   const [nodeId, setNodeId] = useState("");
   const [token, setToken] = useState("");
+  const [googleFontsImport, setGoogleFontsImport] = useState("");
+  // ---
   const [loadingImg, setLoadingImg] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const { data } = useQuery(GET_FIGMA_PROJECTS_BY_USER, {
@@ -117,6 +120,8 @@ export default function FigmaPage() {
       setProjectName("");
       setFileData(null);
       setColors([]);
+      setGoogleFontsImport("");
+      setFonts([]);
     } catch (err: any) {
       setModalOpen(false);
       setModalMessage(err.message);
@@ -520,6 +525,55 @@ export default function FigmaPage() {
     return weightMap[weight] || weight.toString();
   };
   // -----------------------
+  // Функция для генерации @import строки Google Fonts с реальными весами
+  const generateGoogleFontsImport = (fonts: any[]) => {
+    const fontFamilies = [...new Set(fonts.map((font) => font.fontFamily))];
+
+    // Фильтруем только не-системные шрифты
+    const googleFonts = fontFamilies.filter((fontFamily) => {
+      const lowerName = fontFamily.toLowerCase();
+      const systemFonts = [
+        "arial",
+        "helvetica",
+        "times",
+        "courier",
+        "verdana",
+        "georgia",
+        "tahoma",
+      ];
+      return !systemFonts.some((sysFont) => lowerName.includes(sysFont));
+    });
+
+    if (googleFonts.length === 0) return "";
+
+    const fontParams = googleFonts.map((family) => {
+      // Находим все реально используемые веса для этого шрифта
+      const weights = fonts
+        .filter((font) => font.fontFamily === family)
+        .map((font) => font.fontWeight)
+        .filter((weight, index, arr) => arr.indexOf(weight) === index)
+        .sort((a, b) => a - b);
+
+      console.log(`🔤 ${family} weights:`, weights);
+
+      // Формируем параметры для Google Fonts
+      const familyName = family.replace(/ /g, "+");
+
+      if (weights.length === 0) {
+        return `family=${familyName}`;
+      }
+
+      // ✅ ПРАВИЛЬНЫЙ ФОРМАТ: просто перечисляем веса через ; без 0,
+      const weightString = weights.join(";");
+      return `family=${familyName}:wght@${weightString}`;
+    });
+
+    const importString = `@import url('https://fonts.googleapis.com/css2?${fontParams.join("&")}&display=swap');`;
+    console.log("📦 Final import string:", importString);
+
+    return importString;
+  };
+  // -----------------------
 
   // -----------------------
   const fetchFigma = async (project: any) => {
@@ -559,6 +613,9 @@ export default function FigmaPage() {
         project.nodeId
       );
       setFonts(extractedFonts);
+      // ✅ Генерируем и сохраняем import строку
+      const importString = generateGoogleFontsImport(extractedFonts);
+      setGoogleFontsImport(importString);
       console.log("🎨 Colors:", extractedColors);
       console.log("🔤 Fonts:", extractedFonts);
     } catch (err: any) {
@@ -578,10 +635,15 @@ export default function FigmaPage() {
     setFileData(null);
     setColors([]);
     setImageUrl(null);
+    setGoogleFontsImport("");
+    setFonts([]);
     console.log("<====removedProject====>", removedProject);
   };
-  return (
+
+  https: return (
     <div className="figma">
+      {/* ✅ ДОБАВЛЯЕМ ИМПОРТЕР ШРИФТОВ */}
+      <GoogleFontsImporter importString={googleFontsImport} />
       <div className="container">
         <div className="figma-projects">
           <h1 className="text-center mb-4">Figma projects</h1>
@@ -780,49 +842,73 @@ export default function FigmaPage() {
 
             {/* ВИЗУАЛЬНОЕ ОТОБРАЖЕНИЕ ШРИФТОВ */}
             <div className="space-y-4">
-              {fonts.map((font, index) => (
-                <div key={index} className="border rounded-lg p-4 bg-white">
-                  <div
-                    style={{
-                      fontFamily: font.fontFamily,
-                      fontWeight: font.fontWeight,
-                      fontSize: `${font.fontSize}px`,
-                      lineHeight: font.lineHeightPx
-                        ? `${font.lineHeightPx}px`
-                        : "normal",
-                      letterSpacing: font.letterSpacing
-                        ? `${font.letterSpacing}px`
-                        : "normal",
-                    }}
-                    className="mb-2"
-                  >
-                    {font.sampleText}
-                  </div>
-                  <div className="text-sm text-gray-600 grid grid-cols-2 md:grid-cols-4 gap-2">
-                    <div>
-                      Family: <strong>{font.fontFamily}</strong>
+              {fonts.map((font, index) => {
+                const isGoogleFont = ![
+                  "arial",
+                  "helvetica",
+                  "times",
+                  "courier",
+                  "verdana",
+                  "georgia",
+                  "tahoma",
+                ].some((sysFont) =>
+                  font.fontFamily.toLowerCase().includes(sysFont)
+                );
+
+                return (
+                  <div key={index} className="border rounded-lg p-4 bg-white">
+                    {/* ✅ Применяем шрифт ко всему блоку */}
+                    <div
+                      style={{
+                        fontFamily: isGoogleFont
+                          ? `"${font.fontFamily}", sans-serif`
+                          : font.fontFamily,
+                        fontWeight: font.fontWeight,
+                        fontSize: `${font.fontSize}px`,
+                        lineHeight: font.lineHeightPx
+                          ? `${font.lineHeightPx}px`
+                          : "normal",
+                        letterSpacing: font.letterSpacing
+                          ? `${font.letterSpacing}px`
+                          : "normal",
+                      }}
+                      className="mb-2 p-3 border rounded bg-gray-50"
+                    >
+                      {font.sampleText ||
+                        `This is ${font.fontFamily} at ${font.fontSize}px`}
                     </div>
-                    <div>
-                      Size: <strong>{font.fontSize}px</strong>
-                    </div>
-                    <div>
-                      Weight: <strong>{font.fontWeight}</strong>
-                    </div>
-                    <div>
-                      Line height:{" "}
-                      <strong>{font.lineHeightPx || "auto"}px</strong>
-                    </div>
-                    {font.letterSpacing && (
+
+                    <div className="text-sm text-gray-600 grid grid-cols-2 md:grid-cols-4 gap-2">
                       <div>
-                        Spacing: <strong>{font.letterSpacing}px</strong>
+                        Family:{" "}
+                        <strong className="font-mono">{font.fontFamily}</strong>
                       </div>
-                    )}
-                    <div>
-                      Source: <strong>{font.source}</strong>
+                      <div>
+                        Size: <strong>{font.fontSize}px</strong>
+                      </div>
+                      <div>
+                        Weight: <strong>{font.fontWeight}</strong>
+                      </div>
+                      <div>
+                        Line height:{" "}
+                        <strong>{font.lineHeightPx || "auto"}px</strong>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        Status:
+                        <span
+                          className={
+                            isGoogleFont
+                              ? "text-green-600 font-bold"
+                              : "text-blue-600"
+                          }
+                        >
+                          {isGoogleFont ? "✅ Google Font" : "💻 System Font"}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
