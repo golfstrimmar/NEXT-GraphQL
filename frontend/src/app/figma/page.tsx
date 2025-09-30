@@ -828,12 +828,12 @@ export default function FigmaPage() {
                 </pre>
               </div>
               <button
-                className="mt-2 btn btn-primary text-sm"
+                className="mt-2 btn btn-primary text-sm cursor-pointer"
                 onClick={() => {
                   navigator.clipboard.writeText(
                     generateFontSassVariables(fonts)
                   );
-                  alert("Font variables copied to clipboard!");
+                  setModalMessage("Font variables copied to clipboard!");
                 }}
               >
                 📋 Copy Font Sass
@@ -855,9 +855,38 @@ export default function FigmaPage() {
                   font.fontFamily.toLowerCase().includes(sysFont)
                 );
 
+                // Генерируем имя миксина на основе размера
+                const sizeNames = [
+                  "xs",
+                  "sm",
+                  "base",
+                  "lg",
+                  "xl",
+                  "2xl",
+                  "3xl",
+                  "4xl",
+                ];
+                const mixinName = sizeNames[index] || `text-${index + 1}`;
+
                 return (
                   <div key={index} className="border rounded-lg p-4 bg-white">
-                    {/* ✅ Применяем шрифт ко всему блоку */}
+                    {/* Заголовок с именем миксина */}
+                    <div className="flex justify-between items-center mb-3">
+                      {/* <h4 className="font-bold text-lg">
+                        Mixin: @include {mixinName}-text
+                      </h4> */}
+                      <span
+                        className={`px-2 py-1 rounded text-xs ${
+                          isGoogleFont
+                            ? "bg-green-100 text-green-800"
+                            : "bg-blue-100 text-blue-800"
+                        }`}
+                      >
+                        {isGoogleFont ? "🌐 Google Font" : "💻 System Font"}
+                      </span>
+                    </div>
+
+                    {/* Пример текста со шрифтом */}
                     <div
                       style={{
                         fontFamily: isGoogleFont
@@ -872,39 +901,67 @@ export default function FigmaPage() {
                           ? `${font.letterSpacing}px`
                           : "normal",
                       }}
-                      className="mb-2 p-3 border rounded bg-gray-50"
+                      className="mb-3 p-2 border rounded bg-gray-50  flex items-center cursor-pointer"
+                      onClick={() => {
+                        navigator.clipboard.writeText(font.sampleText);
+                        setModalMessage("Text copied to clipboard!");
+                      }}
                     >
                       {font.sampleText ||
-                        `This is ${font.fontFamily} at ${font.fontSize}px`}
+                        `This is how ${font.fontFamily} looks at ${font.fontSize}px - The quick brown fox jumps over the lazy dog`}
                     </div>
 
-                    <div className="text-sm text-gray-600 grid grid-cols-2 md:grid-cols-4 gap-2">
-                      <div>
-                        Family:{" "}
-                        <strong className="font-mono">{font.fontFamily}</strong>
-                      </div>
-                      <div>
-                        Size: <strong>{font.fontSize}px</strong>
-                      </div>
-                      <div>
-                        Weight: <strong>{font.fontWeight}</strong>
-                      </div>
-                      <div>
-                        Line height:{" "}
-                        <strong>{font.lineHeightPx || "auto"}px</strong>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        Status:
-                        <span
-                          className={
-                            isGoogleFont
-                              ? "text-green-600 font-bold"
-                              : "text-blue-600"
-                          }
-                        >
-                          {isGoogleFont ? "✅ Google Font" : "💻 System Font"}
-                        </span>
-                      </div>
+                    {/* Детали шрифта */}
+                    <div className=" grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <button
+                        className="bg-gray-100 p-2 rounded w-full text-left cursor-pointer"
+                        onClick={() => {
+                          const cssCode = `
+font-family: '${font.fontFamily}', sans-serif;
+font-size: ${font.fontSize}px;
+font-weight: ${font.fontWeight};
+line-height: ${font.lineHeightPx || "auto"}px;
+${font.letterSpacing ? `letter-spacing: ${font.letterSpacing}px;` : ""}
+    `.trim();
+
+                          navigator.clipboard.writeText(cssCode);
+                          setModalMessage("CSS copied to clipboard!");
+                        }}
+                      >
+                        <div className="text-md text-gray-500 font-mono space-y-1">
+                          <div>
+                            font-family: &apos;{font.fontFamily}&apos;,
+                            sans-serif;
+                          </div>
+                          <div>font-size: {font.fontSize}px;</div>
+                          <div>font-weight: {font.fontWeight};</div>
+                          <div>
+                            line-height: {font.lineHeightPx || "auto"}px;
+                          </div>
+                          {font.letterSpacing !== 0 && (
+                            <div>letter-spacing: {font.letterSpacing}px;</div>
+                          )}
+                        </div>
+                      </button>
+                      {/* <div className="bg-gray-100 p-2 rounded">
+                        <div className="text-xs text-gray-500">Source:</div>
+                        <strong>{font.source}</strong>
+                      </div> */}
+
+                      {/* Код миксина */}
+                      <button
+                        className="p-2 bg-gray-900 rounded text-lg w-full"
+                        onClick={() => {
+                          navigator.clipboard.writeText(
+                            `@include ${mixinName}-text;`
+                          );
+                          setModalMessage("Mixin copied to clipboard!");
+                        }}
+                      >
+                        <div className="text-green-400 font-mono">
+                          @include {mixinName}-text;
+                        </div>
+                      </button>
                     </div>
                   </div>
                 );
