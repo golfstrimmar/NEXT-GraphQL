@@ -15,11 +15,21 @@ import {
 } from "@/apollo/queries";
 import client from "@/apollo/apolloClient";
 import Image from "next/image";
+// -------
+import generateGoogleFontsImport from "@/utils/generateGoogleFontsImport";
+import extractDesignColors from "@/utils/extractDesignColors";
+import extractTypography from "@/utils/extractTypography";
+import generateSassVariables from "@/utils/generateSassVariables";
+import generateFontSassVariables from "@/utils/generateFontSassVariables";
+// -------
+
+// -------
 import Button from "@/components/ui/Button/Button";
 import Loading from "@/components/ui/Loading/Loading";
 import Input from "@/components/ui/Input/Input";
 import { AnimatePresence, motion } from "framer-motion";
 import GoogleFontsImporter from "@/components/GoogleFontsImporter/GoogleFontsImporter";
+
 import "./figma.scss";
 
 export default function FigmaPage() {
@@ -48,7 +58,8 @@ export default function FigmaPage() {
   const [fonts, setFonts] = useState<any[]>([]);
   const [createFigmaProject, { loading }] = useMutation(CREATE_FIGMA_PROJECT);
   const [removeFigmaProject] = useMutation(REMOVE_FIGMA_PROJECT);
-
+  const sassCode = generateFontSassVariables(fonts, colors);
+  const [variablesCode, classesCode] = sassCode.split("// Typography classes");
   useSubscription(FIGMA_PROJECT_CREATED_SUBSCRIPTION, {
     onData: ({ data }) => {
       if (!data.data) return;
@@ -76,6 +87,10 @@ export default function FigmaPage() {
   useEffect(() => {
     console.log("<====colors====>", colors);
   }, [colors]);
+
+  useEffect(() => {
+    console.log("<====fonts====>", fonts);
+  }, [fonts]);
   // -----------------------
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,452 +143,7 @@ export default function FigmaPage() {
     }
   };
 
-  // -----------------------
-  // Функция для извлечения цветов
-  const extractDesignColors = (fileData: any, targetNodeId: string) => {
-    if (!fileData || !fileData.document) return [];
-
-    const colorMap = new Map();
-
-    // Функция для поиска узла по ID
-    const findNodeById = (node: any, nodeId: string): any => {
-      if (node.id === nodeId) return node;
-
-      if (node.children && Array.isArray(node.children)) {
-        for (const child of node.children) {
-          const found = findNodeById(child, nodeId);
-          if (found) return found;
-        }
-      }
-      return null;
-    };
-
-    // Находим целевой узел
-    const targetNode = findNodeById(fileData.document, targetNodeId);
-    if (!targetNode) {
-      console.log(`❌ Node with id ${targetNodeId} not found`);
-      return [];
-    }
-
-    console.log(
-      `🎯 Analyzing only node: ${targetNode.name} (${targetNode.type})`
-    );
-
-    const traverseOnlyTarget = (node: any) => {
-      if (!node) return;
-
-      // ✅ РАЗРЕШАЕМ ТОЛЬКО эти типы
-      const allowedTypes = ["TEXT", "FRAME", "RECTANGLE"];
-
-      if (!allowedTypes.includes(node.type)) {
-        if (node.children && Array.isArray(node.children)) {
-          node.children.forEach(traverseOnlyTarget);
-        }
-        return;
-      }
-
-      // ✅ ЦВЕТА ТЕКСТОВ
-      if (node.type === "TEXT") {
-        if (node.fills && Array.isArray(node.fills)) {
-          node.fills.forEach((fill: any) => {
-            if (fill.color && fill.visible !== false && fill.type === "SOLID") {
-              const color = fill.color;
-              const colorKey = `${color.r.toFixed(3)}-${color.g.toFixed(3)}-${color.b.toFixed(3)}-${color.a.toFixed(3)}`;
-
-              if (!colorMap.has(colorKey)) {
-                const r255 = Math.round(color.r * 255);
-                const g255 = Math.round(color.g * 255);
-                const b255 = Math.round(color.b * 255);
-
-                const toHex = (c: number) => {
-                  const hex = c.toString(16);
-                  return hex.length === 1 ? "0" + hex : hex;
-                };
-                const hex = `#${toHex(r255)}${toHex(g255)}${toHex(b255)}`;
-                const rgba = `rgba(${r255}, ${g255}, ${b255}, ${color.a.toFixed(2)})`;
-                const rgb = `rgb(${r255}, ${g255}, ${b255})`;
-
-                colorMap.set(colorKey, {
-                  r: color.r,
-                  g: color.g,
-                  b: color.b,
-                  a: color.a,
-                  formats: {
-                    hex: hex,
-                    rgb: rgb,
-                    rgba: rgba,
-                    rgbValues: `${r255}, ${g255}, ${b255}`,
-                  },
-                  type: "text",
-                  source: node.name || "Text",
-                  nodeType: node.type,
-                  fontSize: node.style?.fontSize,
-                  fontFamily: node.style?.fontFamily,
-                });
-              }
-            }
-          });
-        }
-      }
-
-      // ✅ ЦВЕТА ФОНОВ
-      if (
-        (node.type === "FRAME" || node.type === "RECTANGLE") &&
-        node.fills &&
-        Array.isArray(node.fills)
-      ) {
-        const nodeName = node.name || "";
-        const excludedNames = [
-          "icon",
-          "svg",
-          "vector",
-          "path",
-          "shape",
-          "graphic",
-          "illustration",
-        ];
-        const isExcludedName = excludedNames.some((name) =>
-          nodeName.toLowerCase().includes(name)
-        );
-
-        if (!isExcludedName) {
-          node.fills.forEach((fill: any) => {
-            if (fill.color && fill.visible !== false && fill.type === "SOLID") {
-              const color = fill.color;
-              const colorKey = `${color.r.toFixed(3)}-${color.g.toFixed(3)}-${color.b.toFixed(3)}-${color.a.toFixed(3)}`;
-
-              if (!colorMap.has(colorKey)) {
-                const r255 = Math.round(color.r * 255);
-                const g255 = Math.round(color.g * 255);
-                const b255 = Math.round(color.b * 255);
-
-                const toHex = (c: number) => {
-                  const hex = c.toString(16);
-                  return hex.length === 1 ? "0" + hex : hex;
-                };
-                const hex = `#${toHex(r255)}${toHex(g255)}${toHex(b255)}`;
-                const rgba = `rgba(${r255}, ${g255}, ${b255}, ${color.a.toFixed(2)})`;
-                const rgb = `rgb(${r255}, ${g255}, ${b255})`;
-
-                colorMap.set(colorKey, {
-                  r: color.r,
-                  g: color.g,
-                  b: color.b,
-                  a: color.a,
-                  formats: {
-                    hex: hex,
-                    rgb: rgb,
-                    rgba: rgba,
-                    rgbValues: `${r255}, ${g255}, ${b255}`,
-                  },
-                  type: "background",
-                  source: node.name || node.type,
-                  nodeType: node.type,
-                });
-              }
-            }
-          });
-        }
-      }
-
-      // Рекурсивно обходим дочерние элементы ТОЛЬКО этого узла
-      if (node.children && Array.isArray(node.children)) {
-        node.children.forEach(traverseOnlyTarget);
-      }
-    };
-
-    // Начинаем обход ТОЛЬКО с целевого узла
-    traverseOnlyTarget(targetNode);
-
-    const colors = Array.from(colorMap.values());
-    const filteredColors = colors.filter((color) => color.a > 0.1);
-
-    console.log(`🎨 Found ${filteredColors.length} colors in target node only`);
-
-    return filteredColors;
-  };
-  // -----------------------
-  // Функция для генерации Sass переменных
-  const generateSassVariables = (colors: any[]) => {
-    if (!colors.length) return "";
-
-    // Сортируем цвета по типу для логичной группировки
-    const sortedColors = [...colors].sort((a, b) => {
-      const typeOrder = { text: 1, background: 2, shadow: 3 };
-      return (typeOrder[a.type] || 4) - (typeOrder[b.type] || 4);
-    });
-
-    let sassCode = "// 🎨 Auto-generated Sass variables from Figma\n";
-
-    // Группируем по типам
-    const byType = {
-      text: sortedColors.filter((c) => c.type === "text"),
-      background: sortedColors.filter((c) => c.type === "background"),
-      shadow: sortedColors.filter((c) => c.type === "shadow"),
-    };
-
-    // Генерируем осмысленные имена переменных
-    const generateVariableName = (color: any, index: number, type: string) => {
-      const baseNames = {
-        text: [
-          "text",
-          "text-primary",
-          "text-secondary",
-          "text-muted",
-          "text-light",
-        ],
-        background: [
-          "bg",
-          "bg-primary",
-          "bg-secondary",
-          "bg-muted",
-          "bg-light",
-        ],
-        shadow: ["shadow", "shadow-light", "shadow-dark"],
-      };
-
-      // Если есть осмысленное имя из source
-      const sourceName = color.source.toLowerCase();
-      if (sourceName.includes("primary") || sourceName.includes("main")) {
-        return `${type}-primary`;
-      }
-      if (sourceName.includes("secondary")) {
-        return `${type}-secondary`;
-      }
-      if (sourceName.includes("muted") || sourceName.includes("light")) {
-        return `${type}-muted`;
-      }
-      if (sourceName.includes("dark")) {
-        return `${type}-dark`;
-      }
-
-      // Используем базовые имена или генерируем по индексу
-      return baseNames[type]?.[index] || `${type}-${index + 1}`;
-    };
-
-    // Генерируем переменные для каждого типа
-    Object.entries(byType).forEach(([type, typeColors]) => {
-      if (typeColors.length > 0) {
-        sassCode += `// ${type.charAt(0).toUpperCase() + type.slice(1)} colors\n`;
-
-        typeColors.forEach((color, index) => {
-          const varName = generateVariableName(color, index, type);
-          sassCode += `$${varName}: ${color.formats.hex};\n`;
-        });
-
-        sassCode += "\n";
-      }
-    });
-
-    // Добавляем общие utility переменные
-    sassCode += `// Utility colors\n`;
-    sassCode += `$success: #28a745;\n`;
-    sassCode += `$danger: #dc3545;\n`;
-    sassCode += `$warning: #ffc107;\n`;
-    sassCode += `$info: #17a2b8;\n`;
-    sassCode += `$white: #ffffff;\n`;
-    sassCode += `$black: #000000;\n`;
-    sassCode += `$transparent: transparent;\n`;
-
-    return sassCode;
-  };
-  // -----------------------
-  // Функция для извлечения шрифтов
-  // Функция для извлечения шрифтов
-  const extractTypography = (fileData: any, targetNodeId: string) => {
-    if (!fileData || !fileData.document) return [];
-
-    const fontMap = new Map();
-
-    // Функция для поиска узла по ID
-    const findNodeById = (node: any, nodeId: string): any => {
-      if (node.id === nodeId) return node;
-
-      if (node.children && Array.isArray(node.children)) {
-        for (const child of node.children) {
-          const found = findNodeById(child, nodeId);
-          if (found) return found;
-        }
-      }
-      return null;
-    };
-
-    // Находим целевой узел
-    const targetNode = findNodeById(fileData.document, targetNodeId);
-    if (!targetNode) return [];
-
-    const traverseForFonts = (node: any) => {
-      if (!node) return;
-
-      // Ищем только TEXT узлы
-      if (node.type === "TEXT" && node.style) {
-        const fontStyle = node.style;
-
-        // ✅ ОКРУГЛЯЕМ line-height до целого числа
-        const lineHeight = fontStyle.lineHeightPx
-          ? Math.round(fontStyle.lineHeightPx)
-          : null;
-
-        // Создаем уникальный ключ для комбинации свойств шрифта
-        const fontKey = `${fontStyle.fontFamily}-${fontStyle.fontWeight}-${fontStyle.fontSize}-${lineHeight}`;
-
-        if (!fontMap.has(fontKey)) {
-          fontMap.set(fontKey, {
-            fontFamily: fontStyle.fontFamily,
-            fontWeight: fontStyle.fontWeight,
-            fontSize: fontStyle.fontSize,
-            lineHeightPx: lineHeight, // ✅ Теперь целое число
-            lineHeightPercent: fontStyle.lineHeightPercentFontSize,
-            letterSpacing: fontStyle.letterSpacing,
-            textCase: fontStyle.textCase,
-            textDecoration: fontStyle.textDecoration,
-            source: node.name || "Text",
-            sampleText: node.characters || "Sample text",
-          });
-        }
-      }
-
-      // Рекурсивно обходим дочерние элементы
-      if (node.children && Array.isArray(node.children)) {
-        node.children.forEach(traverseForFonts);
-      }
-    };
-
-    // Начинаем обход с целевого узла
-    traverseForFonts(targetNode);
-
-    return Array.from(fontMap.values());
-  };
-
   // Функция для генерации Sass переменных для шрифтов
-  const generateFontSassVariables = (fonts: any[]) => {
-    if (!fonts.length) return "";
-
-    // Сортируем шрифты по размеру
-    const sortedFonts = [...fonts].sort((a, b) => a.fontSize - b.fontSize);
-
-    let sassCode = "// 🔤 Auto-generated Font variables from Figma\n";
-    sassCode += "// Extracted typography from design system\n\n";
-
-    // Генерируем переменные для размеров шрифтов
-    sassCode += "// Font sizes\n";
-    const sizeNames = ["xs", "sm", "base", "lg", "xl", "2xl", "3xl", "4xl"];
-
-    sortedFonts.forEach((font, index) => {
-      const sizeName = sizeNames[index] || `text-${index + 1}`;
-      sassCode += `$${sizeName}-font-size: ${font.fontSize}px;\n`;
-    });
-
-    sassCode += "\n";
-
-    // Генерируем переменные для line-height
-    sassCode += "// Line heights\n";
-    sortedFonts.forEach((font, index) => {
-      if (font.lineHeightPx) {
-        const sizeName = sizeNames[index] || `text-${index + 1}`;
-        sassCode += `$${sizeName}-line-height: ${font.lineHeightPx}px;\n`;
-      }
-    });
-
-    sassCode += "\n";
-
-    // Генерируем переменные для font-weights
-    sassCode += "// Font weights\n";
-    const uniqueWeights = [...new Set(fonts.map((f) => f.fontWeight))].sort();
-    uniqueWeights.forEach((weight) => {
-      const weightName = getWeightName(weight);
-      sassCode += `$font-weight-${weightName}: ${weight};\n`;
-    });
-
-    sassCode += "\n";
-
-    // Генерируем mixins или классы для типографики
-    sassCode += "// Typography mixins\n";
-    sortedFonts.forEach((font, index) => {
-      const sizeName = sizeNames[index] || `text-${index + 1}`;
-      const weightName = getWeightName(font.fontWeight);
-
-      sassCode += `@mixin ${sizeName}-text {\n`;
-      sassCode += `  font-family: ${font.fontFamily};\n`;
-      sassCode += `  font-size: $${sizeName}-font-size;\n`;
-      sassCode += `  font-weight: $font-weight-${weightName};\n`;
-      if (font.lineHeightPx) {
-        sassCode += `  line-height: $${sizeName}-line-height;\n`; // ✅ Используем переменную
-      }
-      if (font.letterSpacing) {
-        sassCode += `  letter-spacing: ${font.letterSpacing}px;\n`;
-      }
-      sassCode += `}\n\n`;
-    });
-
-    return sassCode;
-  };
-
-  // Вспомогательная функция для названий font-weight
-  const getWeightName = (weight: number) => {
-    const weightMap: { [key: number]: string } = {
-      100: "thin",
-      200: "extra-light",
-      300: "light",
-      400: "normal",
-      500: "medium",
-      600: "semi-bold",
-      700: "bold",
-      800: "extra-bold",
-      900: "black",
-    };
-    return weightMap[weight] || weight.toString();
-  };
-  // -----------------------
-  // Функция для генерации @import строки Google Fonts с реальными весами
-  const generateGoogleFontsImport = (fonts: any[]) => {
-    const fontFamilies = [...new Set(fonts.map((font) => font.fontFamily))];
-
-    // Фильтруем только не-системные шрифты
-    const googleFonts = fontFamilies.filter((fontFamily) => {
-      const lowerName = fontFamily.toLowerCase();
-      const systemFonts = [
-        "arial",
-        "helvetica",
-        "times",
-        "courier",
-        "verdana",
-        "georgia",
-        "tahoma",
-      ];
-      return !systemFonts.some((sysFont) => lowerName.includes(sysFont));
-    });
-
-    if (googleFonts.length === 0) return "";
-
-    const fontParams = googleFonts.map((family) => {
-      // Находим все реально используемые веса для этого шрифта
-      const weights = fonts
-        .filter((font) => font.fontFamily === family)
-        .map((font) => font.fontWeight)
-        .filter((weight, index, arr) => arr.indexOf(weight) === index)
-        .sort((a, b) => a - b);
-
-      console.log(`🔤 ${family} weights:`, weights);
-
-      // Формируем параметры для Google Fonts
-      const familyName = family.replace(/ /g, "+");
-
-      if (weights.length === 0) {
-        return `family=${familyName}`;
-      }
-
-      // ✅ ПРАВИЛЬНЫЙ ФОРМАТ: просто перечисляем веса через ; без 0,
-      const weightString = weights.join(";");
-      return `family=${familyName}:wght@${weightString}`;
-    });
-
-    const importString = `@import url('https://fonts.googleapis.com/css2?${fontParams.join("&")}&display=swap');`;
-    console.log("📦 Final import string:", importString);
-
-    return importString;
-  };
-  // -----------------------
 
   // -----------------------
   const fetchFigma = async (project: any) => {
@@ -624,6 +194,8 @@ export default function FigmaPage() {
       setLoadingImg(false);
     }
   };
+
+  // =======================
   const handleRemoved = async (id) => {
     const removedProject = await removeFigmaProject({
       variables: { figmaProjectId: id },
@@ -639,8 +211,25 @@ export default function FigmaPage() {
     setFonts([]);
     console.log("<====removedProject====>", removedProject);
   };
+  // =======================
+  // Генерируем уникальные комбинации и соответствие классов
+  const fontCombinationsMap = new Map();
+  const sizeNames = ["xs", "sm", "base", "lg", "xl", "2xl", "3xl", "4xl"];
 
-  https: return (
+  const sortedFonts = [...fonts].sort((a, b) => a.fontSize - b.fontSize);
+
+  sortedFonts.forEach((font, index) => {
+    const key = `${font.fontFamily}-${font.fontWeight}-${font.fontSize}-${font.lineHeightPx}`;
+    if (!fontCombinationsMap.has(key)) {
+      const sizeName = sizeNames[index] || `text-${index + 1}`;
+      fontCombinationsMap.set(key, {
+        className: `${sizeName}-text`,
+        font,
+      });
+    }
+  });
+  // =======================
+  return (
     <div className="figma">
       {/* ✅ ДОБАВЛЯЕМ ИМПОРТЕР ШРИФТОВ */}
       <GoogleFontsImporter importString={googleFontsImport} />
@@ -702,10 +291,12 @@ export default function FigmaPage() {
           <button
             className="btn btn-allert cursor-pointer mt-4"
             onClick={() => {
-              setImageUrl("");
               setProjectName("");
               setFileData(null);
               setColors([]);
+              setImageUrl(null);
+              setGoogleFontsImport("");
+              setFonts([]);
             }}
           >
             Clear
@@ -768,10 +359,10 @@ export default function FigmaPage() {
               className="mt-2 btn btn-primary text-sm"
               onClick={() => {
                 navigator.clipboard.writeText(generateSassVariables(colors));
-                alert("Sass variables copied to clipboard!");
+                setModalMessage("Sass variables copied to clipboard!");
               }}
             >
-              📋 Copy Sass
+              📋 Copy colors Sass
             </button>
 
             <h3 className="text-lg font-bold mt-4 mb-3">
@@ -819,150 +410,104 @@ export default function FigmaPage() {
               🔤 Typography ({fonts.length})
             </h3>
 
-            {/* SASS ПЕРЕМЕННЫЕ ДЛЯ ШРИФТОВ */}
             <div className="mb-4">
               <h4 className="font-bold mb-2">Font Sass Variables:</h4>
-              <div className="bg-gray-900 text-blue-400 p-4 rounded-lg overflow-auto max-h-48">
-                <pre className="text-sm whitespace-pre-wrap">
-                  {generateFontSassVariables(fonts)}
-                </pre>
+              <div className="grid grid-cols-2 gap-3">
+                {/* Переменные */}
+                <button
+                  className="bg-gray-100 p-3 rounded text-left"
+                  onClick={() => {
+                    navigator.clipboard.writeText(variablesCode);
+                    setModalMessage("Font variables copied!");
+                  }}
+                >
+                  <pre className="text-xs text-gray-600 font-mono">
+                    {variablesCode}
+                  </pre>
+                </button>
+
+                {/* Классы */}
+                <button
+                  className="bg-gray-900 p-3 rounded text-left"
+                  onClick={() => {
+                    navigator.clipboard.writeText(classesCode);
+                    setModalMessage("Typography classes copied!");
+                  }}
+                >
+                  <pre className="text-xs text-green-400 font-mono">
+                    {classesCode}
+                  </pre>
+                </button>
               </div>
-              <button
-                className="mt-2 btn btn-primary text-sm cursor-pointer"
-                onClick={() => {
-                  navigator.clipboard.writeText(
-                    generateFontSassVariables(fonts)
-                  );
-                  setModalMessage("Font variables copied to clipboard!");
-                }}
-              >
-                📋 Copy Font Sass
-              </button>
             </div>
 
             {/* ВИЗУАЛЬНОЕ ОТОБРАЖЕНИЕ ШРИФТОВ */}
             <div className="space-y-4">
               {fonts.map((font, index) => {
-                const isGoogleFont = ![
-                  "arial",
-                  "helvetica",
-                  "times",
-                  "courier",
-                  "verdana",
-                  "georgia",
-                  "tahoma",
-                ].some((sysFont) =>
-                  font.fontFamily.toLowerCase().includes(sysFont)
-                );
+                // Ключ для поиска в Map
+                const key = `${font.fontFamily}-${font.fontWeight}-${font.fontSize}-${font.lineHeightPx}`;
+                const matchedClass =
+                  fontCombinationsMap.get(key)?.className ||
+                  `.font-${index + 1}-text`;
 
-                // Генерируем имя миксина на основе размера
-                const sizeNames = [
-                  "xs",
-                  "sm",
-                  "base",
-                  "lg",
-                  "xl",
-                  "2xl",
-                  "3xl",
-                  "4xl",
-                ];
-                const mixinName = sizeNames[index] || `text-${index + 1}`;
+                // Генерируем CSS-свойства для копирования
+                const classCode = `
+.${matchedClass} {
+  font-family: '${font.fontFamily}', sans-serif;
+  font-size: ${font.fontSize}px;
+  font-weight: ${font.fontWeight};
+  line-height: ${font.lineHeightPx || "auto"}px;
+  ${font.letterSpacing ? `letter-spacing: ${font.letterSpacing}px;` : ""}
+  color: ${font.color || "#000"};
+}`.trim();
 
                 return (
-                  <div key={index} className="border rounded-lg p-4 bg-white">
-                    {/* Заголовок с именем миксина */}
-                    <div className="flex justify-between items-center mb-3">
-                      {/* <h4 className="font-bold text-lg">
-                        Mixin: @include {mixinName}-text
-                      </h4> */}
-                      <span
-                        className={`px-2 py-1 rounded text-xs ${
-                          isGoogleFont
-                            ? "bg-green-100 text-green-800"
-                            : "bg-blue-100 text-blue-800"
-                        }`}
-                      >
-                        {isGoogleFont ? "🌐 Google Font" : "💻 System Font"}
-                      </span>
-                    </div>
-
-                    {/* Пример текста со шрифтом */}
+                  <div key={index} className="border rounded p-3 bg-slate-300">
+                    {/* Визуальный пример текста */}
                     <div
+                      className={`${matchedClass} border
+                      rounded
+                      p-3`}
                       style={{
-                        fontFamily: isGoogleFont
-                          ? `"${font.fontFamily}", sans-serif`
-                          : font.fontFamily,
+                        fontFamily: font.fontFamily,
                         fontWeight: font.fontWeight,
-                        fontSize: `${font.fontSize}px`,
-                        lineHeight: font.lineHeightPx
-                          ? `${font.lineHeightPx}px`
-                          : "normal",
-                        letterSpacing: font.letterSpacing
-                          ? `${font.letterSpacing}px`
-                          : "normal",
-                      }}
-                      className="mb-3 p-2 border rounded bg-gray-50  flex items-center cursor-pointer"
-                      onClick={() => {
-                        navigator.clipboard.writeText(font.sampleText);
-                        setModalMessage("Text copied to clipboard!");
+                        fontSize: font.fontSize,
+                        // lineHeight: font.lineHeightPx,
+                        letterSpacing: font.letterSpacing,
+                        color: font.color || "#000",
                       }}
                     >
-                      {font.sampleText ||
-                        `This is how ${font.fontFamily} looks at ${font.fontSize}px - The quick brown fox jumps over the lazy dog`}
+                      {font.sampleText}
                     </div>
 
-                    {/* Детали шрифта */}
-                    <div className=" grid grid-cols-2 md:grid-cols-4 gap-3">
-                      <button
-                        className="bg-gray-100 p-2 rounded w-full text-left cursor-pointer"
-                        onClick={() => {
-                          const cssCode = `
-font-family: '${font.fontFamily}', sans-serif;
-font-size: ${font.fontSize}px;
-font-weight: ${font.fontWeight};
-line-height: ${font.lineHeightPx || "auto"}px;
-${font.letterSpacing ? `letter-spacing: ${font.letterSpacing}px;` : ""}
-    `.trim();
+                    {/* Свойства шрифта */}
+                    <div className="text-md text-gray-900 mb-2">
+                      <p>
+                        Font family: &quot; {font.fontFamily}&quot; ,
+                        sans-serif;
+                      </p>
+                      <p>Font size: {font.fontSize}px;</p>
+                      <p>Font weight: {font.fontWeight};</p>
+                      {font.lineHeightPx && (
+                        <p>Line height: {font.lineHeightPx}px;</p>
+                      )}
+                      {font.letterSpacing !== 0 && (
+                        <p>Letter spacing: {font.letterSpacing}px;</p>
+                      )}
 
-                          navigator.clipboard.writeText(cssCode);
-                          setModalMessage("CSS copied to clipboard!");
-                        }}
-                      >
-                        <div className="text-md text-gray-500 font-mono space-y-1">
-                          <div>
-                            font-family: &apos;{font.fontFamily}&apos;,
-                            sans-serif;
-                          </div>
-                          <div>font-size: {font.fontSize}px;</div>
-                          <div>font-weight: {font.fontWeight};</div>
-                          <div>
-                            line-height: {font.lineHeightPx || "auto"}px;
-                          </div>
-                          {font.letterSpacing !== 0 && (
-                            <div>letter-spacing: {font.letterSpacing}px;</div>
-                          )}
-                        </div>
-                      </button>
-                      {/* <div className="bg-gray-100 p-2 rounded">
-                        <div className="text-xs text-gray-500">Source:</div>
-                        <strong>{font.source}</strong>
-                      </div> */}
-
-                      {/* Код миксина */}
-                      <button
-                        className="p-2 bg-gray-900 rounded text-lg w-full"
-                        onClick={() => {
-                          navigator.clipboard.writeText(
-                            `@include ${mixinName}-text;`
-                          );
-                          setModalMessage("Mixin copied to clipboard!");
-                        }}
-                      >
-                        <div className="text-green-400 font-mono">
-                          @include {mixinName}-text;
-                        </div>
-                      </button>
+                      {font.color && <p>Color: {font.color};</p>}
                     </div>
+
+                    {/* Кнопка копирования класса */}
+                    <button
+                      className="p-2 bg-gray-900 inline-block rounded text-green-400 font-mono w-full"
+                      onClick={() => {
+                        navigator.clipboard.writeText(classCode);
+                        setModalMessage(`Font class copied: ${matchedClass}`);
+                      }}
+                    >
+                      .{matchedClass}
+                    </button>
                   </div>
                 );
               })}
