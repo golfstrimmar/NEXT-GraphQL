@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { useStateContext } from "@/providers/StateProvider";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useSubscription } from "@apollo/client";
@@ -8,6 +9,7 @@ import {
   CREATE_FIGMA_PROJECT,
   REMOVE_FIGMA_PROJECT,
   FIGMA_PROJECT_CREATED_SUBSCRIPTION,
+  UPLOAD_FIGMA_IMAGES_TO_CLOUDINARY,
 } from "@/apollo/mutations";
 import {
   GET_FIGMA_PROJECTS_BY_USER,
@@ -52,10 +54,20 @@ export default function FigmaPage() {
     skip: !user,
     fetchPolicy: "cache-and-network",
   });
+  const [uploadFigmaImagesToCloudinary] = useMutation(
+    UPLOAD_FIGMA_IMAGES_TO_CLOUDINARY
+  );
+
   const [fileData, setFileData] = useState<any>(null);
   const [projectName, setProjectName] = useState<string>("");
   const [colors, setColors] = useState<any[]>([]);
   const [fonts, setFonts] = useState<any[]>([]);
+  const [imagesFromFigma, setImagesFromFigma] = useState<
+    { imageRef: string; url: string }[]
+  >([]);
+
+  // ----------
+  // ----------
   const [createFigmaProject, { loading }] = useMutation(CREATE_FIGMA_PROJECT);
   const [removeFigmaProject] = useMutation(REMOVE_FIGMA_PROJECT);
   const sassCode = generateFontSassVariables(fonts, colors);
@@ -85,12 +97,18 @@ export default function FigmaPage() {
   }, [data]);
 
   useEffect(() => {
-    console.log("<====colors====>", colors);
-  }, [colors]);
+    if (projects.length > 0) {
+      console.log("<====projects====>", projects);
+    }
+  }, [projects]);
 
-  useEffect(() => {
-    console.log("<====fonts====>", fonts);
-  }, [fonts]);
+  // useEffect(() => {
+  //   console.log("<====colors====>", colors);
+  // }, [colors]);
+
+  // useEffect(() => {
+  //   console.log("<====fonts====>", fonts);
+  // }, [fonts]);
   // -----------------------
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,13 +166,15 @@ export default function FigmaPage() {
   // -----------------------
   const fetchFigma = async (project: any) => {
     if (!project?.id) return;
+    console.log("<====📦 project ====>", project);
     setColors([]);
     setProjectName(project.name);
+
     try {
       setLoadingImg(true);
       setModalMessage(null);
 
-      // GraphQL-запрос к серверу за полными данными проекта
+      // 📡 Запрашиваем проект из GraphQL
       const { data } = await client.query({
         query: GET_FIGMA_PROJECT_DATA,
         variables: { projectId: project.id },
@@ -165,36 +185,86 @@ export default function FigmaPage() {
 
       if (!projectData?.images) throw new Error("Images not found");
 
-      // Берём URL изображения по nodeId
       const url = projectData.images[project.nodeId];
       if (!url) throw new Error("Image URL not found");
 
       setImageUrl(url);
       setFileData(projectData.file);
-      // ✅ ИЗВЛЕКАЕМ ЦВЕТА
-      const extractedColors = extractDesignColors(
-        projectData.file,
-        project.nodeId
-      );
-      setColors(extractedColors);
-      // ✅ Извлекаем шрифты
-      const extractedFonts = extractTypography(
-        projectData.file,
-        project.nodeId
-      );
-      setFonts(extractedFonts);
-      // ✅ Генерируем и сохраняем import строку
-      const importString = generateGoogleFontsImport(extractedFonts);
-      setGoogleFontsImport(importString);
-      console.log("🎨 Colors:", extractedColors);
-      console.log("🔤 Fonts:", extractedFonts);
+
+      // 🎨 Извлекаем цвета
+      // const extractedColors = extractDesignColors(
+      //   projectData.file,
+      //   project.nodeId
+      // );
+      // setColors(extractedColors);
+
+      // 🔤 Извлекаем шрифты
+      // const extractedFonts = extractTypography(
+      //   projectData.file,
+      //   project.nodeId
+      // );
+      // setFonts(extractedFonts);
+
+      // 🪄 Формируем строку импорта Google Fonts
+      // const importString = generateGoogleFontsImport(extractedFonts);
+      // setGoogleFontsImport(importString);
+
+      // // ☁️ Загружаем изображения в Cloudinary через GraphQL
+      // const uploadRes = await uploadFigmaImagesToCloudinary({
+      //   variables: { projectId: project.id },
+      // });
+
+      // const uploaded = uploadRes.data?.uploadFigmaImagesToCloudinary || [];
+      // console.log("☁️ Uploaded to Cloudinary:", uploaded);
+
+      // if (uploaded.length > 0) {
+      //   setImagesFromFigma(uploaded);
+      //   setModalMessage(`Uploaded ${uploaded.length} images to Cloudinary.`);
+      // } else {
+      //   setModalMessage("No images were uploaded to Cloudinary.");
+      //   setImagesFromFigma([]);
+      // }
     } catch (err: any) {
+      console.error("❌ Ошибка при загрузке:", err);
       setModalMessage(err.message);
     } finally {
       setLoadingImg(false);
     }
   };
 
+  // =======================t
+  const FigmaFonts = async (project: any) => {
+    if (!project?.id) return;
+    console.log("<====📦 project ====>", project);
+
+    try {
+      setModalMessage(null);
+      // 📡 Запрашиваем проект из GraphQL
+      const { data } = await client.query({
+        query: GET_FIGMA_PROJECT_DATA,
+        variables: { projectId: project.id },
+        fetchPolicy: "network-only",
+      });
+
+      const projectData = data.getFigmaProjectData;
+
+      // 🔤 Извлекаем шрифты
+      const extractedFonts = extractTypography(
+        projectData.file,
+        project.nodeId
+      );
+      setFonts(extractedFonts);
+
+      // 🪄 Формируем строку импорта Google Fonts
+      const importString = generateGoogleFontsImport(extractedFonts);
+      setGoogleFontsImport(importString);
+    } catch (err: any) {
+      console.error("❌ Ошибка при загрузке:", err);
+      setModalMessage(err.message);
+    } finally {
+      setLoadingImg(false);
+    }
+  };
   // =======================
   const handleRemoved = async (id) => {
     const removedProject = await removeFigmaProject({
@@ -203,6 +273,7 @@ export default function FigmaPage() {
     setProjects((prev) => {
       return prev.filter((p) => p.id !== id);
     });
+    setModalMessage("Project removed");
     setProjectName("");
     setFileData(null);
     setColors([]);
@@ -229,30 +300,56 @@ export default function FigmaPage() {
     }
   });
   // =======================
+
+  // =======================
   return (
     <div className="figma">
       {/* ✅ ДОБАВЛЯЕМ ИМПОРТЕР ШРИФТОВ */}
       <GoogleFontsImporter importString={googleFontsImport} />
       <div className="container">
+        <h2 className="text-center mb-4">Figma projects</h2>
         <div className="figma-projects">
-          <h1 className="text-center mb-4">Figma projects</h1>
-
           {projects.length === 0 && <p>No projects found</p>}
-          <ul className="flex flex-col gap-2">
+          <ul className="grid grid-cols-[repeat(auto-fit,_minmax(500px,_1fr))] gap-2">
             {projects.map((proj) => (
-              <li key={proj.id} className="bg-[#f3f3f3] p-2">
-                <div className="flex gap-2 items-center">
-                  <p>Project name:</p>
-                  <h3>{proj.name}</h3>
+              <li
+                key={proj.id}
+                className="bg-[#f3f3f3] p-2 flex flex-col gap-2"
+              >
+                <div className=" grid grid-cols-[max-content_1fr] gap-4">
+                  <div className="flex flex-col gap-1 ">
+                    <p>
+                      Project name: <strong>{proj.name}</strong>
+                    </p>
+                    <p>File Key: {proj.fileKey}</p>
+                    <p>Node ID: {proj.nodeId}</p>
+                  </div>
+                  {proj.previewUrl && (
+                    <div className="max-h-[300px] overflow-y-auto">
+                      <img
+                        src={proj.previewUrl}
+                        alt="Figma Preview"
+                        className="border   rounded-sm shadow-[0_0_10px_0_rgba(0,0,0,0.4)]"
+                      />
+                    </div>
+                  )}
                 </div>
-                <p>File Key: {proj.fileKey}</p>
-                <p>Node ID: {proj.nodeId}</p>
-                <div className="flex gap-2 mt-4">
+                <div className="flex gap-2 max-h-[26px] mt-auto">
+                  <Link href={`/figma/${proj.id}`}>
+                    <h2 className="text-lg font-bold">{proj.name}</h2>
+                  </Link>
+
                   <button
                     className="btn btn-primary"
                     onClick={() => fetchFigma(proj)}
                   >
                     See details
+                  </button>
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => FigmaFonts(proj)}
+                  >
+                    Fonts fron Figma
                   </button>
                   <button
                     className="btn btn-allert"
@@ -264,6 +361,7 @@ export default function FigmaPage() {
               </li>
             ))}
           </ul>
+          {/* =========== create project  ============ */}
           <div className="inline-block mt-2">
             {!modalOpen && (
               <Button
@@ -304,46 +402,19 @@ export default function FigmaPage() {
         )}
         {fileData && (
           <div className="mt-6">
-            <h3 className="text-lg font-bold mb-3">
-              📁 Project &nbsp;
+            <h3 className="text-[14px]! mb-3">
+              📊 Project: &nbsp;
               <span className="text-bold text-2xl text-blue-900">
                 {projectName}
               </span>
-              &nbsp; Structure:
             </h3>
-            <div className="bg-gray-100 p-4 rounded-lg overflow-auto max-h-96">
-              <pre className="text-xs whitespace-pre-wrap">
-                {JSON.stringify(fileData, null, 2)}
-              </pre>
-            </div>
-
-            {/* ✅ БЫСТРЫЙ ПРЕВЬЮ КЛЮЧЕВЫХ ДАННЫХ */}
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-blue-50 p-3 rounded">
-                <h4 className="font-bold">📊 Document Info</h4>
-                <p>Name: {fileData.name}</p>
-                <p>Version: {fileData.version}</p>
-                <p>Last modified: {fileData.lastModified}</p>
-              </div>
-
-              <div className="bg-green-50 p-3 rounded">
-                <h4 className="font-bold">🎨 Styles</h4>
-                <p>
-                  Count:{" "}
-                  {fileData.styles ? Object.keys(fileData.styles).length : 0}
-                </p>
-              </div>
-
-              <div className="bg-yellow-50 p-3 rounded">
-                <h4 className="font-bold">🔤 Components</h4>
-                <p>
-                  Count:{" "}
-                  {fileData.components
-                    ? Object.keys(fileData.components).length
-                    : 0}
-                </p>
-              </div>
-            </div>
+            <p>Name: {fileData.name}</p>
+            <p>Version: {fileData.version}</p>
+            <p>Last modified: {fileData.lastModified}</p>
+            {/* <p>
+              Styles cou:
+              {fileData.styles ? Object.keys(fileData.styles).length : 0}
+            </p> */}
           </div>
         )}
         {/* ✅✅✅✅✅✅✅ ЦВЕТА */}
@@ -514,6 +585,22 @@ export default function FigmaPage() {
             </div>
           </div>
         )}
+        {/* ✅✅✅✅✅✅ КАРТИНКИ */}
+        {imagesFromFigma.length > 0 && (
+          <div className="grid grid-cols-3 gap-4 mt-6">
+            {imagesFromFigma.map((img) => (
+              <div key={img.imageRef} className="flex flex-col items-center">
+                <img
+                  src={img.url}
+                  alt={img.imageRef}
+                  className="w-32 h-32 object-contain border rounded-lg shadow"
+                />
+                <p className="text-xs text-gray-500 mt-1">{img.imageRef}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* ========================= */}
         {imageUrl && (
           <div className="p-1  mt-4 mb-4">

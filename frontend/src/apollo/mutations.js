@@ -132,6 +132,7 @@ export const GET_FIGMA_PROJECTS_BY_USER = gql`
       name
       fileKey
       nodeId
+      previewUrl
       token
     }
   }
@@ -155,6 +156,7 @@ export const CREATE_FIGMA_PROJECT = gql`
     ) {
       id
       name
+      previewUrl
     }
   }
 `;
@@ -165,6 +167,19 @@ export const REMOVE_FIGMA_PROJECT = gql`
     removeFigmaProject(figmaProjectId: $figmaProjectId)
   }
 `;
+
+// === Загрузка изображений Figma в Cloudinary ===
+export const UPLOAD_FIGMA_IMAGES_TO_CLOUDINARY = gql`
+  mutation UploadFigmaImagesToCloudinary($projectId: ID!) {
+    uploadFigmaImagesToCloudinary(projectId: $projectId) {
+      imageRef
+      url
+    }
+  }
+`;
+
+
+
 // ==========================
 export const USER_CREATED_SUBSCRIPTION = gql`
   subscription UserCreated {
@@ -183,6 +198,7 @@ export const FIGMA_PROJECT_CREATED_SUBSCRIPTION = gql`
       name
       fileKey
       nodeId
+      previewUrl
       owner {
         id
         name

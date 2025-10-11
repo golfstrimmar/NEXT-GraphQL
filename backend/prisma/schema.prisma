@@ -8,43 +8,58 @@ generator client {
 }
 
 model User {
-  id        Int       @id @default(autoincrement())
-  email     String    @unique
-  name      String
-  password  String?
-  createdAt DateTime  @default(now())
-  googleId  String?   @unique
-  picture   String?
-  projects  Project[] @relation("UserProjects")
+  id            Int            @id @default(autoincrement())
+  email         String         @unique
+  name          String
+  password      String?
+  createdAt     DateTime       @default(now())
+  googleId      String?        @unique
+  picture       String?
+  projects      Project[]      @relation("UserProjects")
   figmaProjects FigmaProject[] @relation("UserFigmaProjects")
 }
 
 model Project {
   id        Int      @id @default(autoincrement())
   name      String
-  data      Json     // JSON-объект с данными проекта
+  data      Json // JSON-объект с данными проекта
   createdAt DateTime @default(now())
 
-  owner     User     @relation("UserProjects", fields: [ownerId], references: [id], onDelete: Cascade)
-  ownerId   Int
+  owner   User @relation("UserProjects", fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId Int
 
   @@unique([ownerId, name])
 }
+
 model FigmaProject {
   id        Int      @id @default(autoincrement())
   name      String
-  fileKey   String   // ключ файла Figma (из URL)
-  nodeId    String   // ID нужного фрейма
-  token     String   // персональный токен пользователя
+  fileKey   String
+  nodeId    String
+  token     String
   createdAt DateTime @default(now())
   owner     User     @relation("UserFigmaProjects", fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId   Int
 
+  figmaImages FigmaImage[] @relation("ProjectImages") // 👈 добавили связь
+
   @@unique([ownerId, name])
 }
+
+model FigmaImage {
+  id             Int          @id @default(autoincrement())
+  fileName       String
+  filePath       String
+  nodeId         String
+  imageRef       String
+  createdAt      DateTime     @default(now())
+  figmaProject   FigmaProject @relation("ProjectImages", fields: [figmaProjectId], references: [id], onDelete: Cascade)
+  figmaProjectId Int
+}
+
 model JsonDocument {
   id        Int      @id @default(autoincrement())
   name      String   @unique
-  content   Json     // здесь хранится JSON-структура
+  content   Json // здесь хранится JSON-структура
   createdAt DateTime @default(now())
 }

@@ -1,12 +1,12 @@
 import { gql } from "graphql-tag";
 
 export const typeDefs = gql`
+  scalar JSON
+
   type ProjectSummary {
     id: ID!
     name: String!
   }
-
-  scalar JSON
 
   type User {
     id: ID!
@@ -15,25 +15,32 @@ export const typeDefs = gql`
     createdAt: String!
     googleId: String
     picture: String
-    projects: [ProjectSummary!]! # массив обычных проектов
-    figmaProjects: [FigmaProject!]! # массив Figma-проектов
+    projects: [ProjectSummary!]!
+    figmaProjects: [FigmaProject!]!
   }
 
   type JsonDocument {
     id: ID!
     name: String!
-    content: JSON! # теперь JSON-объект
+    content: JSON!
     createdAt: String!
   }
 
   type Project {
     id: ID!
     name: String!
-    data: String! # JSON в виде строки
+    data: String!
     createdAt: String!
     owner: User!
   }
 
+  # 🖼️ Тип для изображений из Figma
+  type FigmaImage {
+    imageRef: String!
+    url: String!
+  }
+
+  # 🎨 Проект из Figma
   type FigmaProject {
     id: ID!
     name: String!
@@ -42,27 +49,24 @@ export const typeDefs = gql`
     token: String!
     createdAt: String!
     owner: User!
+    previewUrl: String
   }
+
+  # Полные данные проекта Figma (включая JSON-файл и изображения)
   type FigmaProjectData {
     id: ID!
     name: String!
     fileKey: String!
     nodeId: String!
+    token: String!
     images: JSON!
     file: JSON!
+    previewUrl: String
   }
+
   type AuthPayload {
     token: String!
     user: User!
-  }
-
-  type Query {
-    users: [User!]!
-    project(id: ID!): Project
-    jsonDocumentByName(name: String!): JsonDocument
-    figmaProject(id: ID!): FigmaProject
-    figmaProjectsByUser(userId: ID!): [FigmaProject!]!
-    getFigmaProjectData(projectId: ID!): FigmaProjectData!
   }
 
   type ProjectResponse {
@@ -75,11 +79,33 @@ export const typeDefs = gql`
     name: String!
   }
 
+  type Query {
+    # 👥 Пользователи
+    users: [User!]!
+
+    # 📁 Проекты
+    project(id: ID!): Project
+    jsonDocumentByName(name: String!): JsonDocument
+
+    # 🎨 Figma проекты
+    figmaProject(id: ID!): FigmaProject
+    figmaProjectsByUser(userId: ID!): [FigmaProject!]!
+    getFigmaProjectData(projectId: ID!): FigmaProjectData!
+  }
+
   type Mutation {
+    # 👥 Пользователи
     createUser(name: String!, email: String!, password: String!): User!
     loginUser(email: String!, password: String!): AuthPayload!
+    setPassword(email: String!, password: String!): User!
     loginWithGoogle(idToken: String!): AuthPayload!
+
+    # 📁 Проекты
     createProject(ownerId: ID!, name: String!, data: String!): ProjectResponse!
+    findProject(projectId: ID!): Project!
+    removeProject(projectId: ID!): ID
+
+    # 🎨 Figma проекты
     createFigmaProject(
       ownerId: ID!
       name: String!
@@ -87,10 +113,10 @@ export const typeDefs = gql`
       nodeId: String!
       token: String!
     ): FigmaProjectResponse!
-    setPassword(email: String!, password: String!): User!
-    findProject(projectId: ID!): Project!
-    removeProject(projectId: ID!): ID
     removeFigmaProject(figmaProjectId: ID!): ID
+
+    # ☁️ Загрузка изображений из Figma в Cloudinary
+    uploadFigmaImagesToCloudinary(projectId: ID!): [FigmaImage!]!
   }
 
   type Subscription {

@@ -54,7 +54,9 @@ export const GET_FIGMA_PROJECTS_BY_USER = gql`
       id
       name
       fileKey
+      token
       nodeId
+      previewUrl
     }
   }
 `;
@@ -67,6 +69,7 @@ export const GET_FIGMA_PROJECT_DATA = gql`
       name
       fileKey
       nodeId
+      token
       images
       file
     }
