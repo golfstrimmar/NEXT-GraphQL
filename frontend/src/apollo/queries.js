@@ -31,21 +31,22 @@ export const GET_JSON_DOCUMENT = gql`
   }
 `;
 // Получить один Figma-проект
-export const GET_FIGMA_PROJECT = gql`
-  query GetFigmaProject($id: ID!) {
-    figmaProject(id: $id) {
-      id
-      name
-      fileKey
-      nodeId
-      token
-      owner {
-        id
-        name
-      }
-    }
-  }
-`;
+// export const GET_FIGMA_PROJECT = gql`
+//   query GetFigmaProject($id: ID!) {
+//     figmaProject(id: $id) {
+//       id
+//       name
+//       fileKey
+//       nodeId
+//       token
+//       previewUrl
+//       owner {
+//         id
+//         name
+//       }
+//     }
+//   }
+// `;
 
 // Получить все Figma-проекты пользователя
 export const GET_FIGMA_PROJECTS_BY_USER = gql`
@@ -70,8 +71,12 @@ export const GET_FIGMA_PROJECT_DATA = gql`
       fileKey
       nodeId
       token
-      images
+      previewUrl
       file
+      owner {
+        id
+        name
+      }
     }
   }
 `;

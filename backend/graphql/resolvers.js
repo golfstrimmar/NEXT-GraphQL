@@ -45,52 +45,59 @@ export const resolvers = {
       prisma.jsonDocument.findFirst({
         where: { name },
       }),
-    figmaProject: (_, { id }) =>
-      prisma.figmaProject.findUnique({
-        where: { id: Number(id) },
-        include: { owner: true },
-      }),
+    // figmaProject: (_, { id }) =>
+    //   prisma.figmaProject.findUnique({
+    //     where: { id: Number(id) },
+    //     include: { owner: true },
+    //   }),
 
     getFigmaProjectData: async (_, { projectId }) => {
       const project = await prisma.figmaProject.findUnique({
         where: { id: Number(projectId) },
+        include: { owner: true },
       });
       if (!project) throw new Error("Project not found");
 
-      const headers = { "X-Figma-Token": project.token };
+      let previewUrl = null;
+      let fileData = null;
 
-      // 1. Изображения
-      const imagesRes = await fetch(
-        `https://api.figma.com/v1/images/${project.fileKey}?ids=${project.nodeId}&scale=1`,
-        { headers }
-      );
-      if (!imagesRes.ok) throw new Error("Failed to fetch images");
-      const imagesData = await imagesRes.json();
+      try {
+        const headers = { "X-Figma-Token": project.token };
 
-      // 2. Полный документ Figma (nodes, styles, fonts и т.д.)
-      const fileRes = await fetch(
-        `https://api.figma.com/v1/files/${project.fileKey}`,
-        { headers }
-      );
-      if (!fileRes.ok) throw new Error("Failed to fetch file data");
-      const fileData = await fileRes.json();
+        // Получаем превью
+        const imagesRes = await fetch(
+          `https://api.figma.com/v1/images/${project.fileKey}?ids=${project.nodeId}&scale=1`,
+          { headers }
+        );
+        if (imagesRes.ok) {
+          const imagesData = await imagesRes.json();
+          previewUrl = imagesData.images?.[project.nodeId] || null;
+        }
 
+        // Получаем полный Figma-файл
+        const fileRes = await fetch(
+          `https://api.figma.com/v1/files/${project.fileKey}`,
+          { headers }
+        );
+        if (fileRes.ok) {
+          fileData = await fileRes.json();
+        }
+      } catch (err) {
+        console.error("❌ Failed to fetch Figma project data", project.id, err);
+      }
+      console.log("<====project====>", project, previewUrl);
       return {
         id: project.id,
         name: project.name,
         fileKey: project.fileKey,
         nodeId: project.nodeId,
         token: project.token,
-        images: imagesData.images,
+        createdAt: project.createdAt,
+        owner: project.owner,
+        previewUrl,
         file: fileData,
       };
     },
-
-    // figmaProjectsByUser: (_, { userId }) =>
-    //   prisma.figmaProject.findMany({
-    //     where: { ownerId: Number(userId) },
-    //     include: { owner: true },
-    //   }),
     figmaProjectsByUser: async (_, { userId }) => {
       const projects = await prisma.figmaProject.findMany({
         where: { ownerId: Number(userId) },

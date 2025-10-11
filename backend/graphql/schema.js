@@ -59,9 +59,9 @@ export const typeDefs = gql`
     fileKey: String!
     nodeId: String!
     token: String!
-    images: JSON!
     file: JSON!
     previewUrl: String
+    owner: User!
   }
 
   type AuthPayload {

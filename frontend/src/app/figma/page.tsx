@@ -31,7 +31,6 @@ import Loading from "@/components/ui/Loading/Loading";
 import Input from "@/components/ui/Input/Input";
 import { AnimatePresence, motion } from "framer-motion";
 import GoogleFontsImporter from "@/components/GoogleFontsImporter/GoogleFontsImporter";
-
 import "./figma.scss";
 
 export default function FigmaPage() {
@@ -318,6 +317,9 @@ export default function FigmaPage() {
               >
                 <div className=" grid grid-cols-[max-content_1fr] gap-4">
                   <div className="flex flex-col gap-1 ">
+                    <p>
+                      Project id: <strong>{proj.id}</strong>
+                    </p>{" "}
                     <p>
                       Project name: <strong>{proj.name}</strong>
                     </p>
