@@ -312,21 +312,38 @@ export const resolvers = {
       _,
       { ownerId, name, fileKey, nodeId, token }
     ) => {
-      console.log("<====👤👤👤createFigmaProject====>", name);
       try {
+        const headers = {
+          "X-Figma-Token": token,
+        };
+
+        const response = await fetch(
+          `https://api.figma.com/v1/images/${fileKey}?ids=${nodeId}&scale=1`,
+          { headers }
+        );
+
+        const data = await response.json();
+        const previewUrl = data?.images?.[nodeId] || null;
+
         const project = await prisma.figmaProject.create({
           data: {
             name,
             fileKey,
             nodeId,
             token,
+            previewUrl,
             ownerId: Number(ownerId),
           },
         });
+
         // Публикуем событие для подписчиков
         ee.emit("FIGMA_PROJECT_CREATED", project);
-
-        return { id: project.id, name: project.name };
+        console.log("<====👤👤👤createFigmaProject====>", project);
+        return {
+          id: project.id,
+          name: project.name,
+          previewUrl: project.previewUrl,
+        };
       } catch (error) {
         if (error.code === "P2002") {
           throw new Error("Figma project with this name already exists.");

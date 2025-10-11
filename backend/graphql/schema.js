@@ -47,7 +47,6 @@ export const typeDefs = gql`
     fileKey: String!
     nodeId: String!
     token: String!
-    createdAt: String!
     owner: User!
     previewUrl: String
   }
@@ -77,6 +76,8 @@ export const typeDefs = gql`
   type FigmaProjectResponse {
     id: ID!
     name: String!
+    previewUrl: String
+    owner: User!
   }
 
   type Query {
@@ -113,6 +114,7 @@ export const typeDefs = gql`
       nodeId: String!
       token: String!
     ): FigmaProjectResponse!
+
     removeFigmaProject(figmaProjectId: ID!): ID
 
     # ☁️ Загрузка изображений из Figma в Cloudinary

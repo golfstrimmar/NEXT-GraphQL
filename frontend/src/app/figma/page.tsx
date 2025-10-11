@@ -71,22 +71,22 @@ export default function FigmaPage() {
   const [removeFigmaProject] = useMutation(REMOVE_FIGMA_PROJECT);
   const sassCode = generateFontSassVariables(fonts, colors);
   const [variablesCode, classesCode] = sassCode.split("// Typography classes");
-  useSubscription(FIGMA_PROJECT_CREATED_SUBSCRIPTION, {
-    onData: ({ data }) => {
-      if (!data.data) return;
+  // useSubscription(FIGMA_PROJECT_CREATED_SUBSCRIPTION, {
+  //   onData: ({ data }) => {
+  //     if (!data.data) return;
 
-      const newProject = data.data.figmaProjectCreated;
-      console.log("New Figma project via subscription:", newProject);
+  //     const newProject = data.data.figmaProjectCreated;
+  //     console.log("New Figma project via subscription:", newProject);
 
-      setProjects((prev) => {
-        // проверка, чтобы не было дубликатов
-        if (!prev.find((p) => p.id === newProject.id)) {
-          return [...prev, newProject];
-        }
-        return prev;
-      });
-    },
-  });
+  //     setProjects((prev) => {
+  //       // проверка, чтобы не было дубликатов
+  //       if (!prev.find((p) => p.id === newProject.id)) {
+  //         return [...prev, newProject];
+  //       }
+  //       return prev;
+  //     });
+  //   },
+  // });
 
   // -----------------------
   useEffect(() => {
@@ -101,13 +101,6 @@ export default function FigmaPage() {
     }
   }, [projects]);
 
-  // useEffect(() => {
-  //   console.log("<====colors====>", colors);
-  // }, [colors]);
-
-  // useEffect(() => {
-  //   console.log("<====fonts====>", fonts);
-  // }, [fonts]);
   // -----------------------
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,6 +109,7 @@ export default function FigmaPage() {
       setModalMessage("All fields are required.");
       return;
     }
+    console.log("<========>", user.id, name, fileKey, nodeId, token);
     try {
       setModalMessage(null);
       const { data } = await createFigmaProject({
@@ -123,37 +117,21 @@ export default function FigmaPage() {
       });
 
       console.log("Created figma project:", data.createFigmaProject);
-
-      // Запрос картинки из Figma API
-      const res = await fetch(
-        `https://api.figma.com/v1/images/${fileKey}?ids=${nodeId}&format=png`,
-        {
-          headers: { "X-Figma-Token": token },
-        }
-      );
-
-      if (!res.ok) {
-        throw new Error("Failed to fetch image from Figma API.");
+      if (data.createFigmaProject) {
+        setProjects((prev) => {
+          // проверка, чтобы не было дубликатов
+          if (!prev.find((p) => p.id === data.createFigmaProject)) {
+            return [...prev, data.createFigmaProject];
+          }
+          return prev;
+        });
+        setModalOpen(false);
+        setName("");
+        setFileKey("");
+        setNodeId("");
+        setToken("");
+        setProjectName("");
       }
-
-      const json = await res.json();
-      console.log("Figma API response:", json);
-
-      const url = json.images?.[nodeId];
-      if (!url) {
-        throw new Error("No image URL found in Figma API response.");
-      }
-      setImageUrl(url);
-      setModalOpen(false);
-      setName("");
-      setFileKey("");
-      setNodeId("");
-      setToken("");
-      setProjectName("");
-      setFileData(null);
-      setColors([]);
-      setGoogleFontsImport("");
-      setFonts([]);
     } catch (err: any) {
       setModalOpen(false);
       setModalMessage(err.message);
@@ -604,7 +582,7 @@ export default function FigmaPage() {
         )}
 
         {/* ========================= */}
-        {imageUrl && (
+        {/* {imageUrl && (
           <div className="p-1  mt-4 mb-4">
             <div className="flex gap-2 items-center">
               <h2>Figma project Preview</h2>
@@ -615,7 +593,7 @@ export default function FigmaPage() {
               className="border mt-2 rounded-sm shadow-[0_0_10px_0_rgba(0,0,0,0.4)]"
             />
           </div>
-        )}
+        )} */}
       </div>
       <AnimatePresence>
         {modalOpen && (
