@@ -53,10 +53,16 @@ const ProjectPage = () => {
     }
   }, [project]);
   useEffect(() => {
-    if (fonts) {
+    if (fonts.length > 0) {
       console.log("<==== fonts====>", fonts);
     }
   }, [fonts]);
+  useEffect(() => {
+    if (colors.length > 0) {
+      console.log("<==== colors====>", colors);
+    }
+  }, [colors]);
+  // -----------------------
   if (loading) return <Loading />;
   if (error) return <p>Error: {error.message}</p>;
   if (!project) return <p>Project not found</p>;
@@ -213,6 +219,12 @@ const ProjectPage = () => {
           />
         </div>
       )}
+      {/* <hr className="mt-4 mb-4" /> */}
+      {/* {project.file && (
+        <div>
+          <pre>{JSON.stringify(project.file, null, 2)}</pre>
+        </div>
+      )} */}
       <hr className="mt-4 mb-4" />
 
       <div className="mt-4 grid grid-cols-2 gap-2">

@@ -73,12 +73,14 @@ export const typeDefs = gql`
     name: String!
   }
 
-  type FigmaProjectResponse {
-    id: ID!
-    name: String!
-    previewUrl: String
-    owner: User!
-  }
+  # type FigmaProjectResponse {
+  #   id: ID!
+  #   name: String!
+  #   previewUrl: String
+  #   fileKey: String
+  #   nodeId: String
+  #   owner: User!
+  # }
 
   type Query {
     # 👥 Пользователи
@@ -113,7 +115,7 @@ export const typeDefs = gql`
       fileKey: String!
       nodeId: String!
       token: String!
-    ): FigmaProjectResponse!
+    ): FigmaProject!
 
     removeFigmaProject(figmaProjectId: ID!): ID
 
@@ -123,6 +125,6 @@ export const typeDefs = gql`
 
   type Subscription {
     userCreated: User!
-    figmaProjectCreated: FigmaProject!
+    # figmaProjectCreated: FigmaProject!
   }
 `;

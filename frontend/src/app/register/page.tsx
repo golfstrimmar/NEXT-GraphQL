@@ -1,24 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useMutation, useSubscription } from "@apollo/client";
+import { useMutation } from "@apollo/client";
 import { useRouter } from "next/navigation";
 import Input from "@/components/ui/Input/Input";
 import Button from "@/components/ui/Button/Button";
 import { useStateContext } from "@/providers/StateProvider";
 import { CREATE_USER } from "@/apollo/mutations";
-import { USER_CREATED } from "@/apollo/subscriptions";
 import { GET_USERS } from "@/apollo/queries";
 export default function Register() {
   const router = useRouter();
   const { setModalMessage } = useStateContext();
-
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [createUser, { loading }] = useMutation(CREATE_USER);
-  const { data: subscriptionData } = useSubscription(USER_CREATED);
 
   // --------------------------
   useEffect(() => {
@@ -53,16 +49,7 @@ export default function Register() {
       }
     }
   };
-  useEffect(() => {
-    if (subscriptionData) {
-      console.log("<====✔️subscriptionData====>", subscriptionData);
-    }
-    if (subscriptionData?.userCreated) {
-      setModalMessage(
-        `✔️New user created: ${subscriptionData.userCreated.name}`
-      );
-    }
-  }, [subscriptionData, setModalMessage]);
+
   return (
     <div className="flex items-center justify-center min-h-screen">
       <form

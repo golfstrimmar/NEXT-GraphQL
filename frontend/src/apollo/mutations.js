@@ -157,6 +157,8 @@ export const CREATE_FIGMA_PROJECT = gql`
       id
       name
       previewUrl
+      fileKey
+      nodeId
     }
   }
 `;
@@ -174,37 +176,6 @@ export const UPLOAD_FIGMA_IMAGES_TO_CLOUDINARY = gql`
     uploadFigmaImagesToCloudinary(projectId: $projectId) {
       imageRef
       url
-    }
-  }
-`;
-
-
-
-// ==========================
-export const USER_CREATED_SUBSCRIPTION = gql`
-  subscription UserCreated {
-    userCreated {
-      id
-      name
-      email
-    }
-  }
-`;
-
-export const FIGMA_PROJECT_CREATED_SUBSCRIPTION = gql`
-  subscription FigmaProjectCreated {
-    figmaProjectCreated {
-      id
-      name
-      fileKey
-      nodeId
-      previewUrl
-      owner {
-        id
-        name
-        email
-      }
-      createdAt
     }
   }
 `;

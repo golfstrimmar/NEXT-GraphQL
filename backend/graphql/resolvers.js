@@ -51,97 +51,96 @@ export const resolvers = {
     //     include: { owner: true },
     //   }),
 
+    // getFigmaProjectData: async (_, { projectId }) => {
+    //   const project = await prisma.figmaProject.findUnique({
+    //     where: { id: Number(projectId) },
+    //     include: { owner: true },
+    //   });
+    //   if (!project) throw new Error("Project not found");
+
+    //   let previewUrl = null;
+    //   let fileData = null;
+
+    //   try {
+    //     const headers = { "X-Figma-Token": project.token };
+
+    //     // Получаем превью
+    //     // const imagesRes = await fetch(
+    //     //   `https://api.figma.com/v1/images/${project.fileKey}?ids=${project.nodeId}&scale=1`,
+    //     //   { headers }
+    //     // );
+    //     // if (imagesRes.ok) {
+    //     //   const imagesData = await imagesRes.json();
+    //     //   previewUrl = imagesData.images?.[project.nodeId] || null;
+    //     // }
+
+    //     // Получаем полный Figma-файл
+    //     const fileRes = await fetch(
+    //       `https://api.figma.com/v1/files/${project.fileKey}`,
+    //       { headers }
+    //     );
+    //     if (fileRes.ok) {
+    //       fileData = await fileRes.json();
+    //     }
+    //   } catch (err) {
+    //     console.error("❌ Failed to fetch Figma project data", project.id, err);
+    //   }
+    //   // console.log("<====project====>", project, previewUrl);
+    //   return {
+    //     id: project.id,
+    //     name: project.name,
+    //     fileKey: project.fileKey,
+    //     nodeId: project.nodeId,
+    //     token: project.token,
+    //     createdAt: project.createdAt,
+    //     owner: project.owner,
+    //     previewUrl,
+    //     file: fileData,
+    //   };
+    // },
     getFigmaProjectData: async (_, { projectId }) => {
+      // Получаем проект из базы
       const project = await prisma.figmaProject.findUnique({
         where: { id: Number(projectId) },
         include: { owner: true },
       });
+
       if (!project) throw new Error("Project not found");
 
-      let previewUrl = null;
       let fileData = null;
 
       try {
         const headers = { "X-Figma-Token": project.token };
 
-        // Получаем превью
-        const imagesRes = await fetch(
-          `https://api.figma.com/v1/images/${project.fileKey}?ids=${project.nodeId}&scale=1`,
-          { headers }
-        );
-        if (imagesRes.ok) {
-          const imagesData = await imagesRes.json();
-          previewUrl = imagesData.images?.[project.nodeId] || null;
-        }
-
-        // Получаем полный Figma-файл
+        // Получаем данные о файле из Figma API
         const fileRes = await fetch(
           `https://api.figma.com/v1/files/${project.fileKey}`,
           { headers }
         );
-        if (fileRes.ok) {
-          fileData = await fileRes.json();
+
+        if (!fileRes.ok) {
+          throw new Error(`Failed to fetch Figma file: ${fileRes.statusText}`);
         }
+
+        fileData = await fileRes.json();
       } catch (err) {
-        console.error("❌ Failed to fetch Figma project data", project.id, err);
+        console.error("❌ Failed to fetch Figma file data", project.id, err);
       }
-      console.log("<====project====>", project, previewUrl);
+
+      // Возвращаем проект + файл
       return {
-        id: project.id,
-        name: project.name,
-        fileKey: project.fileKey,
-        nodeId: project.nodeId,
-        token: project.token,
-        createdAt: project.createdAt,
-        owner: project.owner,
-        previewUrl,
+        ...project,
         file: fileData,
       };
     },
+
     figmaProjectsByUser: async (_, { userId }) => {
       const projects = await prisma.figmaProject.findMany({
         where: { ownerId: Number(userId) },
         include: { owner: true },
       });
-
-      const projectsWithPreview = await Promise.all(
-        projects.map(async (project) => {
-          try {
-            const headers = { "X-Figma-Token": project.token };
-
-            // Получаем превью (например, первый nodeId)
-            const imagesRes = await fetch(
-              `https://api.figma.com/v1/images/${project.fileKey}?ids=${project.nodeId}&scale=1`,
-              { headers }
-            );
-
-            let previewUrl = null;
-            if (imagesRes.ok) {
-              const imagesData = await imagesRes.json();
-              previewUrl = imagesData.images
-                ? imagesData.images[project.nodeId]
-                : null;
-            }
-
-            return {
-              ...project,
-              previewUrl, // добавляем превью
-            };
-          } catch (err) {
-            console.error(
-              "❌ Failed to fetch Figma preview for project",
-              project.id,
-              err
-            );
-            return {
-              ...project,
-              previewUrl: null,
-            };
-          }
-        })
-      );
-
-      return projectsWithPreview;
+      // console.log("<====projects ByUser====>", projects);
+      return projects;
     },
   },
 
@@ -312,6 +311,14 @@ export const resolvers = {
       _,
       { ownerId, name, fileKey, nodeId, token }
     ) => {
+      console.log(
+        "<====👤👤👤createFigmaProject data====> ",
+        ownerId,
+        name,
+        fileKey,
+        nodeId,
+        token
+      );
       try {
         const headers = {
           "X-Figma-Token": token,
@@ -332,16 +339,18 @@ export const resolvers = {
             nodeId,
             token,
             previewUrl,
-            ownerId: Number(ownerId),
+            owner: Number(ownerId),
           },
         });
 
         // Публикуем событие для подписчиков
-        ee.emit("FIGMA_PROJECT_CREATED", project);
+        // ee.emit("FIGMA_PROJECT_CREATED", project);
         console.log("<====👤👤👤createFigmaProject====>", project);
         return {
           id: project.id,
           name: project.name,
+          fileKey: project.fileKey,
+          nodeId: project.nodeId,
           previewUrl: project.previewUrl,
         };
       } catch (error) {
@@ -451,24 +460,27 @@ export const resolvers = {
         }
       },
     },
-    figmaProjectCreated: {
-      subscribe: async function* () {
-        const queue = [];
-        const handler = (payload) => queue.push(payload);
-        ee.on("FIGMA_PROJECT_CREATED", handler);
+    // figmaProjectCreated: {
+    //   subscribe: async function* () {
+    //     const queue = [];
+    //     const handler = (payload) => queue.push(payload);
+    //     ee.on("FIGMA_PROJECT_CREATED", handler);
 
-        try {
-          while (true) {
-            if (queue.length === 0) {
-              await new Promise((resolve) => setTimeout(resolve, 100));
-            } else {
-              yield { figmaProjectCreated: queue.shift() };
-            }
-          }
-        } finally {
-          ee.off("FIGMA_PROJECT_CREATED", handler);
-        }
-      },
-    },
+    //     try {
+    //       while (true) {
+    //         if (queue.length === 0) {
+    //           await new Promise((resolve) => setTimeout(resolve, 100));
+    //         } else {
+    //           yield { figmaProjectCreated: queue.shift() };
+    //         }
+    //       }
+    //     } finally {
+    //       ee.on("FIGMA_PROJECT_CREATED", (p) =>
+    //         console.log("🔥 Event emitted", p.name)
+    //       );
+    //       ee.off("FIGMA_PROJECT_CREATED", handler);
+    //     }
+    //   },
+    // },
   },
 };

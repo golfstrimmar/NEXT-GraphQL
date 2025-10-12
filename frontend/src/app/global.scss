@@ -198,8 +198,8 @@ code {
 a {
   color: var(--primary);
   font-weight: 500;
-  text-decoration: underline;
-  text-underline-offset: 2px;
+  text-decoration: none;
+  // text-underline-offset: 2px;
   text-decoration-color: var(--grey-30);
   transition: 0.25s;
   cursor: pointer;

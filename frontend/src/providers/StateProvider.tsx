@@ -112,7 +112,7 @@ export function StateProvider({ children }: { children: ReactNode }) {
       updateQuery: (prev, { subscriptionData }) => {
         if (!subscriptionData.data) return prev;
         const newUser = subscriptionData.data.userCreated;
-
+        console.log("<==== USER_CREATED subscription, newUser ====>", newUser);
         setUsers((prevUsers) => [...prevUsers, newUser]);
 
         return {
