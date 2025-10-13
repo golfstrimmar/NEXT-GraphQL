@@ -5,36 +5,16 @@ import Link from "next/link";
 import { useStateContext } from "@/providers/StateProvider";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "@apollo/client";
-import {
-  CREATE_FIGMA_PROJECT,
-  REMOVE_FIGMA_PROJECT,
-  // UPLOAD_FIGMA_IMAGES_TO_CLOUDINARY,
-} from "@/apollo/mutations";
-import {
-  GET_FIGMA_PROJECTS_BY_USER,
-  // GET_FIGMA_PROJECT_DATA,
-} from "@/apollo/queries";
-
-// import { FIGMA_PROJECT_CREATED_SUBSCRIPTION } from "@/apollo/subscriptions";
-
-// import client from "@/apollo/apolloClient";
+import { CREATE_FIGMA_PROJECT, REMOVE_FIGMA_PROJECT } from "@/apollo/mutations";
+import { GET_FIGMA_PROJECTS_BY_USER } from "@/apollo/queries";
 import Image from "next/image";
-// -------
-// import generateGoogleFontsImport from "@/utils/generateGoogleFontsImport";
-// import extractDesignColors from "@/utils/extractDesignColors";
-// import extractTypography from "@/utils/extractTypography";
-// import generateSassVariables from "@/utils/generateSassVariables";
-// import generateFontSassVariables from "@/utils/generateFontSassVariables";
-// -------
-
-// -------
 import Button from "@/components/ui/Button/Button";
 import Loading from "@/components/ui/Loading/Loading";
 import Input from "@/components/ui/Input/Input";
 import { AnimatePresence, motion } from "framer-motion";
-// import GoogleFontsImporter from "@/components/GoogleFontsImporter/GoogleFontsImporter";
 import "./figma.scss";
 
+// -------
 export default function FigmaPage() {
   const { user } = useStateContext();
   const router = useRouter();
@@ -46,33 +26,16 @@ export default function FigmaPage() {
   const [fileKey, setFileKey] = useState("");
   const [nodeId, setNodeId] = useState("");
   const [token, setToken] = useState("");
-  // const [googleFontsImport, setGoogleFontsImport] = useState("");
-  // ---
-  // const [loadingImg, setLoadingImg] = useState(false);
-  // const [imageUrl, setImageUrl] = useState<string | null>(null);
   const { data } = useQuery(GET_FIGMA_PROJECTS_BY_USER, {
     variables: { userId: user?.id },
     skip: !user,
     fetchPolicy: "cache-and-network",
   });
-  // const [uploadFigmaImagesToCloudinary] = useMutation(
-  //   UPLOAD_FIGMA_IMAGES_TO_CLOUDINARY
-  // );
 
-  // const [fileData, setFileData] = useState<any>(null);
-  // const [projectName, setProjectName] = useState<string>("");
-  // const [colors, setColors] = useState<any[]>([]);
-  // const [fonts, setFonts] = useState<any[]>([]);
-  // const [imagesFromFigma, setImagesFromFigma] = useState<
-  //   { imageRef: string; url: string }[]
-  // >([]);
-
-  // ----------
   // ----------
   const [createFigmaProject, { loading }] = useMutation(CREATE_FIGMA_PROJECT);
   const [removeFigmaProject] = useMutation(REMOVE_FIGMA_PROJECT);
-  // const sassCode = generateFontSassVariables(fonts, colors);
-  // const [variablesCode, classesCode] = sassCode.split("// Typography classes");
+
   // useSubscription(FIGMA_PROJECT_CREATED_SUBSCRIPTION, {
   //   onData: ({ data }) => {
   //     if (!data.data) return;
@@ -140,9 +103,6 @@ export default function FigmaPage() {
       setModalMessage(err.message);
     }
   };
-
-  // Функция для генерации Sass переменных для шрифтов
-
   // -----------------------
   // const fetchFigma = async (project: any) => {
   //   if (!project?.id) return;
@@ -212,39 +172,6 @@ export default function FigmaPage() {
   //   }
   // };
 
-  // =======================t
-  // const FigmaFonts = async (project: any) => {
-  //   if (!project?.id) return;
-  //   console.log("<====📦 project ====>", project);
-
-  //   try {
-  //     setModalMessage(null);
-  //     // 📡 Запрашиваем проект из GraphQL
-  //     const { data } = await client.query({
-  //       query: GET_FIGMA_PROJECT_DATA,
-  //       variables: { projectId: project.id },
-  //       fetchPolicy: "network-only",
-  //     });
-
-  //     const projectData = data.getFigmaProjectData;
-
-  //     // 🔤 Извлекаем шрифты
-  //     const extractedFonts = extractTypography(
-  //       projectData.file,
-  //       project.nodeId
-  //     );
-  //     setFonts(extractedFonts);
-
-  //     // 🪄 Формируем строку импорта Google Fonts
-  //     const importString = generateGoogleFontsImport(extractedFonts);
-  //     setGoogleFontsImport(importString);
-  //   } catch (err: any) {
-  //     console.error("❌ Ошибка при загрузке:", err);
-  //     setModalMessage(err.message);
-  //   } finally {
-  //     setLoadingImg(false);
-  //   }
-  // };
   // =======================
   const handleRemoved = async (id) => {
     const removedProject = await removeFigmaProject({
@@ -296,18 +223,6 @@ export default function FigmaPage() {
                     See details
                   </Link>
 
-                  {/* <button
-                    className="btn btn-primary"
-                    onClick={() => fetchFigma(proj)}
-                  >
-                    See details
-                  </button>
-                  <button
-                    className="btn btn-primary"
-                    onClick={() => FigmaFonts(proj)}
-                  >
-                    Fonts fron Figma
-                  </button> */}
                   <button
                     className="btn btn-allert"
                     onClick={() => handleRemoved(proj.id)}
@@ -342,206 +257,6 @@ export default function FigmaPage() {
         </div>
 
         {loading && <Loading />}
-        {/* {fileData && (
-          <button
-            className="btn btn-allert cursor-pointer mt-4"
-            onClick={() => {
-              setProjectName("");
-              setFileData(null);
-              setColors([]);
-              setImageUrl(null);
-              setGoogleFontsImport("");
-              setFonts([]);
-            }}
-          >
-            Clear
-          </button>
-        )} */}
-        {/* {fileData && (
-          <div className="mt-6">
-            <h3 className="text-[14px]! mb-3">
-              📊 Project: &nbsp;
-              <span className="text-bold text-2xl text-blue-900">
-                {projectName}
-              </span>
-            </h3>
-            <p>Name: {fileData.name}</p>
-            <p>Version: {fileData.version}</p>
-            <p>Last modified: {fileData.lastModified}</p>
-            {/* <p>
-              Styles cou:
-              {fileData.styles ? Object.keys(fileData.styles).length : 0}
-            </p>
-          </div>
-        )} */}
-        {/* ✅✅✅✅✅✅✅ ЦВЕТА */}
-        {/* {colors.length > 0 && (
-          <div className="mb-4">
-            <h4 className="font-bold mb-2">Sass Variables:</h4>
-            <div className="bg-gray-900 text-green-400 p-4 rounded-lg overflow-auto max-h-48">
-              <pre className="text-sm whitespace-pre-wrap">
-                {generateSassVariables(colors)}
-              </pre>
-            </div>
-            <button
-              className="mt-2 btn btn-primary text-sm"
-              onClick={() => {
-                navigator.clipboard.writeText(generateSassVariables(colors));
-                setModalMessage("Sass variables copied to clipboard!");
-              }}
-            >
-              📋 Copy colors Sass
-            </button>
-
-            <h3 className="text-lg font-bold mt-4 mb-3">
-              🎨 Colors ({colors.length})
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {colors.map((color, index) => {
-                const rgbColor = `rgba(${Math.round(color.r * 255)}, ${Math.round(color.g * 255)}, ${Math.round(color.b * 255)}, ${color.a})`;
-
-                return (
-                  <div
-                    key={index}
-                    className="border rounded-lg p-3 bg-white shadow-sm"
-                  >
-                    <div
-                      className="w-full h-16 rounded border mb-2"
-                      style={{ backgroundColor: rgbColor }}
-                    />
-                    <div className="text-xs space-y-1">
-                      <div className="font-medium">
-                        hex: {color.formats.hex}
-                      </div>
-                      <div className="font-medium">
-                        rgba: {color.formats.rgba}
-                      </div>
-                      <div className="text-gray-500 capitalize">
-                        {color.type}
-                      </div>
-                      {color.fontSize && (
-                        <div className="text-gray-500">
-                          Size: {color.fontSize}px
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )} */}
-        {/* ✅✅✅✅✅✅ ШРИФТЫ */}
-        {/* {fonts.length > 0 && (
-          <div className="mt-8">
-            <h3 className="text-lg font-bold mb-3">
-              🔤 Typography ({fonts.length})
-            </h3>
-
-            <div className="mb-4">
-              <h4 className="font-bold mb-2">Font Sass Variables:</h4>
-              <div className="grid grid-cols-2 gap-3">
-               
-                <button
-                  className="bg-gray-100 p-3 rounded text-left"
-                  onClick={() => {
-                    navigator.clipboard.writeText(variablesCode);
-                    setModalMessage("Font variables copied!");
-                  }}
-                >
-                  <pre className="text-xs text-gray-600 font-mono">
-                    {variablesCode}
-                  </pre>
-                </button>
-
-               
-                <button
-                  className="bg-gray-900 p-3 rounded text-left"
-                  onClick={() => {
-                    navigator.clipboard.writeText(classesCode);
-                    setModalMessage("Typography classes copied!");
-                  }}
-                >
-                  <pre className="text-xs text-green-400 font-mono">
-                    {classesCode}
-                  </pre>
-                </button>
-              </div>
-            </div>
-
-           
-            <div className="space-y-4">
-              {fonts.map((font, index) => {
-                // Ключ для поиска в Map
-                const key = `${font.fontFamily}-${font.fontWeight}-${font.fontSize}-${font.lineHeightPx}`;
-                const matchedClass =
-                  fontCombinationsMap.get(key)?.className ||
-                  `.font-${index + 1}-text`;
-
-                // Генерируем CSS-свойства для копирования
-                const classCode = `
-.${matchedClass} {
-  font-family: '${font.fontFamily}', sans-serif;
-  font-size: ${font.fontSize}px;
-  font-weight: ${font.fontWeight};
-  line-height: ${font.lineHeightPx || "auto"}px;
-  ${font.letterSpacing ? `letter-spacing: ${font.letterSpacing}px;` : ""}
-  color: ${font.color || "#000"};
-}`.trim();
-
-                return (
-                  <div key={index} className="border rounded p-3 bg-slate-300">
-                    
-                    <div
-                      className={`${matchedClass} border
-                      rounded
-                      p-3`}
-                      style={{
-                        fontFamily: font.fontFamily,
-                        fontWeight: font.fontWeight,
-                        fontSize: font.fontSize,
-                        // lineHeight: font.lineHeightPx,
-                        letterSpacing: font.letterSpacing,
-                        color: font.color || "#000",
-                      }}
-                    >
-                      {font.sampleText}
-                    </div>
-
-                    
-                    <div className="text-md text-gray-900 mb-2">
-                      <p>
-                        Font family: &quot; {font.fontFamily}&quot; ,
-                        sans-serif;
-                      </p>
-                      <p>Font size: {font.fontSize}px;</p>
-                      <p>Font weight: {font.fontWeight};</p>
-                      {font.lineHeightPx && (
-                        <p>Line height: {font.lineHeightPx}px;</p>
-                      )}
-                      {font.letterSpacing !== 0 && (
-                        <p>Letter spacing: {font.letterSpacing}px;</p>
-                      )}
-
-                      {font.color && <p>Color: {font.color};</p>}
-                    </div>
-
-                   
-                    <button
-                      className="p-2 bg-gray-900 inline-block rounded text-green-400 font-mono w-full"
-                      onClick={() => {
-                        navigator.clipboard.writeText(classCode);
-                        setModalMessage(`Font class copied: ${matchedClass}`);
-                      }}
-                    >
-                      .{matchedClass}
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )} */}
         {/* ✅✅✅✅✅✅ КАРТИНКИ */}
         {/* {imagesFromFigma.length > 0 && (
           <div className="grid grid-cols-3 gap-4 mt-6">
@@ -555,20 +270,6 @@ export default function FigmaPage() {
                 <p className="text-xs text-gray-500 mt-1">{img.imageRef}</p>
               </div>
             ))}
-          </div>
-        )} */}
-
-        {/* ========================= */}
-        {/* {imageUrl && (
-          <div className="p-1  mt-4 mb-4">
-            <div className="flex gap-2 items-center">
-              <h2>Figma project Preview</h2>
-            </div>
-            <img
-              src={imageUrl}
-              alt="Figma Preview"
-              className="border mt-2 rounded-sm shadow-[0_0_10px_0_rgba(0,0,0,0.4)]"
-            />
           </div>
         )} */}
       </div>

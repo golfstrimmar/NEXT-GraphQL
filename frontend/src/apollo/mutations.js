@@ -172,9 +172,9 @@ export const REMOVE_FIGMA_PROJECT = gql`
 
 // === Загрузка изображений Figma в Cloudinary ===
 export const UPLOAD_FIGMA_IMAGES_TO_CLOUDINARY = gql`
-  mutation UploadFigmaImagesToCloudinary($projectId: ID!) {
+  mutation uploadFigmaImagesToCloudinary($projectId: ID!) {
     uploadFigmaImagesToCloudinary(projectId: $projectId) {
-      imageRef
+      nodeId
       url
     }
   }

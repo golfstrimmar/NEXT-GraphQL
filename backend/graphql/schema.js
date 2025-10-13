@@ -36,7 +36,7 @@ export const typeDefs = gql`
 
   # 🖼️ Тип для изображений из Figma
   type FigmaImage {
-    imageRef: String!
+    nodeId: String!
     url: String!
   }
 

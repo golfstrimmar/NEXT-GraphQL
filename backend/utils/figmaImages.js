@@ -1,15 +1,16 @@
 import fetch from "node-fetch";
 
 /**
- * 📦 Типовая структура Figma-файла
- * Нам важно только поле `document`, где дерево узлов
+ * 📦 Собирает все уникальные imageRef из дерева Figma (глубокий обход)
+ * Работает и с file.document, и с nodeData.document
  */
-export const collectUniqueImageRefs = (file) => {
+export const collectUniqueImageRefs = (input) => {
   const map = {};
 
   const traverse = (node) => {
     if (!node || typeof node !== "object") return;
 
+    // Проверяем возможные массивы с изображениями
     const props = ["fills", "strokes", "background"];
     for (const key of props) {
       const arr = node[key];
@@ -24,12 +25,19 @@ export const collectUniqueImageRefs = (file) => {
       }
     }
 
+    // Рекурсивно обходим дочерние ноды
     if (Array.isArray(node.children)) {
-      node.children.forEach(traverse);
+      for (const child of node.children) traverse(child);
     }
   };
 
-  if (file?.document) traverse(file.document);
+  // ✅ Поддержка обоих случаев: fileData и nodeData
+  if (input?.document) {
+    traverse(input.document);
+  } else if (input?.id && input?.children) {
+    traverse(input);
+  }
+
   return map;
 };
 

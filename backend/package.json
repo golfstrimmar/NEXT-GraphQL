@@ -30,6 +30,7 @@
     "graphql-type-json": "^0.3.2",
     "graphql-ws": "^6.0.6",
     "jsonwebtoken": "^9.0.2",
+    "p-limit": "^7.1.1",
     "subscriptions-transport-ws": "^0.11.0",
     "ws": "^8.18.3"
   },

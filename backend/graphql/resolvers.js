@@ -4,25 +4,7 @@ import jwt from "jsonwebtoken";
 import prisma from "../prisma/client.js";
 import { OAuth2Client } from "google-auth-library";
 import { GraphQLJSON } from "graphql-type-json";
-import fetch from "node-fetch";
-import { v2 as cloudinary } from "cloudinary";
-import {
-  collectUniqueImageRefs,
-  fetchImageUrls,
-} from "../utils/figmaImages.js";
-
-function uploadStreamAsync(options, buffer) {
-  return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      options,
-      (error, result) => {
-        if (error) reject(error);
-        else resolve(result);
-      }
-    );
-    stream.end(buffer);
-  });
-}
+import uploadFigmaImagesToCloudinary from "./mutations/uploadFigmaImages.js";
 const ee = new EventEmitter();
 const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key";
 const SALT_ROUNDS = 10;
@@ -45,59 +27,7 @@ export const resolvers = {
       prisma.jsonDocument.findFirst({
         where: { name },
       }),
-    // figmaProject: (_, { id }) =>
-    //   prisma.figmaProject.findUnique({
-    //     where: { id: Number(id) },
-    //     include: { owner: true },
-    //   }),
 
-    // getFigmaProjectData: async (_, { projectId }) => {
-    //   const project = await prisma.figmaProject.findUnique({
-    //     where: { id: Number(projectId) },
-    //     include: { owner: true },
-    //   });
-    //   if (!project) throw new Error("Project not found");
-
-    //   let previewUrl = null;
-    //   let fileData = null;
-
-    //   try {
-    //     const headers = { "X-Figma-Token": project.token };
-
-    //     // Получаем превью
-    //     // const imagesRes = await fetch(
-    //     //   `https://api.figma.com/v1/images/${project.fileKey}?ids=${project.nodeId}&scale=1`,
-    //     //   { headers }
-    //     // );
-    //     // if (imagesRes.ok) {
-    //     //   const imagesData = await imagesRes.json();
-    //     //   previewUrl = imagesData.images?.[project.nodeId] || null;
-    //     // }
-
-    //     // Получаем полный Figma-файл
-    //     const fileRes = await fetch(
-    //       `https://api.figma.com/v1/files/${project.fileKey}`,
-    //       { headers }
-    //     );
-    //     if (fileRes.ok) {
-    //       fileData = await fileRes.json();
-    //     }
-    //   } catch (err) {
-    //     console.error("❌ Failed to fetch Figma project data", project.id, err);
-    //   }
-    //   // console.log("<====project====>", project, previewUrl);
-    //   return {
-    //     id: project.id,
-    //     name: project.name,
-    //     fileKey: project.fileKey,
-    //     nodeId: project.nodeId,
-    //     token: project.token,
-    //     createdAt: project.createdAt,
-    //     owner: project.owner,
-    //     previewUrl,
-    //     file: fileData,
-    //   };
-    // },
     getFigmaProjectData: async (_, { projectId }) => {
       // Получаем проект из базы
       const project = await prisma.figmaProject.findUnique({
@@ -366,56 +296,7 @@ export const resolvers = {
       });
       return project.id;
     },
-    uploadFigmaImagesToCloudinary: async (_, { projectId }) => {
-      const project = await prisma.figmaProject.findUnique({
-        where: { id: Number(projectId) },
-      });
-      if (!project) throw new Error("Project not found");
-      console.log("<====👤👤👤project====>", project);
-
-      // 1️⃣ Получаем полный документ Figma
-      const headers = { "X-Figma-Token": project.token };
-      const fileRes = await fetch(
-        `https://api.figma.com/v1/files/${project.fileKey}`,
-        { headers }
-      );
-      if (!fileRes.ok) throw new Error("Failed to fetch Figma file data");
-      const fileData = await fileRes.json();
-
-      // 2️⃣ Собираем все imageRef из документа
-      const imageRefsMap = collectUniqueImageRefs(fileData);
-      const imageRefs = Object.keys(imageRefsMap);
-      if (imageRefs.length === 0) return [];
-
-      // 3️⃣ Получаем реальные URL изображений
-      const imageUrls = await fetchImageUrls(
-        project.fileKey,
-        imageRefs,
-        project.token,
-        "png"
-      );
-
-      // 4️⃣ Загружаем на Cloudinary
-      const uploadedImages = [];
-      for (const imageRef of imageRefs) {
-        const url = imageUrls[imageRef];
-        if (!url) continue;
-
-        const buffer = await fetchImageBuffer(url);
-        const uploadResult = await uploadToCloudinary(
-          buffer,
-          "figma_images",
-          imageRef
-        );
-
-        uploadedImages.push({
-          imageRef,
-          url: uploadResult.secure_url,
-        });
-      }
-
-      return uploadedImages;
-    },
+    uploadFigmaImagesToCloudinary,
   },
 
   User: {

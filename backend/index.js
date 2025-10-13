@@ -7,7 +7,7 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import { WebSocketServer } from "ws";
 import { useServer } from "graphql-ws/use/ws";
-
+import fetch from "node-fetch";
 import { typeDefs } from "./graphql/schema.js";
 import { resolvers } from "./graphql/resolvers.js";
 
@@ -61,6 +61,34 @@ console.log("ENV PORT:", process.env.PORT);
 
 app.get("/", (req, res) => {
   res.send("✅ Server is alive");
+});
+
+app.get("/api/download", async (req, res) => {
+  const { url, name = "image.webp" } = req.query;
+  if (!url) return res.status(400).send("❌ Missing ?url param");
+
+  try {
+    // Скачиваем из Cloudinary как бинарный поток
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Failed to fetch image from Cloudinary");
+
+    // Преобразуем в буфер
+    const buffer = Buffer.from(await response.arrayBuffer());
+
+    // 💾 Принудительно заставляем браузер скачивать файл
+    res.setHeader("Content-Type", "application/octet-stream");
+    res.setHeader("Content-Disposition", `attachment; filename="${name}"`);
+    res.setHeader("Content-Length", buffer.length);
+
+    // Чтобы Chrome не пытался "догадаться", что это картинка
+    res.setHeader("X-Content-Type-Options", "nosniff");
+
+    // Отдаём бинарные данные напрямую
+    res.end(buffer, "binary");
+  } catch (err) {
+    console.error("❌ Download proxy error:", err);
+    res.status(500).send("Download failed");
+  }
 });
 
 httpServer.listen(PORT, () => {

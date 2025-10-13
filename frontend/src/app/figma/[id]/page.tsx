@@ -5,15 +5,12 @@ import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation } from "@apollo/client";
 import GoogleFontsImporter from "@/components/GoogleFontsImporter/GoogleFontsImporter";
-import { GET_FIGMA_PROJECT_DATA, GET_FIGMA_PROJECT } from "@/apollo/queries";
+import { GET_FIGMA_PROJECT_DATA } from "@/apollo/queries";
 import { useStateContext } from "@/providers/StateProvider";
 import {
-  CREATE_FIGMA_PROJECT,
   REMOVE_FIGMA_PROJECT,
-  FIGMA_PROJECT_CREATED_SUBSCRIPTION,
   UPLOAD_FIGMA_IMAGES_TO_CLOUDINARY,
 } from "@/apollo/mutations";
-import client from "@/apollo/apolloClient";
 import Loading from "@/components/ui/Loading/Loading";
 // -------
 import generateGoogleFontsImport from "@/utils/generateGoogleFontsImport";
@@ -32,11 +29,16 @@ const ProjectPage = () => {
     variables: { projectId: id },
     skip: !id,
   });
+  const [
+    uploadFigmaImagesToCloudinary,
+    { loading: uploading, error: uploadError },
+  ] = useMutation(UPLOAD_FIGMA_IMAGES_TO_CLOUDINARY);
   const [removeFigmaProject] = useMutation(REMOVE_FIGMA_PROJECT);
   // ---------------------------
   const [project, setProject] = useState<any>(null);
   const [colors, setColors] = useState<any[]>([]);
   const [fonts, setFonts] = useState<any[]>([]);
+  const [images, setImages] = useState<any[]>([]);
   const [googleFontsImport, setGoogleFontsImport] = useState("");
   const sassCode = generateFontSassVariables(fonts, colors);
   const [variablesCode, classesCode] = sassCode.split("// Typography classes");
@@ -113,6 +115,24 @@ const ProjectPage = () => {
       });
     }
   });
+  // -----------------------
+  const hadlerImages = async () => {
+    if (!project?.id) return;
+
+    try {
+      const { data, loading } = await uploadFigmaImagesToCloudinary({
+        variables: { projectId: project.id },
+      });
+      // console.log("<====images====>", data.uploadFigmaImagesToCloudinary);
+      setImages(data.uploadFigmaImagesToCloudinary);
+    } catch (err: any) {
+      console.error("❌ Error:", err);
+      setModalMessage(err.message);
+    }
+  };
+
+  // =======================
+
   // =======================
   const handleRemoved = async (id) => {
     const removedProject = await removeFigmaProject({
@@ -128,69 +148,6 @@ const ProjectPage = () => {
     console.log("<====removedProject====>", removedProject);
   };
   // -----------------------
-  // const fetchFigma = async (project: any) => {
-  //   if (!project?.id) return;
-  //   console.log("<====📦 project ====>", project);
-  //   setColors([]);
-  //   setProjectName(project.name);
-
-  //   try {
-  //     // setLoadingImg(true);
-  //     setModalMessage(null);
-
-  //     // 📡 Запрашиваем проект из GraphQL
-  //     // const { data } = await client.query({
-  //     //   query: GET_FIGMA_PROJECT_DATA,
-  //     //   variables: { projectId: project.id },
-  //     //   fetchPolicy: "network-only",
-  //     // });
-
-  //     // const projectData = data.getFigmaProjectData;
-
-  //     // const url = projectData.images[project.nodeId];
-  //     // if (!url) throw new Error("Image URL not found");
-
-  //     // setImageUrl(url);
-  //     // setFileData(projectData.file);
-
-  //     // 🎨 Извлекаем цвета
-  //     // const extractedColors = extractDesignColors(
-  //     //   projectData.file,
-  //     //   project.nodeId
-  //     // );
-  //     // setColors(extractedColors);
-
-  //     // 🔤 Извлекаем шрифты
-  //     // const extractedFonts = extractTypography(
-  //     //   projectData.file,
-  //     //   project.nodeId
-  //     // );
-  //     // setFonts(extractedFonts);
-
-  //     // 🪄 Формируем строку импорта Google Fonts
-  //     // const importString = generateGoogleFontsImport(extractedFonts);
-  //     // setGoogleFontsImport(importString);
-
-  //     // // ☁️ Загружаем изображения в Cloudinary через GraphQL
-  //     // const uploadRes = await uploadFigmaImagesToCloudinary({
-  //     //   variables: { projectId: project.id },
-  //     // });
-
-  //     // const uploaded = uploadRes.data?.uploadFigmaImagesToCloudinary || [];
-  //     // console.log("☁️ Uploaded to Cloudinary:", uploaded);
-
-  //     // if (uploaded.length > 0) {
-  //     //   setImagesFromFigma(uploaded);
-  //     //   setModalMessage(`Uploaded ${uploaded.length} images to Cloudinary.`);
-  //     // } else {
-  //     //   setModalMessage("No images were uploaded to Cloudinary.");
-  //     //   setImagesFromFigma([]);
-  //     // }
-  //   } catch (err: any) {
-  //     console.error("❌ Ошибка при загрузке:", err);
-  //     setModalMessage(err.message);
-  //   }
-  // };
   return (
     <div className="p-4 mt-[60px]">
       <p>
@@ -227,7 +184,7 @@ const ProjectPage = () => {
       )} */}
       <hr className="mt-4 mb-4" />
 
-      <div className="mt-4 grid grid-cols-2 gap-2">
+      <div className="mt-4 grid grid-cols-3 gap-2">
         <div>
           <button
             className="btn btn-primary w-full"
@@ -467,6 +424,47 @@ const ProjectPage = () => {
                     </div>
                   );
                 })}
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="border-l-1 border-l-slate-900 pl-2 ">
+          <button
+            className="btn btn-primary  w-full"
+            onClick={() => {
+              hadlerImages();
+            }}
+          >
+            {uploading ? "🌤️ Loading images..." : "☁️ Images"}
+          </button>
+          {images.length > 0 && (
+            <button
+              className="btn btn-allert  mt-2"
+              onClick={() => {
+                setImages([]);
+              }}
+            >
+              Clear Images
+            </button>
+          )}
+          {images.length > 0 && (
+            <div className="mt-2">
+              <h5 className="">Uploaded Images ({images.length})</h5>
+              <div className="flex flex-col gap-2">
+                {images.map((img, index) => (
+                  <div key={index} className="border rounded shadow-sm ">
+                    <img
+                      src={img.url}
+                      alt={`Image ${index + 1}`}
+                      className="w-full h-auto object-cover"
+                    />
+                    <a
+                      href={`http://localhost:4000/api/download?url=${encodeURIComponent(img.url)}&name=image-${index + 1}.webp`}
+                    >
+                      💾 Download
+                    </a>
+                  </div>
+                ))}
               </div>
             </div>
           )}
