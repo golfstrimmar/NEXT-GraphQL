@@ -4,7 +4,8 @@ import jwt from "jsonwebtoken";
 import prisma from "../prisma/client.js";
 import { OAuth2Client } from "google-auth-library";
 import { GraphQLJSON } from "graphql-type-json";
-import uploadFigmaImagesToCloudinary from "./mutations/uploadFigmaImages.js";
+import uploadFigmaImagesToCloudinary from "../mutations/FigmaImages.js";
+import uploadFigmaSvgsToCloudinary from "../mutations/FigmaSVG.js";
 const ee = new EventEmitter();
 const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key";
 const SALT_ROUNDS = 10;
@@ -297,6 +298,7 @@ export const resolvers = {
       return project.id;
     },
     uploadFigmaImagesToCloudinary,
+    uploadFigmaSvgsToCloudinary,
   },
 
   User: {

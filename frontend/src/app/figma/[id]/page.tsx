@@ -10,8 +10,11 @@ import { useStateContext } from "@/providers/StateProvider";
 import {
   REMOVE_FIGMA_PROJECT,
   UPLOAD_FIGMA_IMAGES_TO_CLOUDINARY,
+  UPLOAD_FIGMA_SVGS_TO_CLOUDINARY,
 } from "@/apollo/mutations";
+
 import Loading from "@/components/ui/Loading/Loading";
+
 // -------
 import generateGoogleFontsImport from "@/utils/generateGoogleFontsImport";
 import extractDesignColors from "@/utils/extractDesignColors";
@@ -33,6 +36,10 @@ const ProjectPage = () => {
     uploadFigmaImagesToCloudinary,
     { loading: uploading, error: uploadError },
   ] = useMutation(UPLOAD_FIGMA_IMAGES_TO_CLOUDINARY);
+  const [
+    uploadFigmaSvgsToCloudinary,
+    { loading: uploadingSvgs, error: uploadSvgError },
+  ] = useMutation(UPLOAD_FIGMA_SVGS_TO_CLOUDINARY);
   const [removeFigmaProject] = useMutation(REMOVE_FIGMA_PROJECT);
   // ---------------------------
   const [project, setProject] = useState<any>(null);
@@ -42,6 +49,7 @@ const ProjectPage = () => {
   const [googleFontsImport, setGoogleFontsImport] = useState("");
   const sassCode = generateFontSassVariables(fonts, colors);
   const [variablesCode, classesCode] = sassCode.split("// Typography classes");
+  const [SvgImages, setSvgImages] = useState<string[]>([]);
   // ---------------------------
   useEffect(() => {
     if (data?.getFigmaProjectData) {
@@ -64,6 +72,13 @@ const ProjectPage = () => {
       console.log("<==== colors====>", colors);
     }
   }, [colors]);
+
+  useEffect(() => {
+    if (SvgImages) {
+      console.log("<==== SvgImages====>", SvgImages);
+    }
+  }, [SvgImages]);
+
   // -----------------------
   if (loading) return <Loading />;
   if (error) return <p>Error: {error.message}</p>;
@@ -98,6 +113,7 @@ const ProjectPage = () => {
     }
   };
   // =======================
+
   // =======================
   // Генерируем уникальные комбинации и соответствие классов
   const fontCombinationsMap = new Map();
@@ -130,9 +146,46 @@ const ProjectPage = () => {
       setModalMessage(err.message);
     }
   };
-
+  // -----------------------
+  const handlerSvg = async () => {
+    try {
+      const { data } = await uploadFigmaSvgsToCloudinary({
+        variables: { projectId: project.id },
+      });
+      if (data) {
+        console.log(
+          "<===data.uploadFigmaSvgsToCloudinary=====>",
+          data.uploadFigmaSvgsToCloudinary
+        );
+      }
+      setSvgImages(data.uploadFigmaSvgsToCloudinary);
+    } catch (err) {
+      console.error("❌ SVG upload error:", err);
+      setModalMessage(err.message);
+    }
+  };
   // =======================
+  async function downloadImage(url: string, fileName: string) {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Failed to fetch image");
 
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const finalFileName = `${fileName}.webp`;
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = finalFileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    URL.revokeObjectURL(blobUrl);
+  }
+  const downloadImages = () => {
+    images?.forEach((image, index) => {
+      downloadImage(image.url, `image-${index + 1}`);
+    });
+  };
   // =======================
   const handleRemoved = async (id) => {
     const removedProject = await removeFigmaProject({
@@ -176,15 +229,15 @@ const ProjectPage = () => {
           />
         </div>
       )}
-      {/* <hr className="mt-4 mb-4" /> */}
-      {/* {project.file && (
+      {/* <hr className="mt-4 mb-4" /> 
+      {project.file && (
         <div>
           <pre>{JSON.stringify(project.file, null, 2)}</pre>
         </div>
-      )} */}
+      )}*/}
       <hr className="mt-4 mb-4" />
 
-      <div className="mt-4 grid grid-cols-3 gap-2">
+      <div className="mt-4 grid grid-cols-4 gap-2">
         <div>
           <button
             className="btn btn-primary w-full"
@@ -451,6 +504,9 @@ const ProjectPage = () => {
             <div className="mt-2">
               <h5 className="">Uploaded Images ({images.length})</h5>
               <div className="flex flex-col gap-2">
+                <button onClick={() => downloadImages(images)}>
+                  💾 Download Images
+                </button>
                 {images.map((img, index) => (
                   <div key={index} className="border rounded shadow-sm ">
                     <img
@@ -458,11 +514,48 @@ const ProjectPage = () => {
                       alt={`Image ${index + 1}`}
                       className="w-full h-auto object-cover"
                     />
-                    <a
-                      href={`http://localhost:4000/api/download?url=${encodeURIComponent(img.url)}&name=image-${index + 1}.webp`}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="border-l-1 border-l-slate-900 pl-2 ">
+          <button
+            className="btn btn-primary  w-full"
+            onClick={() => {
+              handlerSvg();
+            }}
+          >
+            {uploadingSvgs ? "🌤️ Loading svg..." : "☁️ SVG"}
+          </button>
+          {SvgImages.length > 0 && (
+            <button
+              className="btn btn-allert  mt-2"
+              onClick={() => {
+                setSvgImages([]);
+              }}
+            >
+              Clear SVG
+            </button>
+          )}
+          {SvgImages.length > 0 && (
+            <div className="mt-2">
+              <h5 className="">Uploaded Images ({SvgImages.length})</h5>
+              <div className="flex flex-col gap-2">
+                {SvgImages.map((img, index) => (
+                  <div key={index} className="border rounded shadow-sm p-2">
+                    <img
+                      src={img.url}
+                      type="image/svg+xml"
+                      className="w-full h-40"
+                    />
+                    <button
+                      className="btn btn-sm mt-2"
+                      onClick={() => downloadImages(SvgImages)}
                     >
                       💾 Download
-                    </a>
+                    </button>
                   </div>
                 ))}
               </div>

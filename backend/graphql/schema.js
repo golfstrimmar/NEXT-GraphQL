@@ -121,6 +121,7 @@ export const typeDefs = gql`
 
     # ☁️ Загрузка изображений из Figma в Cloudinary
     uploadFigmaImagesToCloudinary(projectId: ID!): [FigmaImage!]!
+    uploadFigmaSvgsToCloudinary(projectId: ID!): [FigmaImage!]!
   }
 
   type Subscription {

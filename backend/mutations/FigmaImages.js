@@ -1,9 +1,10 @@
+import prisma from "../prisma/client.js";
 import {
   collectUniqueImageRefs,
   fetchImageUrls,
   fetchImageBuffer,
-} from "../../utils/figmaImages.js";
-import { uploadToCloudinary } from "../../utils/cloudinary.js";
+} from "../utils/figmaImages.js";
+import { uploadToCloudinary } from "../utils/cloudinary.js";
 import pLimit from "p-limit";
 
 const uploadFigmaImagesToCloudinary = async (_, { projectId }) => {
@@ -17,7 +18,7 @@ const uploadFigmaImagesToCloudinary = async (_, { projectId }) => {
 
   // 🧠 1️⃣ Проверяем — есть ли уже сохранённые изображения в базе
   if (figmaImages.length > 0) {
-    console.log(`📦 Найдено ${figmaImages.length} изображений в БД`);
+    console.log(`📦  ${figmaImages.length} finded. `);
     return figmaImages.map(({ nodeId, filePath }) => ({
       nodeId,
       url: filePath,

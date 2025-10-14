@@ -170,10 +170,19 @@ export const REMOVE_FIGMA_PROJECT = gql`
   }
 `;
 
-// === Загрузка изображений Figma в Cloudinary ===
+// === Загрузка изображений и svg Figma в Cloudinary ===
 export const UPLOAD_FIGMA_IMAGES_TO_CLOUDINARY = gql`
   mutation uploadFigmaImagesToCloudinary($projectId: ID!) {
     uploadFigmaImagesToCloudinary(projectId: $projectId) {
+      nodeId
+      url
+    }
+  }
+`;
+
+export const UPLOAD_FIGMA_SVGS_TO_CLOUDINARY = gql`
+  mutation uploadFigmaSvgsToCloudinary($projectId: ID!) {
+    uploadFigmaSvgsToCloudinary(projectId: $projectId) {
       nodeId
       url
     }

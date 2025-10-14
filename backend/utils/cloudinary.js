@@ -20,9 +20,27 @@ export function uploadToCloudinary(fileBuffer, folder = "ulon", fileName) {
       {
         folder,
         public_id: fileName,
-        resource_type: "raw",
+        resource_type: "image",
         format: "webp",
         timeout: 120000, // таймаут 2 минуты
+      },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      }
+    );
+
+    stream.end(fileBuffer);
+  });
+}
+export function uploadSvgToCloudinary(fileBuffer, folder = "ulon", fileName) {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder,
+        public_id: `${fileName}.svg`,
+        resource_type: "raw", // raw → оставляем SVG как есть
+        timeout: 120000,
       },
       (error, result) => {
         if (error) reject(error);
