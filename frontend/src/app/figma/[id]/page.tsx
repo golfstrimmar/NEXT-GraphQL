@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation } from "@apollo/client";
@@ -11,6 +11,8 @@ import {
   REMOVE_FIGMA_PROJECT,
   UPLOAD_FIGMA_IMAGES_TO_CLOUDINARY,
   UPLOAD_FIGMA_SVGS_TO_CLOUDINARY,
+  TRANSFORM_RASTER_TO_SVG,
+  REMOVE_FIGMA_IMAGE,
 } from "@/apollo/mutations";
 
 import Loading from "@/components/ui/Loading/Loading";
@@ -21,6 +23,7 @@ import extractDesignColors from "@/utils/extractDesignColors";
 import extractTypography from "@/utils/extractTypography";
 import generateSassVariables from "@/utils/generateSassVariables";
 import generateFontSassVariables from "@/utils/generateFontSassVariables";
+import { set } from "lodash";
 // -------
 const ProjectPage = () => {
   const params = useParams();
@@ -40,7 +43,11 @@ const ProjectPage = () => {
     uploadFigmaSvgsToCloudinary,
     { loading: uploadingSvgs, error: uploadSvgError },
   ] = useMutation(UPLOAD_FIGMA_SVGS_TO_CLOUDINARY);
+  const [transformRasterToSvg, { loading: transformLoading }] = useMutation(
+    TRANSFORM_RASTER_TO_SVG
+  );
   const [removeFigmaProject] = useMutation(REMOVE_FIGMA_PROJECT);
+  const [removeFigmaImage] = useMutation(REMOVE_FIGMA_IMAGE);
   // ---------------------------
   const [project, setProject] = useState<any>(null);
   const [colors, setColors] = useState<any[]>([]);
@@ -50,6 +57,7 @@ const ProjectPage = () => {
   const sassCode = generateFontSassVariables(fonts, colors);
   const [variablesCode, classesCode] = sassCode.split("// Typography classes");
   const [SvgImages, setSvgImages] = useState<string[]>([]);
+  const [tempId, setTempId] = useState<string>("");
   // ---------------------------
   useEffect(() => {
     if (data?.getFigmaProjectData) {
@@ -72,13 +80,16 @@ const ProjectPage = () => {
       console.log("<==== colors====>", colors);
     }
   }, [colors]);
-
+  useEffect(() => {
+    if (images.length > 0) {
+      console.log("<==== images====>", images);
+    }
+  });
   useEffect(() => {
     if (SvgImages) {
       console.log("<==== SvgImages====>", SvgImages);
     }
   }, [SvgImages]);
-
   // -----------------------
   if (loading) return <Loading />;
   if (error) return <p>Error: {error.message}</p>;
@@ -131,40 +142,21 @@ const ProjectPage = () => {
       });
     }
   });
-  // -----------------------
+
+  // ==========Images=============
   const hadlerImages = async () => {
     if (!project?.id) return;
 
     try {
-      const { data, loading } = await uploadFigmaImagesToCloudinary({
+      const { data } = await uploadFigmaImagesToCloudinary({
         variables: { projectId: project.id },
       });
-      // console.log("<====images====>", data.uploadFigmaImagesToCloudinary);
       setImages(data.uploadFigmaImagesToCloudinary);
     } catch (err: any) {
       console.error("❌ Error:", err);
       setModalMessage(err.message);
     }
   };
-  // -----------------------
-  const handlerSvg = async () => {
-    try {
-      const { data } = await uploadFigmaSvgsToCloudinary({
-        variables: { projectId: project.id },
-      });
-      if (data) {
-        console.log(
-          "<===data.uploadFigmaSvgsToCloudinary=====>",
-          data.uploadFigmaSvgsToCloudinary
-        );
-      }
-      setSvgImages(data.uploadFigmaSvgsToCloudinary);
-    } catch (err) {
-      console.error("❌ SVG upload error:", err);
-      setModalMessage(err.message);
-    }
-  };
-  // =======================
   async function downloadImage(url: string, fileName: string) {
     const res = await fetch(url);
     if (!res.ok) throw new Error("Failed to fetch image");
@@ -183,10 +175,70 @@ const ProjectPage = () => {
   }
   const downloadImages = () => {
     images?.forEach((image, index) => {
-      downloadImage(image.url, `image-${index + 1}`);
+      downloadImage(image.filePath, `image-${index + 1}`);
     });
   };
-  // =======================
+
+  const handleTransform = async (nodeId) => {
+    if (!nodeId) return;
+    setTempId(nodeId);
+    try {
+      const { data } = await transformRasterToSvg({
+        variables: { nodeId },
+      });
+      const newSvgImage = data.transformRasterToSvg;
+      setSvgImages([...SvgImages, newSvgImage]);
+      console.log("✅ Converted SVG:", newSvgImage);
+      setImages((prev) => prev.filter((img) => img.nodeId !== nodeId));
+      setTempId("");
+    } catch (err) {
+      console.error("❌ Error transforming raster to SVG:", err);
+    }
+  };
+  const deleteImg = async (img) => {
+    console.log("<===img=====>", img);
+    try {
+      await removeFigmaImage({
+        variables: { nodeId: img.nodeId },
+      });
+
+      setImages(images.filter((i) => i.nodeId !== img.nodeId));
+      setSvgImages(SvgImages.filter((i) => i.nodeId !== img.nodeId));
+
+      // Сообщение
+      setModalMessage(`Image ${img.nodeId} removed`);
+    } catch (err: any) {
+      console.error("❌ Error:", err);
+      setModalMessage(err.message);
+    }
+  };
+  // ==========Svg ==========
+
+  const handlerSvg = async () => {
+    try {
+      const { data } = await uploadFigmaSvgsToCloudinary({
+        variables: { projectId: project.id },
+      });
+      setSvgImages(data.uploadFigmaSvgsToCloudinary);
+    } catch (err) {
+      console.error("❌ SVG upload error:", err);
+      setModalMessage(err.message);
+    }
+  };
+  function downloadOneSvgImage(img) {
+    const filePath = img.filePath;
+    const nodeId = img.nodeId;
+    const baseName = nodeId.replace(/[:/\\]/g, "_").replace(/\.svg$/i, "");
+    const finalFileName = `${baseName}.svg`;
+    const a = document.createElement("a");
+    a.href = filePath;
+    a.download = finalFileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  // ==========Remove=============
   const handleRemoved = async (id) => {
     const removedProject = await removeFigmaProject({
       variables: { figmaProjectId: id },
@@ -202,7 +254,7 @@ const ProjectPage = () => {
   };
   // -----------------------
   return (
-    <div className="p-4 mt-[60px]">
+    <div className="p-4 mt-[60px] mb-8">
       <p>
         Name: <strong className="text-2xl font-bold">{project.name}</strong>
       </p>
@@ -218,26 +270,15 @@ const ProjectPage = () => {
           Remove Project
         </button>
       </div>
-
-      <hr className="mt-4 mb-4" />
-      {project.previewUrl && (
-        <div className="">
-          <img
-            src={project.previewUrl}
-            alt="Figma Preview"
-            className="border   rounded-sm shadow-[0_0_10px_0_rgba(0,0,0,0.4)]"
-          />
-        </div>
-      )}
-      {/* <hr className="mt-4 mb-4" /> 
+      {/* <hr className="mt-4 mb-4" />
       {project.file && (
         <div>
           <pre>{JSON.stringify(project.file, null, 2)}</pre>
         </div>
-      )}*/}
+      )} */}
       <hr className="mt-4 mb-4" />
-
       <div className="mt-4 grid grid-cols-4 gap-2">
+        {/* ✅✅✅✅✅✅ ШРИФТЫ */}
         <div>
           <button
             className="btn btn-primary w-full"
@@ -256,7 +297,7 @@ const ProjectPage = () => {
               Clear Fonts
             </button>
           )}
-          {/* ✅✅✅✅✅✅ ШРИФТЫ */}
+
           {fonts.length > 0 && (
             <div className="mt-2">
               <h5 className="">Typography ({fonts.length})</h5>
@@ -405,6 +446,7 @@ const ProjectPage = () => {
             </div>
           )}
         </div>
+        {/* ✅✅✅✅✅✅✅ ЦВЕТА */}
         <div className="border-l-1 border-l-slate-900 pl-2">
           <button
             className="btn btn-primary  w-full"
@@ -422,7 +464,7 @@ const ProjectPage = () => {
               Clear Colors
             </button>
           )}
-          {/* ✅✅✅✅✅✅✅ ЦВЕТА */}
+
           {colors.length > 0 && (
             <div className="mt-2">
               <h5 className="">Colors ({colors.length})</h5>
@@ -481,6 +523,7 @@ const ProjectPage = () => {
             </div>
           )}
         </div>
+        {/* ✅✅✅✅✅✅✅ Картинки */}
         <div className="border-l-1 border-l-slate-900 pl-2 ">
           <button
             className="btn btn-primary  w-full"
@@ -503,16 +546,36 @@ const ProjectPage = () => {
           {images.length > 0 && (
             <div className="mt-2">
               <h5 className="">Uploaded Images ({images.length})</h5>
-              <div className="flex flex-col gap-2">
-                <button onClick={() => downloadImages(images)}>
+              <div className="flex flex-col gap-2 ">
+                <button
+                  onClick={() => downloadImages()}
+                  className=" btn-primary btn"
+                >
                   💾 Download Images
                 </button>
                 {images.map((img, index) => (
-                  <div key={index} className="border rounded shadow-sm ">
+                  <div
+                    key={index}
+                    className="border rounded shadow-sm p-1 bg-[rgb(145_145_145)]"
+                  >
+                    <button
+                      onClick={() => handleTransform(img.nodeId)}
+                      className="btn-primary  btn"
+                    >
+                      {transformLoading && img.nodeId === tempId
+                        ? "🌤️ Converting..."
+                        : "🔄 Convert Raster to SVG"}
+                    </button>
+                    <button
+                      className="btn btn-allert  ml-2"
+                      onClick={() => deleteImg(img)}
+                    >
+                      🗑️ Delite
+                    </button>
                     <img
-                      src={img.url}
+                      src={img.filePath}
                       alt={`Image ${index + 1}`}
-                      className="w-full h-auto object-cover"
+                      className="w-full h-auto object-cover mt-2"
                     />
                   </div>
                 ))}
@@ -520,6 +583,7 @@ const ProjectPage = () => {
             </div>
           )}
         </div>
+        {/* ✅✅✅✅✅✅✅ SVG */}
         <div className="border-l-1 border-l-slate-900 pl-2 ">
           <button
             className="btn btn-primary  w-full"
@@ -541,21 +605,33 @@ const ProjectPage = () => {
           )}
           {SvgImages.length > 0 && (
             <div className="mt-2">
-              <h5 className="">Uploaded Images ({SvgImages.length})</h5>
+              <h5 className="">Uploaded Svg ({SvgImages.length})</h5>
+
               <div className="flex flex-col gap-2">
                 {SvgImages.map((img, index) => (
-                  <div key={index} className="border rounded shadow-sm p-2">
+                  <div
+                    key={index}
+                    className="border rounded shadow-sm p-1 bg-[rgb(145_145_145)]"
+                  >
+                    <div className="flex items-center gap-2 ">
+                      <button
+                        className="btn  btn-primary"
+                        onClick={() => downloadOneSvgImage(img)}
+                      >
+                        💾 Download
+                      </button>
+                      <button
+                        className="btn btn-allert  "
+                        onClick={() => deleteImg(img)}
+                      >
+                        🗑️ Delite
+                      </button>
+                    </div>
                     <img
-                      src={img.url}
+                      src={img.filePath}
                       type="image/svg+xml"
-                      className="w-full h-40"
+                      className="w-full h-40 mt-2"
                     />
-                    <button
-                      className="btn btn-sm mt-2"
-                      onClick={() => downloadImages(SvgImages)}
-                    >
-                      💾 Download
-                    </button>
                   </div>
                 ))}
               </div>
@@ -563,6 +639,17 @@ const ProjectPage = () => {
           )}
         </div>
       </div>
+      {/* Figma preview */}
+      <hr className="mt-4 mb-4" />
+      {project.previewUrl && (
+        <div className="">
+          <img
+            src={project.previewUrl}
+            alt="Figma Preview"
+            className="border   rounded-sm shadow-[0_0_10px_0_rgba(0,0,0,0.4)]"
+          />
+        </div>
+      )}
     </div>
   );
 };

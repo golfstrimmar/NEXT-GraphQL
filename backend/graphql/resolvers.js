@@ -6,6 +6,7 @@ import { OAuth2Client } from "google-auth-library";
 import { GraphQLJSON } from "graphql-type-json";
 import uploadFigmaImagesToCloudinary from "../mutations/FigmaImages.js";
 import uploadFigmaSvgsToCloudinary from "../mutations/FigmaSVG.js";
+import transformRasterToSvg from "../mutations/transformRasterToSvg.js";
 const ee = new EventEmitter();
 const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key";
 const SALT_ROUNDS = 10;
@@ -270,13 +271,13 @@ export const resolvers = {
             nodeId,
             token,
             previewUrl,
-            owner: Number(ownerId),
+            owner: {
+              connect: { id: Number(ownerId) },
+            },
           },
         });
 
-        // Публикуем событие для подписчиков
-        // ee.emit("FIGMA_PROJECT_CREATED", project);
-        console.log("<====👤👤👤createFigmaProject====>", project);
+        console.log("<====project====>", project);
         return {
           id: project.id,
           name: project.name,
@@ -291,6 +292,7 @@ export const resolvers = {
         throw error;
       }
     },
+
     removeFigmaProject: async (_, { figmaProjectId }) => {
       const project = await prisma.figmaProject.delete({
         where: { id: Number(figmaProjectId) },
@@ -299,6 +301,16 @@ export const resolvers = {
     },
     uploadFigmaImagesToCloudinary,
     uploadFigmaSvgsToCloudinary,
+    transformRasterToSvg,
+    removeFigmaImage: async (_, { nodeId }) => {
+      const deleted = await prisma.figmaImage.delete({
+        where: { nodeId },
+      });
+      console.log("<===deleted=====>", deleted);
+
+      // возвращаем только поле nodeId, как ожидает фронт
+      return { nodeId: deleted.nodeId };
+    },
   },
 
   User: {

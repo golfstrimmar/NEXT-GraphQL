@@ -46,10 +46,22 @@ const uploadFigmaSvgsToCloudinary = async (_, { projectId }) => {
   });
   if (!project) throw new Error("Project not found");
 
-  const { id, fileKey, nodeId, token } = project;
+  const { id, fileKey, nodeId, token, figmaImages } = project;
   const headers = { "X-Figma-Token": token };
 
-  // 1️⃣ Получаем дерево ноды
+  // 🧠 1️⃣ Check if there are already saved SVG images
+  const existingVectors = figmaImages.filter((img) => img.type === "vector");
+  if (existingVectors.length > 0) {
+    console.log(
+      `📦 Found ${existingVectors.length} SVGs in the database, returning them.`
+    );
+    return existingVectors.map(({ nodeId, filePath }) => ({
+      nodeId,
+      filePath,
+    }));
+  }
+
+  // 2️⃣ Получаем дерево ноды
   const fileRes = await fetch(
     `https://api.figma.com/v1/files/${fileKey}/nodes?ids=${nodeId}`,
     { headers }
@@ -60,7 +72,7 @@ const uploadFigmaSvgsToCloudinary = async (_, { projectId }) => {
   const nodeData = nodes?.[nodeId];
   if (!nodeData) throw new Error("Node not found in Figma response");
 
-  // 2️⃣ Собираем группы с прямыми векторными потомками
+  // 3️⃣ Собираем группы с прямыми векторными потомками
   const vectorGroups = collectTopVectorGroups(nodeData.document);
   console.log(`🎯 Found ${vectorGroups.length} top-level vector groups.`);
 
@@ -69,7 +81,7 @@ const uploadFigmaSvgsToCloudinary = async (_, { projectId }) => {
   const limit = pLimit(3);
   const uploaded = [];
 
-  // 3️⃣ Экспорт каждой группы как SVG
+  // 4️⃣ Экспорт каждой группы как SVG
   await Promise.all(
     vectorGroups.map(({ id: groupId, name }) =>
       limit(async () => {
@@ -86,21 +98,23 @@ const uploadFigmaSvgsToCloudinary = async (_, { projectId }) => {
           const { secure_url } = await uploadSvgToCloudinary(
             Buffer.from(svgBuffer),
             "ulon",
-            `${groupId}.svg`
+            `${groupId}`
           );
 
+          // 5️⃣ Сохраняем SVG в базе
           await prisma.figmaImage.create({
             data: {
-              fileName: `${name}.svg`,
+              fileName: `${name.replace(/\.svg$/i, "")}.svg`,
               filePath: secure_url,
               nodeId: groupId,
               imageRef: groupId,
+              type: "vector",
               figmaProjectId: id,
             },
           });
 
           console.log(`✅ Uploaded top-level vector group: ${name}`);
-          uploaded.push({ nodeId: groupId, url: secure_url });
+          uploaded.push({ nodeId: groupId, filePath: secure_url });
         } catch (err) {
           console.error(`❌ Failed to upload group ${name}`, err.message);
         }

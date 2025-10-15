@@ -36,8 +36,12 @@ export const typeDefs = gql`
 
   # 🖼️ Тип для изображений из Figma
   type FigmaImage {
+    fileName: String!
+    filePath: String!
     nodeId: String!
-    url: String!
+    imageRef: String!
+    figmaProjectId: Int
+    type: String
   }
 
   # 🎨 Проект из Figma
@@ -122,6 +126,8 @@ export const typeDefs = gql`
     # ☁️ Загрузка изображений из Figma в Cloudinary
     uploadFigmaImagesToCloudinary(projectId: ID!): [FigmaImage!]!
     uploadFigmaSvgsToCloudinary(projectId: ID!): [FigmaImage!]!
+    removeFigmaImage(nodeId: String!): FigmaImage!
+    transformRasterToSvg(nodeId: String!): FigmaImage!
   }
 
   type Subscription {

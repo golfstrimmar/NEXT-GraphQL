@@ -50,12 +50,14 @@ model FigmaImage {
   id             Int          @id @default(autoincrement())
   fileName       String
   filePath       String
-  nodeId         String
+  nodeId         String       @unique
   imageRef       String
+  type           String        @default("raster") 
   createdAt      DateTime     @default(now())
   figmaProject   FigmaProject @relation("ProjectImages", fields: [figmaProjectId], references: [id], onDelete: Cascade)
   figmaProjectId Int
 }
+
 
 model JsonDocument {
   id        Int      @id @default(autoincrement())

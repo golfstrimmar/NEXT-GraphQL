@@ -29,8 +29,11 @@
     "graphql-tag": "^2.12.6",
     "graphql-type-json": "^0.3.2",
     "graphql-ws": "^6.0.6",
+    "jimp": "^1.6.0",
     "jsonwebtoken": "^9.0.2",
     "p-limit": "^7.1.1",
+    "potrace": "^2.1.8",
+    "sharp": "^0.34.4",
     "subscriptions-transport-ws": "^0.11.0",
     "ws": "^8.18.3"
   },

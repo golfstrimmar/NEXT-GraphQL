@@ -175,7 +175,7 @@ export const UPLOAD_FIGMA_IMAGES_TO_CLOUDINARY = gql`
   mutation uploadFigmaImagesToCloudinary($projectId: ID!) {
     uploadFigmaImagesToCloudinary(projectId: $projectId) {
       nodeId
-      url
+      filePath
     }
   }
 `;
@@ -184,7 +184,23 @@ export const UPLOAD_FIGMA_SVGS_TO_CLOUDINARY = gql`
   mutation uploadFigmaSvgsToCloudinary($projectId: ID!) {
     uploadFigmaSvgsToCloudinary(projectId: $projectId) {
       nodeId
-      url
+      filePath
+    }
+  }
+`;
+
+export const REMOVE_FIGMA_IMAGE = gql`
+  mutation removeFigmaImage($nodeId: String!) {
+    removeFigmaImage(nodeId: $nodeId) {
+      nodeId
+    }
+  }
+`;
+export const TRANSFORM_RASTER_TO_SVG = gql`
+  mutation transformRasterToSvg($nodeId: String!) {
+    transformRasterToSvg(nodeId: $nodeId) {
+      nodeId
+      filePath
     }
   }
 `;
