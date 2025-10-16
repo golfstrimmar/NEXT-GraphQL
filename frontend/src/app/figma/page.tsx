@@ -5,55 +5,29 @@ import Link from "next/link";
 import { useStateContext } from "@/providers/StateProvider";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "@apollo/client";
-import { CREATE_FIGMA_PROJECT, REMOVE_FIGMA_PROJECT } from "@/apollo/mutations";
+import { REMOVE_FIGMA_PROJECT } from "@/apollo/mutations";
 import { GET_FIGMA_PROJECTS_BY_USER } from "@/apollo/queries";
-import Image from "next/image";
 import Button from "@/components/ui/Button/Button";
-import Loading from "@/components/ui/Loading/Loading";
-import Input from "@/components/ui/Input/Input";
-import { AnimatePresence, motion } from "framer-motion";
+import ModalCreateFigmaProject from "@/components/ModalCreateFigmaProject/ModalCreateFigmaProject";
 import "./figma.scss";
-
+import Loading from "@/components/ui/Loading/Loading";
+import FProject from "@/types/FProject";
 // -------
 export default function FigmaPage() {
-  const { user } = useStateContext();
   const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
   // ---
-  const [projects, setProjects] = useState<any[]>([]);
-  const { setModalMessage } = useStateContext();
-  const [name, setName] = useState("");
-  const [fileKey, setFileKey] = useState("");
-  const [nodeId, setNodeId] = useState("");
-  const [token, setToken] = useState("");
-  const [FigmaLink, setFigmaLink] = useState<string>("");
-  const { data } = useQuery(GET_FIGMA_PROJECTS_BY_USER, {
+  const [projects, setProjects] = useState<FProject[]>([]);
+  const { user, setModalMessage } = useStateContext();
+
+  const { data, loading } = useQuery(GET_FIGMA_PROJECTS_BY_USER, {
     variables: { userId: user?.id },
     skip: !user,
     fetchPolicy: "cache-and-network",
   });
 
   // ----------
-  const [createFigmaProject, { loading }] = useMutation(CREATE_FIGMA_PROJECT);
   const [removeFigmaProject] = useMutation(REMOVE_FIGMA_PROJECT);
-
-  // useSubscription(FIGMA_PROJECT_CREATED_SUBSCRIPTION, {
-  //   onData: ({ data }) => {
-  //     if (!data.data) return;
-  //     console.log("<====data====>", data);
-  //     const newProject = data.data.figmaProjectCreated;
-  //     console.log("<==== New Figma project via subscription:====>", newProject);
-
-  //     setProjects((prev) => {
-  //       // проверка, чтобы не было дубликатов
-  //       if (!prev.find((p) => p.id === newProject.id)) {
-  //         return [...prev, newProject];
-  //       }
-  //       return prev;
-  //     });
-  //   },
-  // });
-
   // -----------------------
   useEffect(() => {
     if (data?.figmaProjectsByUser) {
@@ -67,59 +41,22 @@ export default function FigmaPage() {
     }
   }, [projects]);
 
-  // -----------------------
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // -----------генерация цветовых переменных для фонов------------
+  const generateFonVar = (fileKey: string) => {
+    let hash = 0;
+    for (let i = 0; i < fileKey.length; i++) {
+      hash = fileKey.charCodeAt(i) + ((hash << 5) - hash);
+    }
 
-    if (name === "" || fileKey === "" || nodeId === "" || token === "") {
-      setModalMessage("All fields are required.");
-      return;
-    }
-    console.log("<========>", user.id, name, fileKey, nodeId, token);
-    try {
-      const { data } = await createFigmaProject({
-        variables: { ownerId: user.id, name, fileKey, nodeId, token },
-      });
+    const hue = 170 + (Math.abs(hash) % 60); // синие оттенки
+    const saturation = 40; // немного сочнее
+    const lightness = 85; // мягкий светлый фон
 
-      if (data.createFigmaProject) {
-        console.log(
-          "<========> Created figma project: <========>",
-          data.createFigmaProject
-        );
-        setProjects((prev) => {
-          // проверка, чтобы не было дубликатов
-          if (!prev.find((p) => p.id === data.createFigmaProject)) {
-            return [...prev, data.createFigmaProject];
-          }
-          return prev;
-        });
-        setModalOpen(false);
-        setName("");
-        setFileKey("");
-        setNodeId("");
-        setToken("");
-      }
-    } catch (err: any) {
-      setModalOpen(false);
-      setModalMessage(err.message);
-    }
+    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
   };
-  // -----------------------
-  const fillForm = (link) => {
-    const fileKey = link.match(/design\/([a-zA-Z0-9]+)/)[1];
-    const nodeIdRaw = link.match(/node-id=([0-9\-]+)/)[1];
-    const nodeId = nodeIdRaw.replace("-", ":");
-    console.log({ fileKey, nodeId });
-    setFileKey(fileKey);
-    setNodeId(nodeId);
-  };
-  useEffect(() => {
-    if (FigmaLink) {
-      fillForm(FigmaLink);
-    }
-  }, [FigmaLink]);
+
   // =======================
-  const handleRemoved = async (id) => {
+  const handleRemoved = async (id: number) => {
     const removedProject = await removeFigmaProject({
       variables: { figmaProjectId: id },
     });
@@ -131,17 +68,20 @@ export default function FigmaPage() {
   };
 
   // =======================
-  return (
+  https: return (
     <div className="figma">
       <div className="container">
+        {loading && <Loading />}
         <h2 className="text-center mb-4">Figma projects</h2>
+        {/* 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 */}
         <div className="figma-projects">
-          {projects.length === 0 && <p>No projects found</p>}
+          {projects.length === 0 && <p>No projects found. </p>}
           <ul className="grid grid-cols-[repeat(auto-fit,_minmax(500px,_1fr))] gap-2">
-            {projects.map((proj) => (
+            {projects.map((proj: FProject) => (
               <li
                 key={proj.id}
-                className="bg-[#f3f3f3] p-2 flex flex-col gap-2"
+                style={{ backgroundColor: generateFonVar(proj.fileKey) }}
+                className={` p-2 flex flex-col gap-2`}
               >
                 <div className=" grid grid-cols-[max-content_1fr] gap-4">
                   <div className="flex flex-col gap-1 ">
@@ -179,7 +119,7 @@ export default function FigmaPage() {
               </li>
             ))}
           </ul>
-          {/* =========== create project  ============ */}
+          {/* 🔹🔹🔹🔹🔹🔹🔹  create project 🔹🔹🔹🔹🔹🔹🔹🔹🔹  */}
           <div className="inline-block mt-2">
             {!modalOpen && (
               <Button
@@ -202,102 +142,12 @@ export default function FigmaPage() {
           </div>
         </div>
       </div>
-      <AnimatePresence>
-        {modalOpen && (
-          <div onClick={() => setModalOpen(false)}>
-            <motion.div
-              initial={{
-                opacity: 0,
-                scale: 0.8,
-                y: -100,
-              }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.8, y: -100 }}
-              transition={{ duration: 0.3 }}
-              className=" w-[100vw] h-[100vh] fixed top-0 left-0 flex items-center justify-center bg-black bg-opacity-90 z-50"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (
-                  !e.target.closest(".modal-content") &&
-                  !e.target.classList.contains("modal-content")
-                ) {
-                  setModalOpen(false);
-                }
-              }}
-            >
-              <button className="absolute top-[65px] right-2 z-3000">
-                <Image
-                  src="./svg/cross.svg"
-                  alt="close"
-                  width={20}
-                  height={20}
-                  onClick={() => setModalOpen(false)}
-                />
-              </button>
-              <form
-                onSubmit={handleSubmit}
-                className="modal-content flex flex-col min-w-[500px] bg-white p-6 rounded-lg gap-4"
-              >
-                <Input
-                  typeInput="text"
-                  id="name"
-                  data="Project Name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-
-                <Input
-                  typeInput="text"
-                  id="FigmaLink"
-                  data="Figma Link"
-                  value={FigmaLink}
-                  onChange={(e) => setFigmaLink(e.target.value)}
-                />
-                {/* <Input
-                  typeInput="text"
-                  id="name"
-                  data="File Key"
-                  value={fileKey}
-                  onChange={(e) => setFileKey(e.target.value)}
-                />
-
-                <Input
-                  typeInput="text"
-                  id="name"
-                  data="Node ID"
-                  value={nodeId}
-                  onChange={(e) => setNodeId(e.target.value)}
-                /> */}
-
-                <Input
-                  typeInput="text"
-                  id="name"
-                  data="Figma Token"
-                  value={token}
-                  onChange={(e) => setToken(e.target.value)}
-                />
-
-                <div className="flex gap-2">
-                  <button
-                    className="btn btn-primary "
-                    type="submit"
-                    disabled={loading}
-                  >
-                    {loading ? "Saving..." : "Save"}
-                  </button>
-                  <button
-                    className="btn btn-allert"
-                    type="button"
-                    onClick={() => setModalOpen(false)}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      {/* 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 */}
+      <ModalCreateFigmaProject
+        modalOpen={modalOpen}
+        setModalOpen={setModalOpen}
+        setProjects={setProjects}
+      />
     </div>
   );
 }

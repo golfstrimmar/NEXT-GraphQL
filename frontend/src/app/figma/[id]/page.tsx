@@ -4,12 +4,14 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation } from "@apollo/client";
-import GoogleFontsImporter from "@/components/GoogleFontsImporter/GoogleFontsImporter";
+// import FontsFromFigma from "@/components/FontsFromFigma/FontsFromFigma";
+// import GoogleFontsImporter from "@/components/GoogleFontsImporter/GoogleFontsImporter";
+import ColorsFromFigma from "@/components/ColorsFromFigma/ColorsFromFigma";
 import {
   GET_FIGMA_PROJECT_DATA,
-  GET_COLOR_VARIABLES_BY_FILE_KEY,
-  GET_FONT_CLASSES_BY_FILE_KEY,
-  GET_FIGMA_FONTS_BY_FILE_KEY,
+  // GET_COLOR_VARIABLES_BY_FILE_KEY,
+  // GET_FONT_CLASSES_BY_FILE_KEY,
+  // GET_FIGMA_FONTS_BY_FILE_KEY,
 } from "@/apollo/queries";
 import {
   REMOVE_FIGMA_PROJECT,
@@ -17,54 +19,53 @@ import {
   UPLOAD_FIGMA_SVGS_TO_CLOUDINARY,
   TRANSFORM_RASTER_TO_SVG,
   REMOVE_FIGMA_IMAGE,
-  ADD_COLOR_VARIABLES,
-  ADD_FONT_CLASSES,
-  ADD_FIGMA_FONTS,
+  // ADD_COLOR_VARIABLES,
+  // ADD_FONT_CLASSES,
+  // ADD_FIGMA_FONTS,
 } from "@/apollo/mutations";
 import { useStateContext } from "@/providers/StateProvider";
-// import Loading from "@/components/ui/Loading/Loading";
-import generateGoogleFontsImport from "@/utils/generateGoogleFontsImport";
-import extractDesignColors from "@/utils/extractDesignColors";
-import extractTypography from "@/utils/extractTypography";
-import generateFontSassVariables from "@/utils/generateFontSassVariables";
+import Loading from "@/components/ui/Loading/Loading";
+// import generateGoogleFontsImport from "@/utils/generateGoogleFontsImport";
+// import extractDesignColors from "@/utils/extractDesignColors";
+// import extractTypography from "@/utils/extractTypography";
+// import generateFontSassVariables from "@/utils/generateFontSassVariables";
 
 const ProjectPage = () => {
   const params = useParams();
   const id = params?.id;
   const { setModalMessage } = useStateContext();
   const router = useRouter();
-  console.log("<====id====>", id);
-  // Запросы
+  // 🟢🟢🟢🟢🟢🟢🟢🟢  Queries
   const { data, loading, error } = useQuery(GET_FIGMA_PROJECT_DATA, {
     variables: { projectId: id },
     skip: !id,
   });
 
-  const { data: colorVarsData, loading: colorVarsLoading } = useQuery(
-    GET_COLOR_VARIABLES_BY_FILE_KEY,
-    {
-      variables: { fileKey: data?.getFigmaProjectData?.fileKey },
-      skip: !data?.getFigmaProjectData?.fileKey,
-    }
-  );
+  // const { data: colorVarsData, loading: colorVarsLoading } = useQuery(
+  //   GET_COLOR_VARIABLES_BY_FILE_KEY,
+  //   {
+  //     variables: { fileKey: data?.getFigmaProjectData?.fileKey },
+  //     skip: !data?.getFigmaProjectData?.fileKey,
+  //   }
+  // );
 
-  const { data: fontClassesData, loading: fontClassesLoading } = useQuery(
-    GET_FONT_CLASSES_BY_FILE_KEY,
-    {
-      variables: { fileKey: data?.getFigmaProjectData?.fileKey },
-      skip: !data?.getFigmaProjectData?.fileKey,
-    }
-  );
+  // const { data: fontClassesData, loading: fontClassesLoading } = useQuery(
+  //   GET_FONT_CLASSES_BY_FILE_KEY,
+  //   {
+  //     variables: { fileKey: data?.getFigmaProjectData?.fileKey },
+  //     skip: !data?.getFigmaProjectData?.fileKey,
+  //   }
+  // );
 
-  const { data: figmaFontsData, loading: figmaFontsLoading } = useQuery(
-    GET_FIGMA_FONTS_BY_FILE_KEY,
-    {
-      variables: { fileKey: data?.getFigmaProjectData?.fileKey },
-      skip: !data?.getFigmaProjectData?.fileKey,
-    }
-  );
+  // const { data: figmaFontsData, loading: figmaFontsLoading } = useQuery(
+  //   GET_FIGMA_FONTS_BY_FILE_KEY,
+  //   {
+  //     variables: { fileKey: data?.getFigmaProjectData?.fileKey },
+  //     skip: !data?.getFigmaProjectData?.fileKey,
+  //   }
+  // );
 
-  // Мутации
+  // 🟢🟢🟢🟢🟢🟢 Mutatons
   const [
     uploadFigmaImagesToCloudinary,
     { loading: uploading, error: uploadError },
@@ -78,27 +79,27 @@ const ProjectPage = () => {
   );
   const [removeFigmaProject] = useMutation(REMOVE_FIGMA_PROJECT);
   const [removeFigmaImage] = useMutation(REMOVE_FIGMA_IMAGE);
-  const [addColorVariables] = useMutation(ADD_COLOR_VARIABLES);
-  const [addFontClasses] = useMutation(ADD_FONT_CLASSES);
-  const [addFigmaFonts] = useMutation(ADD_FIGMA_FONTS);
+  // const [addColorVariables] = useMutation(ADD_COLOR_VARIABLES);
+  // const [addFontClasses] = useMutation(ADD_FONT_CLASSES);
+  // const [addFigmaFonts] = useMutation(ADD_FIGMA_FONTS);
 
-  // Состояния
+  //🟢🟢🟢🟢🟢🟢🟢 Состояния
   const [project, setProject] = useState<any>(null);
-  const [colors, setColors] = useState<any[]>([]);
-  const [colorVariables, setColorVariables] = useState<any[]>([]);
-  const [fontClasses, setFontClasses] = useState<any[]>([]);
-  const [figmaFonts, setFigmaFonts] = useState<any[]>([]);
+  // const [colors, setColors] = useState<any[]>([]);
+  // const [colorVariables, setColorVariables] = useState<any[]>([]);
+  // const [fontClasses, setFontClasses] = useState<any[]>([]);
+  // const [figmaFonts, setFigmaFonts] = useState<any[]>([]);
   const [images, setImages] = useState<any[]>([]);
-  const [googleFontsImport, setGoogleFontsImport] = useState("");
+  // const [googleFontsImport, setGoogleFontsImport] = useState("");
   const [svgImages, setSvgImages] = useState<any[]>([]);
   const [tempId, setTempId] = useState<string>("");
   const [imgMess, setImgMess] = useState<string>("");
 
-  // Генерация SASS-кода
-  const sassCode = generateFontSassVariables(fontClasses, colorVariables);
-  const [variablesCode, classesCode] = sassCode.split("// Typography classes");
+  //🟢🟢🟢🟢🟢🟢🟢 Генерация SASS-кода
+  // const sassCode = generateFontSassVariables(fontClasses, colorVariables);
+  // const [variablesCode, classesCode] = sassCode.split("// Typography classes");
 
-  // Обновление состояния при получении данных
+  //🟢🟢🟢🟢🟢🟢🟢 Обновление состояния при получении данных
   useEffect(() => {
     console.log("<====data====>", data);
     if (data?.getFigmaProjectData) {
@@ -110,38 +111,38 @@ const ProjectPage = () => {
     }
   }, [data]);
 
-  useEffect(() => {
-    if (colorVarsData?.getColorVariablesByFileKey) {
-      setColorVariables(colorVarsData.getColorVariablesByFileKey);
-    }
-  }, [colorVarsData]);
+  // useEffect(() => {
+  //   if (colorVarsData?.getColorVariablesByFileKey) {
+  //     setColorVariables(colorVarsData.getColorVariablesByFileKey);
+  //   }
+  // }, [colorVarsData]);
 
-  useEffect(() => {
-    if (fontClassesData?.getFontClassesByFileKey) {
-      setFontClasses(fontClassesData.getFontClassesByFileKey);
-    }
-  }, [fontClassesData]);
+  // useEffect(() => {
+  //   if (fontClassesData?.getFontClassesByFileKey) {
+  //     setFontClasses(fontClassesData.getFontClassesByFileKey);
+  //   }
+  // }, [fontClassesData]);
 
-  useEffect(() => {
-    if (figmaFontsData?.getFigmaFontsByFileKey) {
-      setFigmaFonts(figmaFontsData.getFigmaFontsByFileKey);
-    }
-  }, [figmaFontsData]);
+  // useEffect(() => {
+  //   if (figmaFontsData?.getFigmaFontsByFileKey) {
+  //     setFigmaFonts(figmaFontsData.getFigmaFontsByFileKey);
+  //   }
+  // }, [figmaFontsData]);
 
-  // Логирование для отладки
+  //🟢🟢🟢🟢🟢🟢🟢 Логирование для отладки
   useEffect(() => {
     if (project) console.log("<=====📦 project =====>", project);
   }, [project]);
-  useEffect(() => {
-    if (colors.length > 0) console.log("<==== colors====>", colors);
-  }, [colors]);
-  useEffect(() => {
-    if (fontClasses.length > 0)
-      console.log("<==== fontClasses====>", fontClasses);
-  }, [fontClasses]);
-  useEffect(() => {
-    if (figmaFonts.length > 0) console.log("<==== figmaFonts====>", figmaFonts);
-  }, [figmaFonts]);
+  // useEffect(() => {
+  //   if (colors.length > 0) console.log("<==== colors====>", colors);
+  // }, [colors]);
+  // useEffect(() => {
+  //   if (fontClasses.length > 0)
+  //     console.log("<==== fontClasses====>", fontClasses);
+  // }, [fontClasses]);
+  // useEffect(() => {
+  //   if (figmaFonts.length > 0) console.log("<==== figmaFonts====>", figmaFonts);
+  // }, [figmaFonts]);
   useEffect(() => {
     if (images.length > 0) console.log("<==== images====>", images);
   }, [images]);
@@ -149,342 +150,341 @@ const ProjectPage = () => {
     if (svgImages.length > 0) console.log("<==== svgImages====>", svgImages);
   }, [svgImages]);
 
-  // Обработка загрузки
+  //🟢🟢🟢🟢🟢🟢🟢 Обработка загрузки
   // if (loading || colorVarsLoading || fontClassesLoading || figmaFontsLoading)
   //   return <Loading />;
   if (error) return <p>Error: {error.message}</p>;
-  if (!project) return <p>Project not found</p>;
+  // if (!project) return <p>Project not found</p>;
 
-  // Утилиты для цветов
-  const rgbToHex = ({ r, g, b, a = 1 }) => {
-    if ([r, g, b].some((v) => v == null || v < 0 || v > 1)) {
-      throw new Error("Invalid RGB values: must be between 0 and 1");
-    }
-    const toHex = (v) =>
-      Math.round(v * 255)
-        .toString(16)
-        .padStart(2, "0")
-        .toUpperCase();
-    const hex = `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-    if (a < 1) {
-      return `${hex}${toHex(a)}`;
-    }
-    return hex;
-  };
+  //🟢🟢🟢🟢🟢🟢🟢 Извлечение цветов
+  // const rgbToHex = ({ r, g, b, a = 1 }) => {
+  //   if ([r, g, b].some((v) => v == null || v < 0 || v > 1)) {
+  //     throw new Error("Invalid RGB values: must be between 0 and 1");
+  //   }
+  //   const toHex = (v) =>
+  //     Math.round(v * 255)
+  //       .toString(16)
+  //       .padStart(2, "0")
+  //       .toUpperCase();
+  //   const hex = `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  //   if (a < 1) {
+  //     return `${hex}${toHex(a)}`;
+  //   }
+  //   return hex;
+  // };
 
-  const getVariableNameForColor = (color, idx) => {
-    const prefix = color.type
-      ? color.type.toLowerCase().replace(/\s/g, "-")
-      : "color";
-    return `$${prefix}-${idx + 1}`;
-  };
+  // const getVariableNameForColor = (color, idx) => {
+  //   const prefix = color.type
+  //     ? color.type.toLowerCase().replace(/\s/g, "-")
+  //     : "color";
+  //   return `$${prefix}-${idx + 1}`;
+  // };
 
-  const generateSassVariablesFromVariables = (vars) => {
-    if (!Array.isArray(vars)) return "";
-    return vars
-      .map((c) => {
-        if (!c.variableName || !c.hex) return "";
-        return `${c.variableName}: ${c.hex};`;
-      })
-      .filter(Boolean)
-      .join("\n");
-  };
+  // const generateSassVariablesFromVariables = (vars) => {
+  //   if (!Array.isArray(vars)) return "";
+  //   return vars
+  //     .map((c) => {
+  //       if (!c.variableName || !c.hex) return "";
+  //       return `${c.variableName}: ${c.hex};`;
+  //     })
+  //     .filter(Boolean)
+  //     .join("\n");
+  // };
 
-  // Извлечение цветов
-  const FigmaColors = async () => {
-    if (
-      !project?.id ||
-      !project?.file ||
-      !project?.nodeId ||
-      !project?.fileKey
-    ) {
-      setModalMessage("Invalid project data");
-      return;
-    }
+  // const FigmaColors = async () => {
+  //   if (
+  //     !project?.id ||
+  //     !project?.file ||
+  //     !project?.nodeId ||
+  //     !project?.fileKey
+  //   ) {
+  //     setModalMessage("Invalid project data");
+  //     return;
+  //   }
 
-    try {
-      const extractedColors = extractDesignColors(project.file, project.nodeId);
-      if (!Array.isArray(extractedColors)) {
-        throw new Error("Invalid color data from Figma");
-      }
+  //   try {
+  //     const extractedColors = extractDesignColors(project.file, project.nodeId);
+  //     if (!Array.isArray(extractedColors)) {
+  //       throw new Error("Invalid color data from Figma");
+  //     }
 
-      const typeMap = {
-        text: "TEXT",
-        background: "BACKGROUND",
-        fill: "FILL",
-        stroke: "STROKE",
-        palette: "PALETTE",
-      };
+  //     const typeMap = {
+  //       text: "TEXT",
+  //       background: "BACKGROUND",
+  //       fill: "FILL",
+  //       stroke: "STROKE",
+  //       palette: "PALETTE",
+  //     };
 
-      const existingColorVars = colorVarsData?.getColorVariablesByFileKey || [];
+  //     const existingColorVars = colorVarsData?.getColorVariablesByFileKey || [];
 
-      const variables = extractedColors.map((c, idx) => {
-        const hex = c.formats?.hex || rgbToHex(c);
-        const type = typeMap[c.type?.toLowerCase()] || "PALETTE";
+  //     const variables = extractedColors.map((c, idx) => {
+  //       const hex = c.formats?.hex || rgbToHex(c);
+  //       const type = typeMap[c.type?.toLowerCase()] || "PALETTE";
 
-        const existingVar = existingColorVars.find(
-          (v) => v.hex === hex && v.type === type
-        );
+  //       const existingVar = existingColorVars.find(
+  //         (v) => v.hex === hex && v.type === type
+  //       );
 
-        if (existingVar) {
-          return {
-            ...c,
-            variableName: existingVar.variableName,
-            hex: existingVar.hex,
-            type: existingVar.type,
-          };
-        }
+  //       if (existingVar) {
+  //         return {
+  //           ...c,
+  //           variableName: existingVar.variableName,
+  //           hex: existingVar.hex,
+  //           type: existingVar.type,
+  //         };
+  //       }
 
-        return {
-          ...c,
-          variableName: getVariableNameForColor(c, idx),
-          hex,
-          type,
-        };
-      });
+  //       return {
+  //         ...c,
+  //         variableName: getVariableNameForColor(c, idx),
+  //         hex,
+  //         type,
+  //       };
+  //     });
 
-      setColors(extractedColors);
-      setColorVariables(variables);
+  //     setColors(extractedColors);
+  //     setColorVariables(variables);
 
-      const newVariables = variables.filter(
-        (v) =>
-          !existingColorVars.some(
-            (ev) => ev.hex === v.hex && ev.type === v.type
-          )
-      );
+  //     const newVariables = variables.filter(
+  //       (v) =>
+  //         !existingColorVars.some(
+  //           (ev) => ev.hex === v.hex && ev.type === v.type
+  //         )
+  //     );
 
-      if (newVariables.length > 0) {
-        const { data, error } = await addColorVariables({
-          variables: {
-            fileKey: project.fileKey,
-            colors: newVariables.map(({ variableName, hex, type }) => ({
-              variableName,
-              hex,
-              type,
-            })),
-          },
-        });
+  //     if (newVariables.length > 0) {
+  //       const { data, error } = await addColorVariables({
+  //         variables: {
+  //           fileKey: project.fileKey,
+  //           colors: newVariables.map(({ variableName, hex, type }) => ({
+  //             variableName,
+  //             hex,
+  //             type,
+  //           })),
+  //         },
+  //       });
 
-        if (error) {
-          throw new Error(error.message);
-        }
-        setModalMessage("New colors successfully saved!");
-      } else {
-        setModalMessage("Loaded existing color variables!");
-      }
-    } catch (err) {
-      console.error("❌ Error:", err);
-      setModalMessage(`Error: ${err.message}`);
-    }
-  };
+  //       if (error) {
+  //         throw new Error(error.message);
+  //       }
+  //       setModalMessage("New colors successfully saved!");
+  //     } else {
+  //       setModalMessage("Loaded existing color variables!");
+  //     }
+  //   } catch (err) {
+  //     console.error("❌ Error:", err);
+  //     setModalMessage(`Error: ${err.message}`);
+  //   }
+  // };
 
-  // Извлечение шрифтов
-  const FigmaFonts = async () => {
-    if (
-      !project?.id ||
-      !project?.file ||
-      !project?.nodeId ||
-      !project?.fileKey
-    ) {
-      setModalMessage("Invalid project data");
-      return;
-    }
+  //🟢🟢🟢🟢🟢🟢🟢 Извлечение шрифтов
 
-    try {
-      const extractedFonts = extractTypography(project.file, project.nodeId);
-      if (!Array.isArray(extractedFonts)) {
-        throw new Error("Invalid font data from Figma");
-      }
+  // const FigmaFonts = async () => {
+  //   if (
+  //     !project?.id ||
+  //     !project?.file ||
+  //     !project?.nodeId ||
+  //     !project?.fileKey
+  //   ) {
+  //     setModalMessage("Invalid project data");
+  //     return;
+  //   }
 
-      const existingFontClasses =
-        fontClassesData?.getFontClassesByFileKey || [];
-      const existingFigmaFonts = figmaFontsData?.getFigmaFontsByFileKey || [];
+  //   try {
+  //     const extractedFonts = extractTypography(project.file, project.nodeId);
+  //     if (!Array.isArray(extractedFonts)) {
+  //       throw new Error("Invalid font data from Figma");
+  //     }
 
-      // Формируем FontClass и FigmaFont
-      const newFontClasses = extractedFonts.map((f, idx) => {
-        const fontKey = {
-          fontFamily: f.fontFamily,
-          fontWeight: f.fontWeight,
-          fontSize: f.fontSize,
-          lineHeight: f.lineHeight,
-          letterSpacing: f.letterSpacing,
-        };
+  //     const existingFontClasses =
+  //       fontClassesData?.getFontClassesByFileKey || [];
+  //     const existingFigmaFonts = figmaFontsData?.getFigmaFontsByFileKey || [];
 
-        const existingClass = existingFontClasses.find(
-          (fc) =>
-            fc.fontFamily === fontKey.fontFamily &&
-            fc.fontWeight === fontKey.fontWeight &&
-            fc.fontSize === fontKey.fontSize &&
-            fc.lineHeight === fontKey.lineHeight &&
-            fc.letterSpacing === fontKey.letterSpacing
-        );
+  //     // Формируем FontClass и FigmaFont
+  //     const newFontClasses = extractedFonts.map((f, idx) => {
+  //       const fontKey = {
+  //         fontFamily: f.fontFamily,
+  //         fontWeight: f.fontWeight,
+  //         fontSize: f.fontSize,
+  //         lineHeight: f.lineHeight,
+  //         letterSpacing: f.letterSpacing,
+  //       };
 
-        if (existingClass) {
-          return existingClass;
-        }
+  //       const existingClass = existingFontClasses.find(
+  //         (fc) =>
+  //           fc.fontFamily === fontKey.fontFamily &&
+  //           fc.fontWeight === fontKey.fontWeight &&
+  //           fc.fontSize === fontKey.fontSize &&
+  //           fc.lineHeight === fontKey.lineHeight &&
+  //           fc.letterSpacing === fontKey.letterSpacing
+  //       );
 
-        return {
-          ...fontKey,
-          className: `font-${f.fontFamily?.toLowerCase().replace(/\s/g, "-")}-${idx + 1}`,
-          fileKey: project.fileKey,
-        };
-      });
+  //       if (existingClass) {
+  //         return existingClass;
+  //       }
 
-      const newFigmaFonts = extractedFonts.map((f) => {
-        const fontKey = {
-          fontFamily: f.fontFamily,
-          fontWeight: f.fontWeight,
-          fontSize: f.fontSize,
-          lineHeight: f.lineHeight,
-          letterSpacing: f.letterSpacing,
-          source: f.source,
-          nodeId: f.nodeId,
-        };
+  //       return {
+  //         ...fontKey,
+  //         className: `font-${f.fontFamily?.toLowerCase().replace(/\s/g, "-")}-${idx + 1}`,
+  //         fileKey: project.fileKey,
+  //       };
+  //     });
 
-        const existingFont = existingFigmaFonts.find(
-          (ff) =>
-            ff.fontFamily === fontKey.fontFamily &&
-            ff.fontWeight === fontKey.fontWeight &&
-            ff.fontSize === fontKey.fontSize &&
-            ff.lineHeight === fontKey.lineHeight &&
-            ff.letterSpacing === fontKey.letterSpacing
-        );
+  //     const newFigmaFonts = extractedFonts.map((f) => {
+  //       const fontKey = {
+  //         fontFamily: f.fontFamily,
+  //         fontWeight: f.fontWeight,
+  //         fontSize: f.fontSize,
+  //         lineHeight: f.lineHeight,
+  //         letterSpacing: f.letterSpacing,
+  //         source: f.source,
+  //         nodeId: f.nodeId,
+  //       };
 
-        if (existingFont) {
-          return existingFont;
-        }
+  //       const existingFont = existingFigmaFonts.find(
+  //         (ff) =>
+  //           ff.fontFamily === fontKey.fontFamily &&
+  //           ff.fontWeight === fontKey.fontWeight &&
+  //           ff.fontSize === fontKey.fontSize &&
+  //           ff.lineHeight === fontKey.lineHeight &&
+  //           ff.letterSpacing === fontKey.letterSpacing
+  //       );
 
-        return {
-          ...fontKey,
-          fileKey: project.fileKey,
-        };
-      });
+  //       if (existingFont) {
+  //         return existingFont;
+  //       }
 
-      setFontClasses(newFontClasses);
-      setFigmaFonts(newFigmaFonts);
+  //       return {
+  //         ...fontKey,
+  //         fileKey: project.fileKey,
+  //       };
+  //     });
 
-      // Формируем строку импорта Google Fonts
-      const importString = generateGoogleFontsImport(extractedFonts);
-      setGoogleFontsImport(importString);
+  //     setFontClasses(newFontClasses);
+  //     setFigmaFonts(newFigmaFonts);
 
-      // Сохраняем новые шрифты
-      const newClasses = newFontClasses.filter(
-        (fc) =>
-          !existingFontClasses.some(
-            (efc) =>
-              efc.fontFamily === fc.fontFamily &&
-              efc.fontWeight === fc.fontWeight &&
-              efc.fontSize === fc.fontSize &&
-              efc.lineHeight === fc.lineHeight &&
-              efc.letterSpacing === fc.letterSpacing
-          )
-      );
+  //     // Формируем строку импорта Google Fonts
+  //     const importString = generateGoogleFontsImport(extractedFonts);
+  //     setGoogleFontsImport(importString);
 
-      const newFonts = newFigmaFonts.filter(
-        (ff) =>
-          !existingFigmaFonts.some(
-            (eff) =>
-              eff.fontFamily === ff.fontFamily &&
-              eff.fontWeight === ff.fontWeight &&
-              eff.fontSize === ff.fontSize &&
-              eff.lineHeight === ff.lineHeight &&
-              eff.letterSpacing === ff.letterSpacing
-          )
-      );
+  //     // Сохраняем новые шрифты
+  //     const newClasses = newFontClasses.filter(
+  //       (fc) =>
+  //         !existingFontClasses.some(
+  //           (efc) =>
+  //             efc.fontFamily === fc.fontFamily &&
+  //             efc.fontWeight === fc.fontWeight &&
+  //             efc.fontSize === fc.fontSize &&
+  //             efc.lineHeight === fc.lineHeight &&
+  //             efc.letterSpacing === fc.letterSpacing
+  //         )
+  //     );
 
-      if (newClasses.length > 0) {
-        const { data: fontClassData, error: fontClassError } =
-          await addFontClasses({
-            variables: {
-              fileKey: project.fileKey,
-              fontClasses: newClasses.map(
-                ({
-                  className,
-                  fontFamily,
-                  fontWeight,
-                  fontSize,
-                  lineHeight,
-                  letterSpacing,
-                }) => ({
-                  className,
-                  fontFamily,
-                  fontWeight,
-                  fontSize,
-                  lineHeight,
-                  letterSpacing,
-                })
-              ),
-            },
-          });
+  //     const newFonts = newFigmaFonts.filter(
+  //       (ff) =>
+  //         !existingFigmaFonts.some(
+  //           (eff) =>
+  //             eff.fontFamily === ff.fontFamily &&
+  //             eff.fontWeight === ff.fontWeight &&
+  //             eff.fontSize === ff.fontSize &&
+  //             eff.lineHeight === ff.lineHeight &&
+  //             eff.letterSpacing === ff.letterSpacing
+  //         )
+  //     );
 
-        if (fontClassError) {
-          throw new Error(fontClassError.message);
-        }
-      }
+  //     if (newClasses.length > 0) {
+  //       const { data: fontClassData, error: fontClassError } =
+  //         await addFontClasses({
+  //           variables: {
+  //             fileKey: project.fileKey,
+  //             fontClasses: newClasses.map(
+  //               ({
+  //                 className,
+  //                 fontFamily,
+  //                 fontWeight,
+  //                 fontSize,
+  //                 lineHeight,
+  //                 letterSpacing,
+  //               }) => ({
+  //                 className,
+  //                 fontFamily,
+  //                 fontWeight,
+  //                 fontSize,
+  //                 lineHeight,
+  //                 letterSpacing,
+  //               })
+  //             ),
+  //           },
+  //         });
 
-      if (newFonts.length > 0) {
-        const { data: figmaFontData, error: figmaFontError } =
-          await addFigmaFonts({
-            variables: {
-              fileKey: project.fileKey,
-              fonts: newFonts.map(
-                ({
-                  fontFamily,
-                  fontWeight,
-                  fontSize,
-                  lineHeight,
-                  letterSpacing,
-                  source,
-                  nodeId,
-                }) => ({
-                  fontFamily,
-                  fontWeight,
-                  fontSize,
-                  lineHeight,
-                  letterSpacing,
-                  source,
-                  nodeId,
-                })
-              ),
-            },
-          });
+  //       if (fontClassError) {
+  //         throw new Error(fontClassError.message);
+  //       }
+  //     }
 
-        if (figmaFontError) {
-          throw new Error(figmaFontError.message);
-        }
-      }
+  //     if (newFonts.length > 0) {
+  //       const { data: figmaFontData, error: figmaFontError } =
+  //         await addFigmaFonts({
+  //           variables: {
+  //             fileKey: project.fileKey,
+  //             fonts: newFonts.map(
+  //               ({
+  //                 fontFamily,
+  //                 fontWeight,
+  //                 fontSize,
+  //                 lineHeight,
+  //                 letterSpacing,
+  //                 source,
+  //                 nodeId,
+  //               }) => ({
+  //                 fontFamily,
+  //                 fontWeight,
+  //                 fontSize,
+  //                 lineHeight,
+  //                 letterSpacing,
+  //                 source,
+  //                 nodeId,
+  //               })
+  //             ),
+  //           },
+  //         });
 
-      if (newClasses.length > 0 || newFonts.length > 0) {
-        setModalMessage("New fonts successfully saved!");
-      } else {
-        setModalMessage("Loaded existing fonts!");
-      }
-    } catch (err) {
-      console.error("❌ Error:", err);
-      setModalMessage(`Error: ${err.message}`);
-    }
-  };
+  //       if (figmaFontError) {
+  //         throw new Error(figmaFontError.message);
+  //       }
+  //     }
 
-  // Генерация уникальных комбинаций шрифтов
-  const fontCombinationsMap = new Map();
-  const sizeNames = ["xs", "sm", "base", "lg", "xl", "2xl", "3xl", "4xl"];
+  //     if (newClasses.length > 0 || newFonts.length > 0) {
+  //       setModalMessage("New fonts successfully saved!");
+  //     } else {
+  //       setModalMessage("Loaded existing fonts!");
+  //     }
+  //   } catch (err) {
+  //     console.error("❌ Error:", err);
+  //     setModalMessage(`Error: ${err.message}`);
+  //   }
+  // };
 
-  const sortedFontClasses = [...fontClasses].sort(
-    (a, b) => a.fontSize - b.fontSize
-  );
+  // const fontCombinationsMap = new Map();
+  // const sizeNames = ["xs", "sm", "base", "lg", "xl", "2xl", "3xl", "4xl"];
 
-  sortedFontClasses.forEach((font, index) => {
-    const key = `${font.fontFamily}-${font.fontWeight}-${font.fontSize}-${font.lineHeight}`;
-    if (!fontCombinationsMap.has(key)) {
-      const sizeName = sizeNames[index] || `text-${index + 1}`;
-      fontCombinationsMap.set(key, {
-        className: `${sizeName}-text`,
-        font,
-      });
-    }
-  });
+  // const sortedFontClasses = [...fontClasses].sort(
+  //   (a, b) => a.fontSize - b.fontSize
+  // );
 
-  // Обработка изображений
+  // sortedFontClasses.forEach((font, index) => {
+  //   const key = `${font.fontFamily}-${font.fontWeight}-${font.fontSize}-${font.lineHeight}`;
+  //   if (!fontCombinationsMap.has(key)) {
+  //     const sizeName = sizeNames[index] || `text-${index + 1}`;
+  //     fontCombinationsMap.set(key, {
+  //       className: `${sizeName}-text`,
+  //       font,
+  //     });
+  //   }
+  // });
+
+  // 🟢🟢🟢🟢🟢🟢🟢Обработка изображений
   const handlerImages = async () => {
     if (!project?.id) return;
 
@@ -561,7 +561,7 @@ const ProjectPage = () => {
     }
   };
 
-  // Обработка SVG
+  //🟢🟢🟢🟢🟢🟢🟢 Обработка SVG
   const handlerSvg = async () => {
     try {
       const { data } = await uploadFigmaSvgsToCloudinary({
@@ -587,7 +587,7 @@ const ProjectPage = () => {
     document.body.removeChild(a);
   };
 
-  // Удаление проекта
+  //🟢🟢🟢🟢🟢🟢🟢 Удаление проекта
   const handleRemoved = async (id) => {
     try {
       await removeFigmaProject({
@@ -613,25 +613,28 @@ const ProjectPage = () => {
 
   return (
     <div className="p-4 mt-[60px] mb-8">
+      {loading && <Loading />}
       <p>
-        Name: <strong className="text-2xl font-bold">{project.name}</strong>
+        Name: <strong className="text-2xl font-bold">{project?.name}</strong>
       </p>
-      <p>Id: {project.id}</p>
-      <p>File Key: {project.fileKey}</p>
-      <p>Node ID: {project.nodeId}</p>
-      <p>Owner: {project.owner.name}</p>
+      <p>Id: {project?.id}</p>
+      <p>File Key: {project?.fileKey}</p>
+      <p>Node ID: {project?.nodeId}</p>
+      <p>Owner: {project?.owner.name}</p>
       <div className="flex gap-2 max-h-[26px] mt-4">
         <button
           className="btn btn-allert"
-          onClick={() => handleRemoved(project.id)}
+          onClick={() => handleRemoved(project?.id)}
         >
           Remove Project
         </button>
       </div>
+      {/* <pre> {JSON.stringify(project.file, null, 2)}</pre> */}
       <hr className="mt-4 mb-4" />
-      <div className="mt-4 grid grid-cols-4 gap-2">
-        {/* Шрифты */}
-        <div>
+      <div className="mt-4 grid grid-cols-1 gap-2">
+        {/* 🔹🔹🔹🔹🔹🔹🔹Fonts🔹🔹🔹🔹🔹🔹🔹🔹🔹 */}
+        {/* <FontsFromFigma project={project} /> */}
+        {/* <div>
           <button className="btn btn-primary w-full" onClick={FigmaFonts}>
             🔤 Fonts from Figma
           </button>
@@ -782,9 +785,10 @@ ${font.letterSpacing ? `  letter-spacing: ${font.letterSpacing}px;` : ""}
               </div>
             </div>
           )}
-        </div>
-        {/* Цвета */}
-        <div className="border-l-1 border-l-slate-900 pl-2">
+        </div> */}
+        {/* 🔹🔹🔹🔹🔹🔹🔹🔹colorVariables🔹🔹🔹🔹🔹🔹🔹🔹 */}
+        <ColorsFromFigma project={project} />
+        {/* <div className=" ">
           <button className="btn btn-primary w-full" onClick={FigmaColors}>
             🎨 Colors from Figma
           </button>
@@ -862,9 +866,11 @@ ${font.letterSpacing ? `  letter-spacing: ${font.letterSpacing}px;` : ""}
               </div>
             </div>
           )}
-        </div>
-        {/* Картинки */}
-        <div className="border-l-1 border-l-slate-900 pl-2">
+        </div>{" "} */}
+      </div>
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        {/*🔹🔹🔹🔹🔹images🔹🔹🔹🔹🔹🔹*/}
+        <div className="">
           <button className="btn btn-primary w-full" onClick={handlerImages}>
             {uploading ? "🌤️ Loading images..." : "☁️ Images"}
           </button>
@@ -918,62 +924,65 @@ ${font.letterSpacing ? `  letter-spacing: ${font.letterSpacing}px;` : ""}
             </div>
           )}
         </div>
-        {/* SVG */}
-        <div className="border-l-1 border-l-slate-900 pl-2">
+
+        {/*🔹🔹🔹🔹🔹🔹 SVG 🔹🔹🔹🔹🔹*/}
+        <div className="">
           <button className="btn btn-primary w-full" onClick={handlerSvg}>
             {uploadingSvgs ? "🌤️ Loading svg..." : "☁️ SVG"}
           </button>
           {svgImages.length > 0 && (
-            <button
-              className="btn btn-allert mt-2"
-              onClick={() => {
-                setSvgImages([]);
-              }}
-            >
-              Clear SVG
-            </button>
-          )}
-          {svgImages.length > 0 && (
-            <div className="mt-2">
-              <h5 className="">Uploaded SVG ({svgImages.length})</h5>
-              <div className="flex flex-col gap-2">
-                {svgImages.map((img, index) => (
-                  <div
-                    key={index}
-                    className="border rounded shadow-sm p-1 bg-[rgb(145_145_145)]"
-                  >
-                    <div className="flex items-center gap-2">
-                      <button
-                        className="btn btn-primary"
-                        onClick={() => downloadOneSvgImage(img)}
-                      >
-                        💾 Download
-                      </button>
-                      <button
-                        className="btn btn-allert"
-                        onClick={() => deleteImg(img)}
-                      >
-                        🗑️ Delete
-                      </button>
+            <>
+              <button
+                className="btn btn-allert mt-2"
+                onClick={() => {
+                  setSvgImages([]);
+                }}
+              >
+                Clear SVG
+              </button>
+
+              <div className="mt-2">
+                <h5 className="">Uploaded SVG ({svgImages.length})</h5>
+                <div className="flex flex-col gap-2">
+                  {svgImages.map((img, index) => (
+                    <div
+                      key={index}
+                      className="border rounded shadow-sm p-1 bg-[rgb(145_145_145)]"
+                    >
+                      <div className="flex items-center gap-2">
+                        <button
+                          className="btn btn-primary"
+                          onClick={() => downloadOneSvgImage(img)}
+                        >
+                          💾 Download
+                        </button>
+                        <button
+                          className="btn btn-allert"
+                          onClick={() => deleteImg(img)}
+                        >
+                          🗑️ Delete
+                        </button>
+                      </div>
+                      <img
+                        src={img.filePath}
+                        type="image/svg+xml"
+                        className="w-full h-40 mt-2"
+                      />
                     </div>
-                    <img
-                      src={img.filePath}
-                      type="image/svg+xml"
-                      className="w-full h-40 mt-2"
-                    />
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
+            </>
           )}
         </div>
       </div>
-      {/* Figma preview */}
+
+      {/*🔹🔹🔹🔹🔹 Figma preview 🔹🔹🔹🔹🔹*/}
       <hr className="mt-4 mb-4" />
-      {project.previewUrl && (
+      {project?.previewUrl && (
         <div className="">
           <img
-            src={project.previewUrl}
+            src={project?.previewUrl}
             alt="Figma Preview"
             className="border rounded-sm shadow-[0_0_10px_0_rgba(0,0,0,0.4)]"
           />
