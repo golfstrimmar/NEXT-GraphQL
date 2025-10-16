@@ -270,9 +270,29 @@ export const resolvers = {
       }
     },
     removeFigmaProject: async (_, { figmaProjectId }) => {
-      const project = await prisma.figmaProject.delete({
+      const project = await prisma.figmaProject.findUnique({
+        where: { id: Number(figmaProjectId) },
+        select: { id: true, fileKey: true },
+      });
+
+      if (!project) throw new Error("Project not found");
+
+      // Удаляем проект
+      await prisma.figmaProject.delete({
         where: { id: Number(figmaProjectId) },
       });
+
+      // Проверяем, есть ли ещё проекты с этим fileKey
+      const remaining = await prisma.figmaProject.count({
+        where: { fileKey: project.fileKey },
+      });
+
+      // Если проектов больше нет — удаляем все переменные цветов с этим fileKey
+      if (remaining === 0) {
+        await prisma.colorVariable.deleteMany({
+          where: { fileKey: project.fileKey },
+        });
+      }
       return project.id;
     },
     uploadFigmaImagesToCloudinary,

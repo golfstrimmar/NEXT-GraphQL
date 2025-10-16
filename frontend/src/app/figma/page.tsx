@@ -6,7 +6,10 @@ import { useStateContext } from "@/providers/StateProvider";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "@apollo/client";
 import { REMOVE_FIGMA_PROJECT } from "@/apollo/mutations";
-import { GET_FIGMA_PROJECTS_BY_USER } from "@/apollo/queries";
+import {
+  GET_FIGMA_PROJECTS_BY_USER,
+  GET_COLOR_VARIABLES_BY_FILE_KEY,
+} from "@/apollo/queries";
 import Button from "@/components/ui/Button/Button";
 import ModalCreateFigmaProject from "@/components/ModalCreateFigmaProject/ModalCreateFigmaProject";
 import "./figma.scss";
@@ -57,14 +60,26 @@ export default function FigmaPage() {
 
   // =======================
   const handleRemoved = async (id: number) => {
-    const removedProject = await removeFigmaProject({
-      variables: { figmaProjectId: id },
-    });
-    setProjects((prev) => {
-      return prev.filter((p) => p.id !== id);
-    });
-    setModalMessage("Project removed");
-    console.log("<====removedProject====>", removedProject);
+    try {
+      const removedProject = await removeFigmaProject({
+        variables: { figmaProjectId: id },
+        refetchQueries: [
+          {
+            query: GET_FIGMA_PROJECTS_BY_USER, // чтобы обновить список проектов
+          },
+          {
+            query: GET_COLOR_VARIABLES_BY_FILE_KEY, // можно тоже обновить цвета
+          },
+        ],
+      });
+
+      setProjects((prev) => prev.filter((p) => p.id !== id));
+      setModalMessage("Project removed");
+      console.log("<====removedProject====>", removedProject);
+    } catch (err) {
+      console.error(err);
+      setModalMessage("Error removing project");
+    }
   };
 
   // =======================
@@ -80,37 +95,52 @@ export default function FigmaPage() {
             {projects.map((proj: FProject) => (
               <li
                 key={proj.id}
-                style={{ backgroundColor: generateFonVar(proj.fileKey) }}
-                className={` p-2 flex flex-col gap-2`}
+                className="relative rounded-xl shadow-lg overflow-hidden flex flex-col justify-between"
+                style={{
+                  backgroundColor: generateFonVar(proj.fileKey),
+                }}
               >
-                <div className=" grid grid-cols-[max-content_1fr] gap-4">
-                  <div className="flex flex-col gap-1 ">
-                    <p>
-                      Project id: <strong>{proj.id}</strong>
-                    </p>{" "}
-                    <p>
-                      Project name: <strong>{proj.name}</strong>
+                {/* Верхняя часть: информация и превью */}
+                <div className="p-4 flex flex-col gap-4">
+                  {/* Информация */}
+                  <div className="flex flex-col gap-2 text-gray-900">
+                    <h3 className="text-2xl font-bold truncate">{proj.name}</h3>
+                    <p className="text-sm text-gray-700">
+                      <span className="font-semibold">ID:</span> {proj.id}
                     </p>
-                    <p>File Key: {proj.fileKey}</p>
-                    <p>Node ID: {proj.nodeId}</p>
+                    <p className="text-sm text-gray-700">
+                      <span className="font-semibold">File Key:</span>{" "}
+                      {proj.fileKey}
+                    </p>
+                    <p className="text-sm text-gray-700">
+                      <span className="font-semibold">Node ID:</span>{" "}
+                      {proj.nodeId}
+                    </p>
                   </div>
+
+                  {/* Превью — большой блок */}
                   {proj.previewUrl && (
-                    <div className="max-h-[300px] overflow-y-auto">
+                    <div className="w-full max-h-[400px] overflow-hidden rounded-md shadow-inner">
                       <img
                         src={proj.previewUrl}
                         alt="Figma Preview"
-                        className="border   rounded-sm shadow-[0_0_10px_0_rgba(0,0,0,0.4)]"
+                        className="object-contain w-full h-full"
                       />
                     </div>
                   )}
                 </div>
-                <div className="flex gap-2 max-h-[26px] mt-auto">
-                  <Link href={`/figma/${proj.id}`} className="btn btn-primary ">
+
+                {/* Нижняя часть: кнопки */}
+                <div className="p-4 flex justify-end gap-2 border-t border-gray-200 bg-white/50 backdrop-blur-sm mt-auto">
+                  <Link
+                    href={`/figma/${proj.id}`}
+                    className="btn btn-primary hover:bg-blue-600 transition-colors duration-200"
+                  >
                     See details
                   </Link>
 
                   <button
-                    className="btn btn-allert"
+                    className="btn btn-allert hover:bg-red-600 transition-colors duration-200"
                     onClick={() => handleRemoved(proj.id)}
                   >
                     Remove

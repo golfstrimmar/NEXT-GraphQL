@@ -273,18 +273,15 @@ const ColorsFromFigma: React.FC<ColorsFromFigmaProps> = ({ project }) => {
               </pre>
             )}
           </div>
-          <div className="mt-4">
+          <div className="mt-4 grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(300px,1fr))]">
             {sortedColorVariables?.map((color) => {
-              const rgbColor = `rgba(${Math.round(color.r * 255)}, ${Math.round(
-                color.g * 255
-              )}, ${Math.round(color.b * 255)}, ${color.a ?? 1})`;
               return (
                 <div
                   key={color.variableName}
-                  className="border rounded p-2 bg-white shadow-sm mb-2"
+                  className="border rounded p-2 bg-white shadow-sm mb-2  grid grid-cols-[20%_1fr] items-center gap-2"
                 >
                   <div
-                    className="w-full h-12 rounded border mb-2"
+                    className=" h-full rounded border  "
                     style={{ backgroundColor: color.hex }}
                   />
                   <div className="text-xs space-y-1">
