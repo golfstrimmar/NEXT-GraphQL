@@ -16,16 +16,16 @@ const uploadFigmaImagesToCloudinary = async (_, { projectId }) => {
 
   const { id, fileKey, nodeId, token, figmaImages } = project;
 
-  // 🧠 1️⃣ Check if there are already saved raster images
-  const existingRasterImages = figmaImages.filter(
-    (img) => img.type === "raster"
+  // 🧠 1️⃣ Check if there are already saved RASTER images
+  const existingRASTERImages = figmaImages.filter(
+    (img) => img.type === "RASTER"
   );
 
-  if (existingRasterImages.length > 0) {
+  if (existingRASTERImages.length > 0) {
     console.log(
-      `📦  ${existingRasterImages.length} raster images found in DB.`
+      `📦  ${existingRASTERImages.length} RASTER images found in DB.`
     );
-    return existingRasterImages.map(({ nodeId, filePath }) => ({
+    return existingRASTERImages.map(({ nodeId, filePath }) => ({
       nodeId,
       filePath,
     }));
@@ -124,7 +124,7 @@ const uploadFigmaImagesToCloudinary = async (_, { projectId }) => {
         nodeId,
         imageRef,
         figmaProjectId: id,
-        type: "raster",
+        type: "RASTER",
       })),
       skipDuplicates: true,
     });
@@ -132,7 +132,7 @@ const uploadFigmaImagesToCloudinary = async (_, { projectId }) => {
 
   // 6️⃣ Возвращаем результат
   const savedImages = await prisma.figmaImage.findMany({
-    where: { figmaProjectId: id, type: "raster" },
+    where: { figmaProjectId: id, type: "RASTER" },
     select: { nodeId: true, filePath: true },
   });
 

@@ -50,7 +50,7 @@ const uploadFigmaSvgsToCloudinary = async (_, { projectId }) => {
   const headers = { "X-Figma-Token": token };
 
   // 🧠 1️⃣ Check if there are already saved SVG images
-  const existingVectors = figmaImages.filter((img) => img.type === "vector");
+  const existingVectors = figmaImages.filter((img) => img.type === "VECTOR");
   if (existingVectors.length > 0) {
     console.log(
       `📦 Found ${existingVectors.length} SVGs in the database, returning them.`
@@ -108,7 +108,7 @@ const uploadFigmaSvgsToCloudinary = async (_, { projectId }) => {
               filePath: secure_url,
               nodeId: groupId,
               imageRef: groupId,
-              type: "vector",
+              type: "VECTOR",
               figmaProjectId: id,
             },
           });

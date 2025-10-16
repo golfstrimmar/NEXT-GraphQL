@@ -7,6 +7,7 @@ import { GraphQLJSON } from "graphql-type-json";
 import uploadFigmaImagesToCloudinary from "../mutations/FigmaImages.js";
 import uploadFigmaSvgsToCloudinary from "../mutations/FigmaSVG.js";
 import transformRasterToSvg from "../mutations/transformRasterToSvg.js";
+
 const ee = new EventEmitter();
 const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key";
 const SALT_ROUNDS = 10;
@@ -29,12 +30,16 @@ export const resolvers = {
       prisma.jsonDocument.findFirst({
         where: { name },
       }),
-
     getFigmaProjectData: async (_, { projectId }) => {
-      // Получаем проект из базы
+      console.log("<====projectId====>", projectId);
+      const allProjects = await prisma.figmaProject.findMany();
+      console.log("All projects:", allProjects);
       const project = await prisma.figmaProject.findUnique({
         where: { id: Number(projectId) },
-        include: { owner: true },
+        include: {
+          owner: true,
+          figmaImages: true,
+        },
       });
 
       if (!project) throw new Error("Project not found");
@@ -43,8 +48,6 @@ export const resolvers = {
 
       try {
         const headers = { "X-Figma-Token": project.token };
-
-        // Получаем данные о файле из Figma API
         const fileRes = await fetch(
           `https://api.figma.com/v1/files/${project.fileKey}`,
           { headers }
@@ -59,23 +62,28 @@ export const resolvers = {
         console.error("❌ Failed to fetch Figma file data", project.id, err);
       }
 
-      // Возвращаем проект + файл
       return {
         ...project,
         file: fileData,
       };
     },
-
     figmaProjectsByUser: async (_, { userId }) => {
       const projects = await prisma.figmaProject.findMany({
         where: { ownerId: Number(userId) },
         include: { owner: true },
       });
-      // console.log("<====projects ByUser====>", projects);
       return projects;
     },
+    getColorVariablesByFileKey: async (_, { fileKey }) => {
+      return prisma.colorVariable.findMany({ where: { fileKey } });
+    },
+    getFontClassesByFileKey: async (_, { fileKey }) => {
+      return prisma.fontClass.findMany({ where: { fileKey } });
+    },
+    getFigmaFontsByFileKey: async (_, { fileKey }) => {
+      return prisma.figmaFont.findMany({ where: { fileKey } });
+    },
   },
-
   Mutation: {
     createUser: async (_, { name, email, password }) => {
       try {
@@ -94,25 +102,13 @@ export const resolvers = {
         throw err;
       }
     },
-
     loginUser: async (_, { email, password }) => {
-      console.log("EMAIL FROM REQUEST:", JSON.stringify(email));
-
-      const allUsers = await prisma.user.findMany();
-      console.log(
-        "ALL USERS:",
-        allUsers.map((u) => u.email.trim().toLowerCase())
-      );
-
       const user = await prisma.user.findUnique({
         where: { email },
         include: { projects: true },
       });
       if (!user) {
-        console.log("⚠️USER NOT FOUND");
         throw new Error("User not found");
-      } else {
-        console.log("👤👤👤USER FOUND", user);
       }
 
       if (!user.password) {
@@ -135,10 +131,8 @@ export const resolvers = {
         createdAt: new Date(user.createdAt).getTime().toString(),
       };
 
-      console.log("formattedUser:", formattedUser);
       return { token, user: formattedUser };
     },
-
     setPassword: async (_, { email, password }) => {
       if (!email || !password) {
         throw new Error("Email and password are required.");
@@ -163,7 +157,6 @@ export const resolvers = {
       const { password: _password, ...safeUser } = updatedUser;
       return safeUser;
     },
-
     loginWithGoogle: async (_, { idToken }) => {
       const client = new OAuth2Client();
 
@@ -205,13 +198,8 @@ export const resolvers = {
         ...user,
         createdAt: new Date(user.createdAt).getTime().toString(),
       };
-      console.log("<====👤👤👤formattedUser====>", formattedUser);
       return { token, user: formattedUser };
     },
-
-    // createMessage -> createProject
-    // Возвращаем СТРОКУ — имя созданного проекта.
-
     createProject: async (_, { ownerId, name, data }) => {
       try {
         const project = await prisma.project.create({
@@ -225,14 +213,12 @@ export const resolvers = {
         throw error;
       }
     },
-
     findProject: async (_, { projectId }) => {
       const project = await prisma.project.findUnique({
         where: { id: Number(projectId) },
       });
       return project;
     },
-
     removeProject: async (_, { projectId }) => {
       const project = await prisma.project.delete({
         where: { id: Number(projectId) },
@@ -243,14 +229,6 @@ export const resolvers = {
       _,
       { ownerId, name, fileKey, nodeId, token }
     ) => {
-      console.log(
-        "<====👤👤👤createFigmaProject data====> ",
-        ownerId,
-        name,
-        fileKey,
-        nodeId,
-        token
-      );
       try {
         const headers = {
           "X-Figma-Token": token,
@@ -277,7 +255,6 @@ export const resolvers = {
           },
         });
 
-        console.log("<====project====>", project);
         return {
           id: project.id,
           name: project.name,
@@ -292,7 +269,6 @@ export const resolvers = {
         throw error;
       }
     },
-
     removeFigmaProject: async (_, { figmaProjectId }) => {
       const project = await prisma.figmaProject.delete({
         where: { id: Number(figmaProjectId) },
@@ -302,17 +278,62 @@ export const resolvers = {
     uploadFigmaImagesToCloudinary,
     uploadFigmaSvgsToCloudinary,
     transformRasterToSvg,
-    removeFigmaImage: async (_, { nodeId }) => {
-      const deleted = await prisma.figmaImage.delete({
-        where: { nodeId },
+    removeFigmaImage: async (_, { nodeId, figmaProjectId }) => {
+      return prisma.figmaImage.delete({
+        where: {
+          figmaProjectId_nodeId: {
+            figmaProjectId,
+            nodeId,
+          },
+        },
       });
-      console.log("<===deleted=====>", deleted);
-
-      // возвращаем только поле nodeId, как ожидает фронт
-      return { nodeId: deleted.nodeId };
+    },
+    addColorVariables: async (_, { fileKey, colors }) => {
+      await prisma.colorVariable.createMany({
+        data: colors.map((c) => ({
+          variableName: c.variableName,
+          hex: c.hex,
+          type: c.type,
+          fileKey,
+        })),
+        skipDuplicates: true,
+      });
+      return prisma.colorVariable.findMany({
+        where: { fileKey },
+      });
+    },
+    addFontClasses: async (_, { fileKey, fontClasses }) => {
+      await prisma.fontClass.createMany({
+        data: fontClasses.map((f) => ({
+          className: f.className,
+          fontFamily: f.fontFamily,
+          fontWeight: f.fontWeight,
+          fontSize: f.fontSize,
+          lineHeight: f.lineHeight,
+          letterSpacing: f.letterSpacing,
+          fileKey,
+        })),
+        skipDuplicates: true,
+      });
+      return prisma.fontClass.findMany({ where: { fileKey } });
+    },
+    addFigmaFonts: async (_, { fileKey, fonts }) => {
+      await prisma.figmaFont.createMany({
+        data: fonts.map((f) => ({
+          fontFamily: f.fontFamily,
+          fontWeight: f.fontWeight,
+          fontSize: f.fontSize,
+          lineHeight: f.lineHeight,
+          letterSpacing: f.letterSpacing,
+          source: f.source,
+          nodeId: f.nodeId,
+          fileKey,
+        })),
+        skipDuplicates: true,
+      });
+      return prisma.figmaFont.findMany({ where: { fileKey } });
     },
   },
-
   User: {
     projects: (parent) =>
       prisma.project.findMany({
@@ -325,7 +346,6 @@ export const resolvers = {
         select: { id: true, name: true, fileKey: true, nodeId: true },
       }),
   },
-
   Project: {
     owner: (parent) =>
       prisma.user.findUnique({ where: { id: parent.ownerId } }),
@@ -333,8 +353,9 @@ export const resolvers = {
   FigmaProject: {
     owner: (parent) =>
       prisma.user.findUnique({ where: { id: parent.ownerId } }),
+    figmaImages: (parent) =>
+      prisma.figmaImage.findMany({ where: { figmaProjectId: parent.id } }),
   },
-
   Subscription: {
     userCreated: {
       subscribe: async function* () {
@@ -355,27 +376,5 @@ export const resolvers = {
         }
       },
     },
-    // figmaProjectCreated: {
-    //   subscribe: async function* () {
-    //     const queue = [];
-    //     const handler = (payload) => queue.push(payload);
-    //     ee.on("FIGMA_PROJECT_CREATED", handler);
-
-    //     try {
-    //       while (true) {
-    //         if (queue.length === 0) {
-    //           await new Promise((resolve) => setTimeout(resolve, 100));
-    //         } else {
-    //           yield { figmaProjectCreated: queue.shift() };
-    //         }
-    //       }
-    //     } finally {
-    //       ee.on("FIGMA_PROJECT_CREATED", (p) =>
-    //         console.log("🔥 Event emitted", p.name)
-    //       );
-    //       ee.off("FIGMA_PROJECT_CREATED", handler);
-    //     }
-    //   },
-    // },
   },
 };

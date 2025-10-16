@@ -37,6 +37,8 @@ export const LOGIN_USER = gql`
     }
   }
 `;
+
+// Установка пароля
 export const SET_PASSWORD = gql`
   mutation setPasswordMutation($email: String!, $password: String!) {
     setPassword(email: $email, password: $password) {
@@ -47,6 +49,8 @@ export const SET_PASSWORD = gql`
     }
   }
 `;
+
+// Логин через Google
 export const LOGIN_WITH_GOOGLE = gql`
   mutation LoginWithGoogle($idToken: String!) {
     loginWithGoogle(idToken: $idToken) {
@@ -67,20 +71,7 @@ export const LOGIN_WITH_GOOGLE = gql`
   }
 `;
 
-// Создание сообщения
-// export const CREATE_PROJECT = gql`
-//   mutation CreateProject($ownerId: ID!, $name: String!, $data: String!) {
-//     createProject(ownerId: $ownerId, name: $name, data: $data) {
-//       id
-//       name
-//       data
-//       owner {
-//         id
-//         name
-//       }
-//     }
-//   }
-// `;
+// Создание проекта
 export const CREATE_PROJECT = gql`
   mutation CreateProject($ownerId: ID!, $name: String!, $data: String!) {
     createProject(ownerId: $ownerId, name: $name, data: $data) {
@@ -90,6 +81,7 @@ export const CREATE_PROJECT = gql`
   }
 `;
 
+// Поиск проекта
 export const FIND_PROJECT = gql`
   mutation FindProject($projectId: ID!) {
     findProject(projectId: $projectId) {
@@ -99,6 +91,8 @@ export const FIND_PROJECT = gql`
     }
   }
 `;
+
+// Удаление проекта
 export const REMOVE_PROJECT = gql`
   mutation RemoveProject($projectId: ID!) {
     removeProject(projectId: $projectId)
@@ -116,9 +110,17 @@ export const GET_FIGMA_PROJECT = gql`
       fileKey
       nodeId
       token
+      previewUrl
       owner {
         id
         name
+      }
+      figmaImages {
+        fileName
+        filePath
+        nodeId
+        imageRef
+        type
       }
     }
   }
@@ -134,6 +136,78 @@ export const GET_FIGMA_PROJECTS_BY_USER = gql`
       nodeId
       previewUrl
       token
+    }
+  }
+`;
+
+// Получить данные Figma-проекта
+export const GET_FIGMA_PROJECT_DATA = gql`
+  query GetFigmaProjectData($projectId: ID!) {
+    getFigmaProjectData(projectId: $projectId) {
+      id
+      name
+      fileKey
+      nodeId
+      token
+      previewUrl
+      file
+      owner {
+        id
+        name
+      }
+      figmaImages {
+        fileName
+        filePath
+        nodeId
+        imageRef
+        type
+      }
+    }
+  }
+`;
+
+// Получить цветовые переменные по fileKey
+export const GET_COLOR_VARIABLES_BY_FILE_KEY = gql`
+  query GetColorVariablesByFileKey($fileKey: String!) {
+    getColorVariablesByFileKey(fileKey: $fileKey) {
+      id
+      variableName
+      hex
+      type
+      fileKey
+    }
+  }
+`;
+
+// Получить классы шрифтов по fileKey
+export const GET_FONT_CLASSES_BY_FILE_KEY = gql`
+  query GetFontClassesByFileKey($fileKey: String!) {
+    getFontClassesByFileKey(fileKey: $fileKey) {
+      id
+      className
+      fontFamily
+      fontWeight
+      fontSize
+      lineHeight
+      letterSpacing
+      fileKey
+    }
+  }
+`;
+
+// Получить Figma-шрифты по fileKey
+export const GET_FIGMA_FONTS_BY_FILE_KEY = gql`
+  query GetFigmaFontsByFileKey($fileKey: String!) {
+    getFigmaFontsByFileKey(fileKey: $fileKey) {
+      id
+      fontFamily
+      fontWeight
+      fontSize
+      lineHeight
+      letterSpacing
+      source
+      nodeId
+      fileKey
     }
   }
 `;
@@ -170,7 +244,7 @@ export const REMOVE_FIGMA_PROJECT = gql`
   }
 `;
 
-// === Загрузка изображений и svg Figma в Cloudinary ===
+// Загрузка изображений и SVG в Cloudinary
 export const UPLOAD_FIGMA_IMAGES_TO_CLOUDINARY = gql`
   mutation uploadFigmaImagesToCloudinary($projectId: ID!) {
     uploadFigmaImagesToCloudinary(projectId: $projectId) {
@@ -190,17 +264,67 @@ export const UPLOAD_FIGMA_SVGS_TO_CLOUDINARY = gql`
 `;
 
 export const REMOVE_FIGMA_IMAGE = gql`
-  mutation removeFigmaImage($nodeId: String!) {
-    removeFigmaImage(nodeId: $nodeId) {
+  mutation removeFigmaImage($nodeId: String!, $figmaProjectId: Int!) {
+    removeFigmaImage(nodeId: $nodeId, figmaProjectId: $figmaProjectId) {
       nodeId
     }
   }
 `;
+
 export const TRANSFORM_RASTER_TO_SVG = gql`
   mutation transformRasterToSvg($nodeId: String!) {
     transformRasterToSvg(nodeId: $nodeId) {
       nodeId
       filePath
+    }
+  }
+`;
+
+// Добавить цветовые переменные
+export const ADD_COLOR_VARIABLES = gql`
+  mutation addColorVariables(
+    $fileKey: String!
+    $colors: [ColorVariableInput!]!
+  ) {
+    addColorVariables(fileKey: $fileKey, colors: $colors) {
+      id
+      variableName
+      hex
+      type
+      fileKey
+    }
+  }
+`;
+
+// Добавить классы шрифтов
+export const ADD_FONT_CLASSES = gql`
+  mutation addFontClasses($fileKey: String!, $fontClasses: [FontClassInput!]!) {
+    addFontClasses(fileKey: $fileKey, fontClasses: $fontClasses) {
+      id
+      className
+      fontFamily
+      fontWeight
+      fontSize
+      lineHeight
+      letterSpacing
+      fileKey
+    }
+  }
+`;
+
+// Добавить Figma-шрифты
+export const ADD_FIGMA_FONTS = gql`
+  mutation addFigmaFonts($fileKey: String!, $fonts: [FigmaFontInput!]!) {
+    addFigmaFonts(fileKey: $fileKey, fonts: $fonts) {
+      id
+      fontFamily
+      fontWeight
+      fontSize
+      lineHeight
+      letterSpacing
+      source
+      nodeId
+      fileKey
     }
   }
 `;

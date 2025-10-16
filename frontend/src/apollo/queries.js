@@ -20,6 +20,7 @@ export const GET_USERS = gql`
     }
   }
 `;
+
 export const GET_JSON_DOCUMENT = gql`
   query GetJsonDocument($name: String!) {
     jsonDocumentByName(name: $name) {
@@ -30,39 +31,44 @@ export const GET_JSON_DOCUMENT = gql`
     }
   }
 `;
-// Получить один Figma-проект
-// export const GET_FIGMA_PROJECT = gql`
-//   query GetFigmaProject($id: ID!) {
-//     figmaProject(id: $id) {
-//       id
-//       name
-//       fileKey
-//       nodeId
-//       token
-//       previewUrl
-//       owner {
-//         id
-//         name
-//       }
-//     }
-//   }
-// `;
 
-// Получить все Figma-проекты пользователя
+export const GET_FIGMA_PROJECT = gql`
+  query GetFigmaProject($id: ID!) {
+    figmaProject(id: $id) {
+      id
+      name
+      fileKey
+      nodeId
+      token
+      previewUrl
+      owner {
+        id
+        name
+      }
+      figmaImages {
+        fileName
+        filePath
+        nodeId
+        imageRef
+        type
+      }
+    }
+  }
+`;
+
 export const GET_FIGMA_PROJECTS_BY_USER = gql`
   query GetFigmaProjectsByUser($userId: ID!) {
     figmaProjectsByUser(userId: $userId) {
       id
       name
       fileKey
-      token
       nodeId
+      token
       previewUrl
     }
   }
 `;
 
-// Получить полный проект Figma (изображения, nodes, стили, шрифты и т.д.)
 export const GET_FIGMA_PROJECT_DATA = gql`
   query GetFigmaProjectData($projectId: ID!) {
     getFigmaProjectData(projectId: $projectId) {
@@ -77,6 +83,56 @@ export const GET_FIGMA_PROJECT_DATA = gql`
         id
         name
       }
+      figmaImages {
+        fileName
+        filePath
+        nodeId
+        imageRef
+        type
+      }
+    }
+  }
+`;
+
+export const GET_COLOR_VARIABLES_BY_FILE_KEY = gql`
+  query GetColorVariablesByFileKey($fileKey: String!) {
+    getColorVariablesByFileKey(fileKey: $fileKey) {
+      id
+      variableName
+      hex
+      type
+      fileKey
+    }
+  }
+`;
+
+export const GET_FONT_CLASSES_BY_FILE_KEY = gql`
+  query GetFontClassesByFileKey($fileKey: String!) {
+    getFontClassesByFileKey(fileKey: $fileKey) {
+      id
+      className
+      fontFamily
+      fontWeight
+      fontSize
+      lineHeight
+      letterSpacing
+      fileKey
+    }
+  }
+`;
+
+export const GET_FIGMA_FONTS_BY_FILE_KEY = gql`
+  query GetFigmaFontsByFileKey($fileKey: String!) {
+    getFigmaFontsByFileKey(fileKey: $fileKey) {
+      id
+      fontFamily
+      fontWeight
+      fontSize
+      lineHeight
+      letterSpacing
+      source
+      nodeId
+      fileKey
     }
   }
 `;

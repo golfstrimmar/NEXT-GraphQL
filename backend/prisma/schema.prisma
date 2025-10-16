@@ -7,6 +7,19 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum ColorType {
+  PALETTE
+  TEXT
+  BACKGROUND
+  FILL
+  STROKE
+}
+
+enum ImageType {
+  RASTER
+  VECTOR
+}
+
 model User {
   id            Int            @id @default(autoincrement())
   email         String         @unique
@@ -22,46 +35,84 @@ model User {
 model Project {
   id        Int      @id @default(autoincrement())
   name      String
-  data      Json // JSON-объект с данными проекта
+  data      Json
   createdAt DateTime @default(now())
-
-  owner   User @relation("UserProjects", fields: [ownerId], references: [id], onDelete: Cascade)
-  ownerId Int
-
+  owner     User     @relation("UserProjects", fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId   Int
   @@unique([ownerId, name])
 }
 
 model FigmaProject {
-  id        Int      @id @default(autoincrement())
-  name      String
-  fileKey   String
-  nodeId    String
-  token     String
-  createdAt DateTime @default(now())
-  owner     User     @relation("UserFigmaProjects", fields: [ownerId], references: [id], onDelete: Cascade)
-  ownerId   Int
-  previewUrl String?
-  figmaImages FigmaImage[] @relation("ProjectImages") // 👈 добавили связь
-
+  id            Int          @id @default(autoincrement())
+  name          String
+  fileKey       String
+  nodeId        String
+  token         String
+  createdAt     DateTime     @default(now())
+  owner         User         @relation("UserFigmaProjects", fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId       Int
+  previewUrl    String?
+  figmaImages   FigmaImage[] @relation("ProjectImages")
   @@unique([ownerId, name])
+}
+
+model ColorVariable {
+  id           Int       @id @default(autoincrement())
+  variableName String
+  hex          String
+  type         ColorType
+  fileKey      String
+  createdAt    DateTime  @default(now())
+  @@unique([fileKey, variableName])
+  @@index([fileKey])
+}
+
+model FontClass {
+  id            Int      @id @default(autoincrement())
+  className     String
+  fontFamily    String
+  fontWeight    Int
+  fontSize      Float
+  lineHeight    Float?
+  letterSpacing Float?
+  fileKey       String
+  createdAt     DateTime @default(now())
+  @@unique([fileKey, className])
+  @@index([fileKey])
 }
 
 model FigmaImage {
   id             Int          @id @default(autoincrement())
   fileName       String
   filePath       String
-  nodeId         String       @unique
+  nodeId         String
   imageRef       String
-  type           String        @default("raster") 
+  type           ImageType    @default(RASTER)
   createdAt      DateTime     @default(now())
   figmaProject   FigmaProject @relation("ProjectImages", fields: [figmaProjectId], references: [id], onDelete: Cascade)
   figmaProjectId Int
+  @@unique([figmaProjectId, nodeId])
+  @@index([figmaProjectId])
 }
 
+model FigmaFont {
+  id            Int      @id @default(autoincrement())
+  fontFamily    String
+  fontWeight    Int
+  fontSize      Float
+  lineHeight    Float?
+  letterSpacing Float?
+  source        String?
+  nodeId        String?
+  fileKey       String
+  createdAt     DateTime @default(now())
+  @@unique([fileKey, fontFamily, fontWeight, fontSize, lineHeight, letterSpacing])
+  @@index([fileKey])
+}
 
 model JsonDocument {
   id        Int      @id @default(autoincrement())
   name      String   @unique
-  content   Json // здесь хранится JSON-структура
+  content   Json
   createdAt DateTime @default(now())
 }

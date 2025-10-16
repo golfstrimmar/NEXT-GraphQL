@@ -7,7 +7,7 @@ const generateSassVariables = (colors: any[]) => {
     return (typeOrder[a.type] || 4) - (typeOrder[b.type] || 4);
   });
 
-  let sassCode = "// 🎨 Auto-generated Sass variables from Figma\n";
+  let sassCode = "";
 
   // Группируем по типам
   const byType = {

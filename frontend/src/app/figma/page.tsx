@@ -26,6 +26,7 @@ export default function FigmaPage() {
   const [fileKey, setFileKey] = useState("");
   const [nodeId, setNodeId] = useState("");
   const [token, setToken] = useState("");
+  const [FigmaLink, setFigmaLink] = useState<string>("");
   const { data } = useQuery(GET_FIGMA_PROJECTS_BY_USER, {
     variables: { userId: user?.id },
     skip: !user,
@@ -104,74 +105,19 @@ export default function FigmaPage() {
     }
   };
   // -----------------------
-  // const fetchFigma = async (project: any) => {
-  //   if (!project?.id) return;
-  //   console.log("<====📦 project ====>", project);
-  //   setColors([]);
-  //   setProjectName(project.name);
-
-  //   try {
-  //     setLoadingImg(true);
-  //     setModalMessage(null);
-
-  //     // 📡 Запрашиваем проект из GraphQL
-  //     const { data } = await client.query({
-  //       query: GET_FIGMA_PROJECT_DATA,
-  //       variables: { projectId: project.id },
-  //       fetchPolicy: "network-only",
-  //     });
-
-  //     const projectData = data.getFigmaProjectData;
-
-  //     if (!projectData?.images) throw new Error("Images not found");
-
-  //     const url = projectData.images[project.nodeId];
-  //     if (!url) throw new Error("Image URL not found");
-
-  //     setImageUrl(url);
-  //     setFileData(projectData.file);
-
-  //     // 🎨 Извлекаем цвета
-  //     // const extractedColors = extractDesignColors(
-  //     //   projectData.file,
-  //     //   project.nodeId
-  //     // );
-  //     // setColors(extractedColors);
-
-  //     // 🔤 Извлекаем шрифты
-  //     // const extractedFonts = extractTypography(
-  //     //   projectData.file,
-  //     //   project.nodeId
-  //     // );
-  //     // setFonts(extractedFonts);
-
-  //     // 🪄 Формируем строку импорта Google Fonts
-  //     // const importString = generateGoogleFontsImport(extractedFonts);
-  //     // setGoogleFontsImport(importString);
-
-  //     // // ☁️ Загружаем изображения в Cloudinary через GraphQL
-  //     // const uploadRes = await uploadFigmaImagesToCloudinary({
-  //     //   variables: { projectId: project.id },
-  //     // });
-
-  //     // const uploaded = uploadRes.data?.uploadFigmaImagesToCloudinary || [];
-  //     // console.log("☁️ Uploaded to Cloudinary:", uploaded);
-
-  //     // if (uploaded.length > 0) {
-  //     //   setImagesFromFigma(uploaded);
-  //     //   setModalMessage(`Uploaded ${uploaded.length} images to Cloudinary.`);
-  //     // } else {
-  //     //   setModalMessage("No images were uploaded to Cloudinary.");
-  //     //   setImagesFromFigma([]);
-  //     // }
-  //   } catch (err: any) {
-  //     console.error("❌ Ошибка при загрузке:", err);
-  //     setModalMessage(err.message);
-  //   } finally {
-  //     setLoadingImg(false);
-  //   }
-  // };
-
+  const fillForm = (link) => {
+    const fileKey = link.match(/design\/([a-zA-Z0-9]+)/)[1];
+    const nodeIdRaw = link.match(/node-id=([0-9\-]+)/)[1];
+    const nodeId = nodeIdRaw.replace("-", ":");
+    console.log({ fileKey, nodeId });
+    setFileKey(fileKey);
+    setNodeId(nodeId);
+  };
+  useEffect(() => {
+    if (FigmaLink) {
+      fillForm(FigmaLink);
+    }
+  }, [FigmaLink]);
   // =======================
   const handleRemoved = async (id) => {
     const removedProject = await removeFigmaProject({
@@ -255,23 +201,6 @@ export default function FigmaPage() {
             )}
           </div>
         </div>
-
-        {loading && <Loading />}
-        {/* ✅✅✅✅✅✅ КАРТИНКИ */}
-        {/* {imagesFromFigma.length > 0 && (
-          <div className="grid grid-cols-3 gap-4 mt-6">
-            {imagesFromFigma.map((img) => (
-              <div key={img.imageRef} className="flex flex-col items-center">
-                <img
-                  src={img.url}
-                  alt={img.imageRef}
-                  className="w-32 h-32 object-contain border rounded-lg shadow"
-                />
-                <p className="text-xs text-gray-500 mt-1">{img.imageRef}</p>
-              </div>
-            ))}
-          </div>
-        )} */}
       </div>
       <AnimatePresence>
         {modalOpen && (
@@ -319,6 +248,13 @@ export default function FigmaPage() {
 
                 <Input
                   typeInput="text"
+                  id="FigmaLink"
+                  data="Figma Link"
+                  value={FigmaLink}
+                  onChange={(e) => setFigmaLink(e.target.value)}
+                />
+                {/* <Input
+                  typeInput="text"
                   id="name"
                   data="File Key"
                   value={fileKey}
@@ -331,7 +267,7 @@ export default function FigmaPage() {
                   data="Node ID"
                   value={nodeId}
                   onChange={(e) => setNodeId(e.target.value)}
-                />
+                /> */}
 
                 <Input
                   typeInput="text"

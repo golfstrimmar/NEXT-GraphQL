@@ -22,8 +22,8 @@ const generateFontSassVariables = (fonts: any[], colors: any[]) => {
   const textColors = colors.filter((color) => color.type === "text");
   const primaryTextVar = textColors.length > 0 ? "$text" : "$text-primary";
 
-  let sassCode = "// 🔤 Auto-generated Font variables from Figma\n";
-  sassCode += "// Extracted typography from design system\n\n";
+  let sassCode = "";
+  sassCode += "";
 
   // Генерируем переменные для УНИКАЛЬНЫХ размеров шрифтов
   sassCode += "// Font sizes\n";
