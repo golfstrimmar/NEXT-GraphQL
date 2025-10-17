@@ -6,8 +6,9 @@ import { OAuth2Client } from "google-auth-library";
 import { GraphQLJSON } from "graphql-type-json";
 import uploadFigmaImagesToCloudinary from "../mutations/FigmaImages.js";
 import uploadFigmaSvgsToCloudinary from "../mutations/FigmaSVG.js";
+import removeFigmaImage from "../mutations/removeFigmaImage.js";
 import transformRasterToSvg from "../mutations/transformRasterToSvg.js";
-
+import removeFigmaProject from "../mutations/removeFigmaProject.js";
 const ee = new EventEmitter();
 const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key";
 const SALT_ROUNDS = 10;
@@ -31,9 +32,7 @@ export const resolvers = {
         where: { name },
       }),
     getFigmaProjectData: async (_, { projectId }) => {
-      console.log("<====projectId====>", projectId);
-      const allProjects = await prisma.figmaProject.findMany();
-      console.log("All projects:", allProjects);
+      // const allProjects = await prisma.figmaProject.findMany();
       const project = await prisma.figmaProject.findUnique({
         where: { id: Number(projectId) },
         include: {
@@ -269,45 +268,12 @@ export const resolvers = {
         throw error;
       }
     },
-    removeFigmaProject: async (_, { figmaProjectId }) => {
-      const project = await prisma.figmaProject.findUnique({
-        where: { id: Number(figmaProjectId) },
-        select: { id: true, fileKey: true },
-      });
 
-      if (!project) throw new Error("Project not found");
-
-      // Удаляем проект
-      await prisma.figmaProject.delete({
-        where: { id: Number(figmaProjectId) },
-      });
-
-      // Проверяем, есть ли ещё проекты с этим fileKey
-      const remaining = await prisma.figmaProject.count({
-        where: { fileKey: project.fileKey },
-      });
-
-      // Если проектов больше нет — удаляем все переменные цветов с этим fileKey
-      if (remaining === 0) {
-        await prisma.colorVariable.deleteMany({
-          where: { fileKey: project.fileKey },
-        });
-      }
-      return project.id;
-    },
     uploadFigmaImagesToCloudinary,
     uploadFigmaSvgsToCloudinary,
     transformRasterToSvg,
-    removeFigmaImage: async (_, { nodeId, figmaProjectId }) => {
-      return prisma.figmaImage.delete({
-        where: {
-          figmaProjectId_nodeId: {
-            figmaProjectId,
-            nodeId,
-          },
-        },
-      });
-    },
+    removeFigmaImage,
+    removeFigmaProject,
     addColorVariables: async (_, { fileKey, colors }) => {
       await prisma.colorVariable.createMany({
         data: colors.map((c) => ({

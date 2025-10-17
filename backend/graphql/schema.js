@@ -79,6 +79,7 @@ export const typeDefs = gql`
     imageRef: String!
     figmaProjectId: Int
     type: ImageType
+    fileKey: String!
   }
 
   type FigmaFont {

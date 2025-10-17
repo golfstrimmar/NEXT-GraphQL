@@ -69,13 +69,13 @@ const ModalCreateFigmaProject: React.FC<ModalCreateFigmaProjectProps> = ({
           data.createFigmaProject
         );
         setProjects((prev) => {
-          // проверка, чтобы не было дубликатов
           if (!prev.find((p) => p.id === data.createFigmaProject)) {
             return [...prev, data.createFigmaProject];
           }
           return prev;
         });
         setModalOpen(false);
+        setFigmaLink("");
         setName("");
         setFileKey("");
         setNodeId("");

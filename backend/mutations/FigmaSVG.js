@@ -110,6 +110,7 @@ const uploadFigmaSvgsToCloudinary = async (_, { projectId }) => {
               imageRef: groupId,
               type: "VECTOR",
               figmaProjectId: id,
+              fileKey: fileKey,
             },
           });
 

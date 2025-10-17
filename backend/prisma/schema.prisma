@@ -81,6 +81,7 @@ model FontClass {
   @@index([fileKey])
 }
 
+
 model FigmaImage {
   id             Int          @id @default(autoincrement())
   fileName       String
@@ -91,8 +92,10 @@ model FigmaImage {
   createdAt      DateTime     @default(now())
   figmaProject   FigmaProject @relation("ProjectImages", fields: [figmaProjectId], references: [id], onDelete: Cascade)
   figmaProjectId Int
+  fileKey        String       
   @@unique([figmaProjectId, nodeId])
   @@index([figmaProjectId])
+  @@index([fileKey])          
 }
 
 model FigmaFont {

@@ -125,6 +125,7 @@ const uploadFigmaImagesToCloudinary = async (_, { projectId }) => {
         imageRef,
         figmaProjectId: id,
         type: "RASTER",
+        fileKey: fileKey,
       })),
       skipDuplicates: true,
     });
