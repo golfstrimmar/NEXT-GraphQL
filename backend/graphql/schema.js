@@ -29,16 +29,8 @@ export const typeDefs = gql`
     fontSize: Float!
     lineHeight: Float
     letterSpacing: Float
-  }
-
-  input FigmaFontInput {
-    fontFamily: String!
-    fontWeight: Int!
-    fontSize: Float!
-    lineHeight: Float
-    letterSpacing: Float
-    source: String
-    nodeId: String
+    colorVariableName: String
+    sampleText: String
   }
 
   type ProjectSummary {
@@ -82,24 +74,13 @@ export const typeDefs = gql`
     fileKey: String!
   }
 
-  type FigmaFont {
-    id: ID!
-    fontFamily: String!
-    fontWeight: Int!
-    fontSize: Float!
-    lineHeight: Float
-    letterSpacing: Float
-    source: String
-    nodeId: String
-    fileKey: String!
-  }
-
   type ColorVariable {
     id: ID!
     variableName: String!
     hex: String!
     type: ColorType!
     fileKey: String!
+    fontClasses: [FontClass!] # связь с FontClass
   }
 
   type FontClass {
@@ -110,7 +91,10 @@ export const typeDefs = gql`
     fontSize: Float!
     lineHeight: Float
     letterSpacing: Float
+    sampleText: String!
     fileKey: String!
+    colorVariableName: String
+    color: ColorVariable # подтягивается через resolver
   }
 
   type FigmaProject {
@@ -155,7 +139,6 @@ export const typeDefs = gql`
     getFigmaProjectData(projectId: ID!): FigmaProjectData!
     getColorVariablesByFileKey(fileKey: String!): [ColorVariable!]!
     getFontClassesByFileKey(fileKey: String!): [FontClass!]!
-    getFigmaFontsByFileKey(fileKey: String!): [FigmaFont!]!
   }
 
   type Mutation {
@@ -189,7 +172,6 @@ export const typeDefs = gql`
       fileKey: String!
       fontClasses: [FontClassInput!]!
     ): [FontClass!]!
-    addFigmaFonts(fileKey: String!, fonts: [FigmaFontInput!]!): [FigmaFont!]!
   }
 
   type Subscription {

@@ -99,119 +99,6 @@ export const REMOVE_PROJECT = gql`
   }
 `;
 
-// === Figma-проекты ===
-
-// Получить один Figma-проект
-export const GET_FIGMA_PROJECT = gql`
-  query getFigmaProject($id: ID!) {
-    figmaProject(id: $id) {
-      id
-      name
-      fileKey
-      nodeId
-      token
-      previewUrl
-      owner {
-        id
-        name
-      }
-      figmaImages {
-        fileName
-        filePath
-        nodeId
-        imageRef
-        type
-      }
-    }
-  }
-`;
-
-// Получить все Figma-проекты пользователя
-export const GET_FIGMA_PROJECTS_BY_USER = gql`
-  query figmaProjectsByUser($userId: ID!) {
-    figmaProjectsByUser(userId: $userId) {
-      id
-      name
-      fileKey
-      nodeId
-      previewUrl
-      token
-    }
-  }
-`;
-
-// Получить данные Figma-проекта
-export const GET_FIGMA_PROJECT_DATA = gql`
-  query GetFigmaProjectData($projectId: ID!) {
-    getFigmaProjectData(projectId: $projectId) {
-      id
-      name
-      fileKey
-      nodeId
-      token
-      previewUrl
-      file
-      owner {
-        id
-        name
-      }
-      figmaImages {
-        fileName
-        filePath
-        nodeId
-        imageRef
-        type
-      }
-    }
-  }
-`;
-
-// Получить цветовые переменные по fileKey
-export const GET_COLOR_VARIABLES_BY_FILE_KEY = gql`
-  query GetColorVariablesByFileKey($fileKey: String!) {
-    getColorVariablesByFileKey(fileKey: $fileKey) {
-      id
-      variableName
-      hex
-      type
-      fileKey
-    }
-  }
-`;
-
-// Получить классы шрифтов по fileKey
-export const GET_FONT_CLASSES_BY_FILE_KEY = gql`
-  query GetFontClassesByFileKey($fileKey: String!) {
-    getFontClassesByFileKey(fileKey: $fileKey) {
-      id
-      className
-      fontFamily
-      fontWeight
-      fontSize
-      lineHeight
-      letterSpacing
-      fileKey
-    }
-  }
-`;
-
-// Получить Figma-шрифты по fileKey
-export const GET_FIGMA_FONTS_BY_FILE_KEY = gql`
-  query GetFigmaFontsByFileKey($fileKey: String!) {
-    getFigmaFontsByFileKey(fileKey: $fileKey) {
-      id
-      fontFamily
-      fontWeight
-      fontSize
-      lineHeight
-      letterSpacing
-      source
-      nodeId
-      fileKey
-    }
-  }
-`;
-
 // Создать Figma-проект
 export const CREATE_FIGMA_PROJECT = gql`
   mutation createFigmaProject(
@@ -307,24 +194,9 @@ export const ADD_FONT_CLASSES = gql`
       fontSize
       lineHeight
       letterSpacing
+      sampleText
       fileKey
-    }
-  }
-`;
-
-// Добавить Figma-шрифты
-export const ADD_FIGMA_FONTS = gql`
-  mutation addFigmaFonts($fileKey: String!, $fonts: [FigmaFontInput!]!) {
-    addFigmaFonts(fileKey: $fileKey, fonts: $fonts) {
-      id
-      fontFamily
-      fontWeight
-      fontSize
-      lineHeight
-      letterSpacing
-      source
-      nodeId
-      fileKey
+      colorVariableName
     }
   }
 `;

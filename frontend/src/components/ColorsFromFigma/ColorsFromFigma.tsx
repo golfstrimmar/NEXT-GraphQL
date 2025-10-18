@@ -8,6 +8,8 @@ import { ADD_COLOR_VARIABLES } from "@/apollo/mutations";
 import { useStateContext } from "@/providers/StateProvider";
 import extractDesignColors from "@/utils/extractDesignColors";
 import FProject from "@/types/FProject";
+import FontsFromFigma from "@/components/FontsFromFigma/FontsFromFigma";
+import { set } from "lodash";
 interface ColorsFromFigmaProps {
   project: FProject;
 }
@@ -16,12 +18,16 @@ const ColorsFromFigma: React.FC<ColorsFromFigmaProps> = ({ project }) => {
   const { setModalMessage } = useStateContext();
   const [colorVariables, setColorVariables] = useState<any[]>([]);
   // 🟢🟢🟢🟢🟢🟢🟢🟢  Queries
-  const { data: colorVarsData, loading: colorVarsLoading } = useQuery(
-    GET_COLOR_VARIABLES_BY_FILE_KEY,
-    {
-      variables: { fileKey: project?.fileKey },
-    }
-  );
+
+  const {
+    data: colorVarsData,
+    loading: colorVarsLoading,
+    refetch,
+  } = useQuery(GET_COLOR_VARIABLES_BY_FILE_KEY, {
+    variables: { fileKey: project?.fileKey },
+    fetchPolicy: "network-only", // 🔥 всегда берёт свежие данные
+  });
+
   // 🟢🟢🟢🟢🟢🟢 Mutatons
   const [addColorVariables] = useMutation(ADD_COLOR_VARIABLES);
   // 🟢🟢🟢🟢🟢🟢🟢useEffect🟢🟢🟢🟢🟢🟢🟢
@@ -48,24 +54,24 @@ const ColorsFromFigma: React.FC<ColorsFromFigmaProps> = ({ project }) => {
     }
     return hex;
   };
-  function hexToRgba(hex, alpha = 1) {
-    hex = hex.replace(/^#/, "");
-    if (hex.length === 3) {
-      hex = hex
-        .split("")
-        .map((x) => x + x)
-        .join("");
-    }
-    if (hex.length === 8) {
-      alpha = parseInt(hex.slice(6, 8), 16) / 255;
-      hex = hex.slice(0, 6);
-    }
-    const num = parseInt(hex, 16);
-    const r = (num >> 16) & 255;
-    const g = (num >> 8) & 255;
-    const b = num & 255;
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  }
+  // function hexToRgba(hex, alpha = 1) {
+  //   hex = hex.replace(/^#/, "");
+  //   if (hex.length === 3) {
+  //     hex = hex
+  //       .split("")
+  //       .map((x) => x + x)
+  //       .join("");
+  //   }
+  //   if (hex.length === 8) {
+  //     alpha = parseInt(hex.slice(6, 8), 16) / 255;
+  //     hex = hex.slice(0, 6);
+  //   }
+  //   const num = parseInt(hex, 16);
+  //   const r = (num >> 16) & 255;
+  //   const g = (num >> 8) & 255;
+  //   const b = num & 255;
+  //   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  // }
 
   const generateSassVariablesFromVariables = (vars) => {
     if (!Array.isArray(vars)) return "";
@@ -112,23 +118,121 @@ const ColorsFromFigma: React.FC<ColorsFromFigmaProps> = ({ project }) => {
     return numA - numB;
   });
 
-  const FigmaColors = async () => {
-    if (
-      !project?.id ||
-      !project?.file ||
-      !project?.nodeId ||
-      !project?.fileKey
-    ) {
+  // const FigmaColors = async () => {
+  //   if (
+  //     !project?.id ||
+  //     !project?.file ||
+  //     !project?.nodeId ||
+  //     !project?.fileKey
+  //   ) {
+  //     setModalMessage("Invalid project data");
+  //     return;
+  //   }
+
+  //   try {
+  //     const extractedColors = extractDesignColors(project.file, project.nodeId);
+  //     if (!Array.isArray(extractedColors)) {
+  //       throw new Error("Invalid color data from Figma");
+  //     }
+
+  //     const typeMap = {
+  //       text: "TEXT",
+  //       background: "BACKGROUND",
+  //       fill: "FILL",
+  //       stroke: "STROKE",
+  //       palette: "PALETTE",
+  //     };
+
+  //     const existingColorVars = colorVarsData?.getColorVariablesByFileKey || [];
+  //     console.log("<====существующие на базе====>", existingColorVars);
+  //     console.log(
+  //       "<====новые вынутые с фигмы цвета  без существующих====>",
+  //       extractedColors
+  //     );
+  //     const maxColors = existingColorVars.length;
+  //     const variables = extractedColors.map((c, index) => {
+  //       const hex = c.formats?.hex || rgbToHex(c);
+  //       const type = typeMap[c.type?.toLowerCase()] || "PALETTE";
+  //       const variableName = `$${type.toLowerCase()}-${maxColors + index}`;
+
+  //       return {
+  //         // ...c,
+  //         variableName,
+  //         hex,
+  //         type,
+  //       };
+  //     });
+  //     console.log(
+  //       "<====новые сформированные переменные цветов без существующих ====>",
+  //       variables
+  //     );
+  //     if (existingColorVars.length === 0) {
+  //       setColorVariables(variables);
+  //     } else {
+  //       const newVariables = variables.filter(
+  //         (c) =>
+  //           !existingColorVars.some((v) => v.hex === c.hex && v.type === c.type)
+  //       );
+  //       console.log(
+  //         "<=== оригинальные новые переменные цветов=====>",
+  //         newVariables
+  //       );
+  //       const newSteck = [...existingColorVars, ...newVariables];
+  //       console.log("<====newSteck====>", newSteck);
+  //       setColorVariables([...existingColorVars, ...newVariables]);
+  //     }
+  //   } catch (err) {
+  //     console.error("❌ Error:", err);
+  //     setModalMessage(`Error: ${err.message}`);
+  //   }
+  // };
+
+  // const handleAddColors = async () => {
+  //   try {
+  //     if (colorVariables.length > 0) {
+  //       const varsForDB = colorVariables.map((v) => ({
+  //         variableName: v.variableName,
+  //         hex: v.hex,
+  //         type: v.type ? v.type : "palette",
+  //       }));
+  //       console.log("<====varsForDB цветов====>", varsForDB);
+  //       const { data } = await addColorVariables({
+  //         variables: {
+  //           fileKey: project.fileKey,
+  //           colors: varsForDB,
+  //         },
+  //         refetchQueries: [
+  //           {
+  //             query: GET_COLOR_VARIABLES_BY_FILE_KEY,
+  //             variables: { fileKey: project.fileKey },
+  //           },
+  //         ],
+  //       });
+  //       console.log("<====colors from db====>", data.addColorVariables);
+  //       setModalMessage("New colors successfully saved!");
+  //     }
+  //   } catch (error) {
+  //     console.log("<==== error====>", error);
+  //   }
+  // };
+  const handleExtractAndAddColors = async () => {
+    if (!project?.file || !project?.nodeId || !project?.fileKey) {
       setModalMessage("Invalid project data");
       return;
     }
 
     try {
+      // 1️⃣ Извлекаем цвета с Figma
       const extractedColors = extractDesignColors(project.file, project.nodeId);
       if (!Array.isArray(extractedColors)) {
         throw new Error("Invalid color data from Figma");
       }
 
+      // 2️⃣ Берём существующие цвета из базы
+      const existingColorVars = colorVarsData?.getColorVariablesByFileKey || [];
+      const maxColors = existingColorVars.length;
+
+      // 3️⃣ Формируем массив переменных с уникальными названиями
       const typeMap = {
         text: "TEXT",
         background: "BACKGROUND",
@@ -137,166 +241,113 @@ const ColorsFromFigma: React.FC<ColorsFromFigmaProps> = ({ project }) => {
         palette: "PALETTE",
       };
 
-      const existingColorVars = colorVarsData?.getColorVariablesByFileKey || [];
-      console.log("<====существующие на базе====>", existingColorVars);
-      console.log(
-        "<====новые вынутые с фигмы  без существующих====>",
-        extractedColors
-      );
-      const maxColors = existingColorVars.length;
-      const variables = extractedColors.map((c, index) => {
-        const hex = c.formats?.hex || rgbToHex(c);
-        const type = typeMap[c.type?.toLowerCase()] || "PALETTE";
-        const variableName = `$${type.toLowerCase()}-${maxColors + index}`;
-
-        return {
-          // ...c,
-          variableName,
-          hex,
-          type,
-        };
-      });
-      console.log(
-        "<====новые сформированные переменные без существующих ====>",
-        variables
-      );
-      if (existingColorVars.length === 0) {
-        setColorVariables(variables);
-      } else {
-        const newVariables = variables.filter(
-          (c) =>
-            !existingColorVars.some((v) => v.hex === c.hex && v.type === c.type)
+      const variablesForDB = extractedColors
+        .map((c, index) => {
+          const hex = c.formats?.hex || rgbToHex(c);
+          const type = typeMap[c.type?.toLowerCase()] || "PALETTE";
+          const variableName = `$${type.toLowerCase()}-${maxColors + index}`;
+          return { variableName, hex, type };
+        })
+        // 4️⃣ Фильтруем только новые цвета
+        .filter(
+          (v) =>
+            !existingColorVars.some((e) => e.hex === v.hex && e.type === v.type)
         );
-        console.log("<=== оригинальные новые переменные =====>", newVariables);
-        const newSteck = [...existingColorVars, ...newVariables];
-        console.log("<====newSteck====>", newSteck);
-        setColorVariables([...existingColorVars, ...newVariables]);
-      }
-    } catch (err) {
-      console.error("❌ Error:", err);
-      setModalMessage(`Error: ${err.message}`);
-    }
-  };
 
-  const handleAddColors = async () => {
-    try {
-      if (colorVariables.length > 0) {
-        const varsForDB = colorVariables.map((v) => ({
-          variableName: v.variableName,
-          hex: v.hex,
-          type: v.type ? v.type : "palette",
-        }));
-        console.log("<====varsForDB====>", varsForDB);
-        const { data } = await addColorVariables({
-          variables: {
-            fileKey: project.fileKey,
-            colors: varsForDB,
-          },
-          refetchQueries: [
-            {
-              query: GET_COLOR_VARIABLES_BY_FILE_KEY,
-              variables: { fileKey: project.fileKey },
-            },
-          ],
-        });
-        console.log("<====colors from db====>", data.addColorVariables);
-        setModalMessage("New colors successfully saved!");
+      if (variablesForDB.length === 0) {
+        setModalMessage("No new colors to add.");
+        setColorVariables(colorVarsData.getColorVariablesByFileKey);
+        return;
       }
-    } catch (error) {
-      console.log("<==== error====>", error);
+
+      // 5️⃣ Отправляем новые цвета на сервер и сразу рефетчим запрос
+      const { data } = await addColorVariables({
+        variables: {
+          fileKey: project.fileKey,
+          colors: variablesForDB,
+        },
+        refetchQueries: [
+          {
+            query: GET_COLOR_VARIABLES_BY_FILE_KEY,
+            variables: { fileKey: project.fileKey },
+          },
+        ],
+      });
+      setColorVariables(data.addColorVariables);
+      console.log("<====New colors added to DB====>", data.addColorVariables);
+      setModalMessage("New colors successfully saved!");
+    } catch (err) {
+      console.error("❌ Error adding colors:", err);
+      setModalMessage(`Error: ${err.message}`);
     }
   };
 
   return (
     <div className=" ">
-      <button className="btn btn-primary w-full" onClick={FigmaColors}>
-        🎨 Colors from Figma (
-        {colorVariables.length > 0 && colorVariables.length})
+      <button
+        className="btn btn-primary w-full"
+        onClick={handleExtractAndAddColors}
+      >
+        🎨 Extract & Save Colors and Fonts from Figma
       </button>
       {colorVariables.length > 0 && (
-        <div className="flex items-center gap-2 mt-2 mb-2">
-          <button
-            className="btn btn-allert "
-            onClick={() => {
-              setColorVariables([]);
-            }}
-          >
-            Clear Colors
-          </button>
-          <button
-            className="btn btn-primary "
-            onClick={() => {
-              handleAddColors();
-            }}
-          >
-            Send to db
-          </button>
-        </div>
-      )}
-      {colorVariables.length > 0 && (
-        <div className="mt-2">
-          {/* <h5 className="text-lg font-semibold">
-            Colors ({colorVariables.length})
-          </h5> */}
-
-          <div className="bg-gray-900 text-green-400 p-1 rounded">
-            {colorVariables.length > 0 && (
-              <>
-                <button
-                  className="p-2 bg-gray-500 rounded font-mono flex items-center"
-                  onClick={async () => {
-                    try {
-                      await navigator.clipboard.writeText(
-                        generateSassVariablesFromVariables(sortedColorVariables)
-                      );
-                      setModalMessage("Color variables copied to clipboard!");
-                    } catch (err) {
-                      setModalMessage("Failed to copy to clipboard");
-                      console.error("Clipboard error:", err);
-                    }
-                  }}
-                >
-                  <Image
-                    src="/assets/svg/copy-svgrepo-com.svg"
-                    alt="Copy"
-                    width={20}
-                    height={20}
-                    className="mr-2"
-                  />
-                  Copy SASS
-                </button>
-              </>
-            )}
-            {sortedColorVariables.length > 0 && (
-              <pre className="text-sm whitespace-pre-wrap">
-                {generateSassVariablesFromVariables(sortedColorVariables)}
-              </pre>
-            )}
-          </div>
-          <div className="mt-4 grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(300px,1fr))]">
-            {sortedColorVariables?.map((color) => {
-              return (
-                <div
-                  key={color.variableName}
-                  className="border rounded p-2 bg-white shadow-sm mb-2  grid grid-cols-[20%_1fr] items-center gap-2"
-                >
-                  <div
-                    className=" h-full rounded border  "
-                    style={{ backgroundColor: color.hex }}
-                  />
-                  <div className="text-xs space-y-1">
-                    <p className="font-bold text-green-600">
-                      {color.variableName}
-                    </p>
-                    <p className="font-medium">hex: {color.hex}</p>
-                    <p className="font-medium">rgba: {hexToRgba(color.hex)}</p>
-                    <p className="text-gray-500 capitalize">{color.type}</p>
-                  </div>
+        <>
+          <div className="mt-2">
+            <div className="bg-gray-900 text-green-400 p-1 rounded">
+              {colorVariables.length > 0 && (
+                <>
+                  <button
+                    className="p-2 bg-gray-500 rounded font-mono flex items-center"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(
+                          generateSassVariablesFromVariables(
+                            sortedColorVariables
+                          )
+                        );
+                        setModalMessage("Color variables copied to clipboard!");
+                      } catch (err) {
+                        setModalMessage("Failed to copy to clipboard");
+                        console.error("Clipboard error:", err);
+                      }
+                    }}
+                  >
+                    <Image
+                      src="/assets/svg/copy-svgrepo-com.svg"
+                      alt="Copy"
+                      width={20}
+                      height={20}
+                      className="mr-2"
+                    />
+                    Copy SCSS color variables
+                  </button>
+                </>
+              )}
+              {sortedColorVariables.length > 0 && (
+                <div className="p-1 flex flex-col gap-2">
+                  {sortedColorVariables.map((color) => (
+                    <div key={color.id} className="inline-flex gap-4">
+                      <div
+                        style={{
+                          width: "26px",
+                          height: "26px",
+                          borderRadius: "50%",
+                          backgroundColor: color.hex,
+                          border: "1px solid #ccc",
+                        }}
+                      />
+                      {/* <span className="text-white">{hexToRgba(color.hex)}</span>
+                      <span>Var SCSS:</span> */}
+                      <span>{color.variableName}:</span>
+                      <span>{color.hex};</span>
+                    </div>
+                  ))}
                 </div>
-              );
-            })}
+              )}
+            </div>
           </div>
-        </div>
+          <FontsFromFigma project={project} />
+        </>
       )}
     </div>
   );

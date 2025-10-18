@@ -79,9 +79,6 @@ export const resolvers = {
     getFontClassesByFileKey: async (_, { fileKey }) => {
       return prisma.fontClass.findMany({ where: { fileKey } });
     },
-    getFigmaFontsByFileKey: async (_, { fileKey }) => {
-      return prisma.figmaFont.findMany({ where: { fileKey } });
-    },
   },
   Mutation: {
     createUser: async (_, { name, email, password }) => {
@@ -289,6 +286,7 @@ export const resolvers = {
       });
     },
     addFontClasses: async (_, { fileKey, fontClasses }) => {
+      console.log(">==== fontClasses====>", fontClasses);
       await prisma.fontClass.createMany({
         data: fontClasses.map((f) => ({
           className: f.className,
@@ -297,27 +295,14 @@ export const resolvers = {
           fontSize: f.fontSize,
           lineHeight: f.lineHeight,
           letterSpacing: f.letterSpacing,
+          sampleText: f.sampleText,
           fileKey,
+          colorVariableName: f.colorVariableName,
         })),
         skipDuplicates: true,
       });
+
       return prisma.fontClass.findMany({ where: { fileKey } });
-    },
-    addFigmaFonts: async (_, { fileKey, fonts }) => {
-      await prisma.figmaFont.createMany({
-        data: fonts.map((f) => ({
-          fontFamily: f.fontFamily,
-          fontWeight: f.fontWeight,
-          fontSize: f.fontSize,
-          lineHeight: f.lineHeight,
-          letterSpacing: f.letterSpacing,
-          source: f.source,
-          nodeId: f.nodeId,
-          fileKey,
-        })),
-        skipDuplicates: true,
-      });
-      return prisma.figmaFont.findMany({ where: { fileKey } });
     },
   },
   User: {
@@ -341,6 +326,17 @@ export const resolvers = {
       prisma.user.findUnique({ where: { id: parent.ownerId } }),
     figmaImages: (parent) =>
       prisma.figmaImage.findMany({ where: { figmaProjectId: parent.id } }),
+  },
+  FontClass: {
+    color: async (parent, _, { prisma }) => {
+      if (!parent.colorVariableName) return null;
+      return prisma.colorVariable.findFirst({
+        where: {
+          fileKey: parent.fileKey,
+          variableName: parent.colorVariableName,
+        },
+      });
+    },
   },
   Subscription: {
     userCreated: {

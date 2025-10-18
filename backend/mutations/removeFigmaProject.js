@@ -33,13 +33,18 @@ const removeFigmaProject = async (_, { figmaProjectId }) => {
     where: { fileKey: project.fileKey },
   });
 
-  // 5️⃣ Если больше нет — чистим цвета
+  // 5️⃣ Если больше нет — чистим colorVariable
   if (remaining === 0) {
     await prisma.colorVariable.deleteMany({
       where: { fileKey: project.fileKey },
     });
   }
-
+  // 5️⃣ Если больше нет — чистим fontClass
+  if (remaining === 0) {
+    await prisma.fontClass.deleteMany({
+      where: { fileKey: project.fileKey },
+    });
+  }
   return project.id;
 };
 

@@ -89,9 +89,11 @@ const transformToSvg = async (_, { nodeId }) => {
           imageRef: image.imageRef,
           figmaProjectId: image.figmaProjectId,
           type: "VECTOR",
+          fileKey: image.fileKey,
         },
       });
 
+      console.log("<====♻️ Image convertet to SVG====>", newImage);
       return newImage;
     }
   } catch (e) {
