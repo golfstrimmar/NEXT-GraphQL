@@ -412,9 +412,10 @@ const EditorComponent: React.FC = () => {
               </button>
             )}
           </div>
-
+          {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
           <div className="preview-wrap">
             <div id="preview" data-index="0"></div>
+
             <button
               onClick={handleCartClear}
               className="w-8 h-8 text-l bg-red-500 mt-[-20px] mb-8 z-40 relative rounded-full flex items-center justify-center cursor-pointer"
@@ -422,7 +423,7 @@ const EditorComponent: React.FC = () => {
               🗑️
             </button>
           </div>
-
+          {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
           <Editor
             height={editorHeight}
             defaultLanguage="html"

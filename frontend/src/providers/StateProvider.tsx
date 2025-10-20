@@ -169,6 +169,10 @@ export function StateProvider({ children }: { children: ReactNode }) {
     if (htmlJson && htmlJson.length > 0) {
       localStorage.setItem("htmlJson", JSON.stringify(htmlJson));
     }
+    if (htmlJson === null) {
+      localStorage.removeItem("htmlJson");
+      initialize();
+    }
   }, [htmlJson]);
 
   useEffect(() => {

@@ -133,6 +133,7 @@ export const typeDefs = gql`
   type Query {
     users: [User!]!
     project(id: ID!): Project
+    getAllProjectsByUser(userId: ID!): [Project!]
     jsonDocumentByName(name: String!): JsonDocument
     figmaProject(id: ID!): FigmaProject
     figmaProjectsByUser(userId: ID!): [FigmaProject!]!
@@ -148,6 +149,7 @@ export const typeDefs = gql`
     loginWithGoogle(idToken: String!): AuthPayload!
     createProject(ownerId: ID!, name: String!, data: String!): ProjectResponse!
     findProject(projectId: ID!): Project!
+    updateProject(projectId: ID!, data: String!): Project!
     removeProject(projectId: ID!): ID
 
     createFigmaProject(

@@ -27,6 +27,9 @@ export const resolvers = {
         where: { id: Number(id) },
         include: { owner: true },
       }),
+    getAllProjectsByUser: (_, { userId }) =>
+      prisma.project.findMany({ where: { ownerId: Number(userId) } }),
+
     jsonDocumentByName: (_, { name }) =>
       prisma.jsonDocument.findFirst({
         where: { name },
@@ -214,6 +217,13 @@ export const resolvers = {
         where: { id: Number(projectId) },
       });
       return project;
+    },
+    updateProject: async (_, { projectId, data }) => {
+      const updated = await prisma.project.update({
+        where: { id: Number(projectId) },
+        data: { data },
+      });
+      return updated;
     },
     removeProject: async (_, { projectId }) => {
       const project = await prisma.project.delete({

@@ -31,7 +31,19 @@ export const GET_JSON_DOCUMENT = gql`
     }
   }
 `;
-
+export const GET_ALL_PROJECTS_BY_USER = gql`
+  query getAllProjectsByUser($userId: ID!) {
+    getAllProjectsByUser(userId: $userId) {
+      id
+      name
+      data
+      owner {
+        id
+        name
+      }
+    }
+  }
+`;
 // Получить один Figma-проект
 export const GET_FIGMA_PROJECT = gql`
   query getFigmaProject($id: ID!) {

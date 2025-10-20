@@ -91,6 +91,15 @@ export const FIND_PROJECT = gql`
     }
   }
 `;
+export const UPDATE_PROJECT = gql`
+  mutation UpdateProject($projectId: ID!, $data: String!) {
+    updateProject(projectId: $projectId, data: $data) {
+      id
+      name
+      data
+    }
+  }
+`;
 
 // Удаление проекта
 export const REMOVE_PROJECT = gql`
