@@ -76,6 +76,11 @@ const transformEl = (node: any): string => {
 
   const { type, attributes = {}, children } = node;
 
+  // Проверяем, есть ли style, если нет — создаем пустой
+  if (!attributes.style) {
+    attributes.style = "";
+  }
+
   const className = Array.isArray(attributes.class)
     ? attributes.class.join(" ")
     : attributes.class || "";
@@ -102,7 +107,7 @@ const transformEl = (node: any): string => {
       .map((child) => {
         if (typeof child === "string") {
           dataLabel = child;
-          content = child; // сохраняем текст как content
+          content = child;
           return "";
         }
         return transformEl(child);
@@ -114,7 +119,6 @@ const transformEl = (node: any): string => {
   }
 
   if (node?.type === "label") {
-    // Добавляем content перед childrenHTML
     return `${tagStart} data-label="${dataLabel}">${content}${childrenHTML}</${type}>`;
   }
 

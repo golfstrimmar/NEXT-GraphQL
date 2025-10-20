@@ -7,6 +7,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation } from "@apollo/client";
 import ColorsFromFigma from "@/components/ColorsFromFigma/ColorsFromFigma";
 import ExtractImages from "@/components/ExtractImages/ExtractImages";
+import FigmaViewer from "@/components/FigmaViewer/FigmaViewer";
 import {
   GET_FIGMA_PROJECT_DATA,
   GET_COLOR_VARIABLES_BY_FILE_KEY,
@@ -14,7 +15,13 @@ import {
 } from "@/apollo/queries";
 import { REMOVE_FIGMA_PROJECT } from "@/apollo/mutations";
 import Loading from "@/components/ui/Loading/Loading";
-
+import dynamic from "next/dynamic";
+const FigmaViewer = dynamic(
+  () => import("@/components/FigmaViewer/FigmaViewer"),
+  {
+    ssr: false,
+  }
+);
 const ProjectPage = () => {
   const params = useParams();
   const id = params?.id;
@@ -114,7 +121,7 @@ const ProjectPage = () => {
         </div>
       </div>
 
-      {/* <pre> {JSON.stringify(project.file, null, 2)}</pre> */}
+      {/* <pre> {JSON.stringify(project?.file, null, 2)}</pre> */}
       <hr className="mt-4 mb-4" />
       <div className="mt-4 grid grid-cols-1 gap-2">
         {/* 🎨🎨🎨🎨🎨🎨colorVariables🎨🎨🎨🎨🎨🎨🎨 */}
@@ -132,6 +139,11 @@ const ProjectPage = () => {
             className="border rounded-sm shadow-[0_0_10px_0_rgba(0,0,0,0.4)]"
           />
         </div>
+      )}
+      {/*🔹🔹🔹🔹🔹 FigmaViewer 🔹🔹🔹🔹🔹*/}
+      <hr className="mt-4 mb-4" />
+      {project && (
+        <FigmaViewer fileData={project?.file} nodeId={project?.nodeId} />
       )}
     </div>
   );

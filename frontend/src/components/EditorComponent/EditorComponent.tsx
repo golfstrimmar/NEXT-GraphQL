@@ -357,6 +357,7 @@ const EditorComponent: React.FC = () => {
   return (
     <div className="editor">
       {user && <Projects />}
+      {htmlJson && <pre>{JSON.stringify(htmlJson, null, 2)}</pre>}
       <div className="editor__workspace">
         <Admin
           commonClass={commonClass}
