@@ -31,16 +31,23 @@ export const GET_JSON_DOCUMENT = gql`
     }
   }
 `;
-export const GET_ALL_PROJECTS_BY_USER = gql`
-  query getAllProjectsByUser($userId: ID!) {
-    getAllProjectsByUser(userId: $userId) {
+
+export const FIND_PROJECT = gql`
+  query findProject($id: ID!) {
+    findProject(id: $id) {
       id
       name
       data
-      owner {
-        id
-        name
-      }
+    }
+  }
+`;
+
+export const GET_ALL_PROJECTS_BY_USER = gql`
+  query GET_ALL_PROJECTS_BY_USER($userId: ID!) {
+    getAllProjectsByUser(userId: $userId) {
+      id
+      name
+      # data
     }
   }
 `;

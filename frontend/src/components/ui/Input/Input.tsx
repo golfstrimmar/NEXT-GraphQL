@@ -1,5 +1,6 @@
 "use client";
-import React, { RefObject } from "react";
+import React, { RefObject, useRef, useLayoutEffect } from "react";
+import "./input.scss";
 
 interface InputProps {
   typeInput:
@@ -20,11 +21,12 @@ interface InputProps {
   onChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
-  inputRef?: RefObject<HTMLInputElement | HTMLTextAreaElement>; // Сделали необязательным
+  inputRef?: RefObject<HTMLInputElement | HTMLTextAreaElement>;
   onClick?: (
     e: React.MouseEvent<HTMLInputElement | HTMLTextAreaElement, MouseEvent>
   ) => void;
-  activ?: boolean; // Добавили activ как опциональный пропс
+  activ?: boolean;
+  disabled?: boolean;
 }
 
 const Input: React.FC<InputProps> = ({
@@ -36,21 +38,45 @@ const Input: React.FC<InputProps> = ({
   onChange,
   inputRef,
   onClick,
+  disabled,
   activ,
 }) => {
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  // Используем useLayoutEffect чтобы подгонять высоту до paint
+  useLayoutEffect(() => {
+    if (typeInput !== "textarea") return;
+    const el = textareaRef.current;
+    if (!el) return;
+
+    const adjust = () => {
+      el.style.height = "auto";
+      el.style.height = `${el.scrollHeight}px`;
+    };
+    adjust();
+    const raf = requestAnimationFrame(() => adjust());
+    return () => cancelAnimationFrame(raf);
+  }, [value, typeInput]);
+
   return (
     <div className="input-field input-field--ui">
       {typeInput === "textarea" ? (
         <textarea
           id={id}
+          ref={textareaRef}
           name={name}
-          value={value}
-          ref={inputRef as RefObject<HTMLTextAreaElement>}
+          // Гарантируем, что value всегда строка (иначе React выдаст warning)
+          value={value ?? ""}
           onChange={onChange}
           onClick={onClick}
+          onInput={(e) => {
+            const el = e.currentTarget;
+            el.style.height = "auto";
+            el.style.height = `${el.scrollHeight}px`;
+          }}
           className={`${
-            activ ? "bg-emerald-400  " : ""
-          } cursor-pointer border rounded  px-1   border-emerald-900`}
+            activ ? "bg-emerald-400" : ""
+          } cursor-pointer border rounded px-1 border-emerald-900`}
           required
         />
       ) : (
@@ -59,12 +85,13 @@ const Input: React.FC<InputProps> = ({
           ref={inputRef as RefObject<HTMLInputElement>}
           name={name}
           type={typeInput}
-          value={value}
+          value={value ?? ""}
           onChange={onChange}
           onClick={onClick}
+          disabled={disabled}
           className={`${
-            activ ? "bg-emerald-400  " : ""
-          }   cursor-pointer border rounded  px-1   border-emerald-900`}
+            activ ? "bg-emerald-400" : ""
+          } cursor-pointer border rounded px-1 border-emerald-900`}
           required
         />
       )}

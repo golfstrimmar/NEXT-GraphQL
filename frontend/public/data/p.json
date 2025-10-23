@@ -2,7 +2,10 @@
   {
     "type": "p",
     "attributes": {
-      "class": "text-sm   bg-green-300"
+      "tag": "p",
+      "text": "default p",
+      "class": "default-p",
+      "style": "background-color: #b9f8cf;"
     },
     "children": "p"
   }

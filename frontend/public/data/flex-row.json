@@ -1,24 +1,31 @@
 [
   {
-    "type": "div",
-    "attributes": {
-      "class": "flex items-center gap-2  bg-slate-300"
-    },
+    "tag": "div",
+    "text": "default flex row div",
+    "class": "default-div ",
+    "style": "background-color: #e2e8f0; display: flex; flex-direction: row; gap: 10px; aline-items: center; padding: 2px 4px; border: 1px solid #adadad; border-radius: 5px;",
     "children": [
-      "flex  div",
       {
-        "type": "div",
-        "attributes": {
-          "class": "  bg-slate-300"
-        },
-        "children": "div"
+        "tag": "div",
+        "text": "default div",
+        "class": "default-div",
+        "style": "background-color: #e2e8f0; padding: 2px 4px; border: 1px solid #adadad; border-radius: 5px;",
+        "children": [
+          {
+            "tag": "div",
+            "text": "internal div",
+            "class": "default-div",
+            "style": "background-color: #e2e8f0; padding: 2px 4px; border: 1px solid #adadad; border-radius: 5px;",
+            "children": ""
+          }
+        ]
       },
       {
-        "type": "div",
-        "attributes": {
-          "class": "  bg-slate-300"
-        },
-        "children": "div"
+        "tag": "div",
+        "text": "default div",
+        "class": "default-div",
+        "style": "background-color: #e2e8f0; padding: 2px 4px; border: 1px solid #adadad; border-radius: 5px;",
+        "children": ""
       }
     ]
   }

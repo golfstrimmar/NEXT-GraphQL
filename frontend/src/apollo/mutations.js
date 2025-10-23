@@ -73,7 +73,7 @@ export const LOGIN_WITH_GOOGLE = gql`
 
 // Создание проекта
 export const CREATE_PROJECT = gql`
-  mutation CreateProject($ownerId: ID!, $name: String!, $data: String!) {
+  mutation CreateProject($ownerId: ID!, $name: String!, $data: JSON!) {
     createProject(ownerId: $ownerId, name: $name, data: $data) {
       id
       name

@@ -32,7 +32,10 @@ export const typeDefs = gql`
     colorVariableName: String
     sampleText: String
   }
-
+  input JsonDocumentInput {
+    name: String!
+    content: JSON!
+  }
   type ProjectSummary {
     id: ID!
     name: String!
@@ -59,7 +62,7 @@ export const typeDefs = gql`
   type Project {
     id: ID!
     name: String!
-    data: String!
+    data: JSON!
     createdAt: String!
     owner: User!
   }
@@ -132,7 +135,7 @@ export const typeDefs = gql`
 
   type Query {
     users: [User!]!
-    project(id: ID!): Project
+    findProject(id: ID!): Project
     getAllProjectsByUser(userId: ID!): [Project!]
     jsonDocumentByName(name: String!): JsonDocument
     figmaProject(id: ID!): FigmaProject
@@ -147,8 +150,7 @@ export const typeDefs = gql`
     loginUser(email: String!, password: String!): AuthPayload!
     setPassword(email: String!, password: String!): User!
     loginWithGoogle(idToken: String!): AuthPayload!
-    createProject(ownerId: ID!, name: String!, data: String!): ProjectResponse!
-    findProject(projectId: ID!): Project!
+    createProject(ownerId: ID!, name: String!, data: JSON!): Project!
     updateProject(projectId: ID!, data: String!): Project!
     removeProject(projectId: ID!): ID
 

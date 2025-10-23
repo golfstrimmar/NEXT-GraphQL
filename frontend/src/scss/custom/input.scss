@@ -33,6 +33,7 @@
       transform: translateY(-50%);
       left: 10px !important;
       transition: all 0.2s;
+      font-size: 12px;
       // z-index: 1;
       // font-style: italic;
       // font-size: 14px;
@@ -83,7 +84,7 @@
   input[type="tel"] {
     &+label {
       background: transparent !important;
-
+      font-size: 12px;
       white-space: nowrap;
     }
 
@@ -123,6 +124,7 @@
     input[type="tel"] {
       &+label {
         color: #193756 !important;
+        font-size: 12px;
       }
 
       &:focus+label,

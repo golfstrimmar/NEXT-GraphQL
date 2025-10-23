@@ -10,10 +10,12 @@ import dynamic from "next/dynamic";
 import { useQuery } from "@apollo/client";
 import { GET_USERS, GET_JSON_DOCUMENT } from "@/apollo/queries";
 import { USER_CREATED } from "@/apollo/subscriptions";
+
 const ModalMessage = dynamic(
   () => import("@/components/ModalMessage/ModalMessage"),
   { ssr: false }
 );
+
 type HtmlNode = {
   type: string;
   attributes?: {
@@ -23,87 +25,65 @@ type HtmlNode = {
   };
 };
 
-type nodeToAdd = {
-  type: number;
-};
+type nodeToAdd = { type: number };
+
 type User = {
   id: string;
   email: string;
   name: string;
   createdAt: string;
 };
+
 interface StateContextType {
   htmlJson: HtmlNode[];
   setHtmlJson: React.Dispatch<React.SetStateAction<HtmlNode[]>>;
   nodeToAdd: nodeToAdd | null;
   setNodeToAdd: React.Dispatch<React.SetStateAction<nodeToAdd | null>>;
-  result: string | undefined;
-  setResult: React.Dispatch<React.SetStateAction<string | undefined>>;
-  transformTo: boolean;
-  setTransformTo: React.Dispatch<React.SetStateAction<boolean>>;
+  user: User | null;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
+  users: User[] | null;
+  setUsers: React.Dispatch<React.SetStateAction<User[] | null>>;
   modalMessage: string;
   setModalMessage: React.Dispatch<React.SetStateAction<string>>;
   isModalOpen: boolean;
   setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   showModal: (message: string, duration?: number) => void;
-  showIsModal: boolean;
-  setShowIsModal: React.Dispatch<React.SetStateAction<boolean>>;
-  resHtml: string;
-  setResHtml: React.Dispatch<React.SetStateAction<string>>;
-  resScss: string;
-  setResScss: React.Dispatch<React.SetStateAction<string>>;
-  user: User | null;
-  setUser: React.Dispatch<React.SetStateAction<User | null>>;
-  users: User[] | null;
-  setUsers: React.Dispatch<React.SetStateAction<User[] | null>>;
 }
 
 const StateContext = createContext<StateContextType | null>(null);
 
 export function StateProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-
   const [users, setUsers] = useState<User[] | null>(null);
   const [htmlJson, setHtmlJson] = useState<HtmlNode[]>([]);
   const [nodeToAdd, setNodeToAdd] = useState<nodeToAdd | null>(null);
-  const [result, setResult] = useState<string>();
   const [modalMessage, setModalMessage] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [showIsModal, setShowIsModal] = useState<boolean>(false);
-  const [transformTo, setTransformTo] = useState<boolean>(false);
-  const [resHtml, setResHtml] = useState<string>("");
-  const [resScss, setResScss] = useState<string>("");
+
   const { data: usersData, subscribeToMore: subscribeToUsers } = useQuery(
     GET_USERS,
-    {
-      fetchPolicy: "cache-and-network",
-    }
+    { fetchPolicy: "cache-and-network" }
   );
-  const { data } = useQuery(GET_JSON_DOCUMENT, {
-    variables: { name: "initialTags" },
-    fetchPolicy: "cache-and-network",
+
+  const { data: jsonData } = useQuery(GET_JSON_DOCUMENT, {
+    variables: { name: "flex-row" },
+    fetchPolicy: "network-only",
   });
 
-  // ======================================================================
+  // ==================== INIT USER ====================
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("user");
-      if (stored) {
-        setUser(JSON.parse(stored));
-      }
-    }
+    if (typeof window === "undefined") return;
+    const stored = localStorage.getItem("user");
+    if (stored) setUser(JSON.parse(stored));
   }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-
-    if (user) {
-      localStorage.setItem("user", JSON.stringify(user));
-    } else {
-      localStorage.removeItem("user");
-    }
+    if (user) localStorage.setItem("user", JSON.stringify(user));
+    else localStorage.removeItem("user");
   }, [user]);
 
+  // ==================== INIT USERS + SUB ====================
   useEffect(() => {
     if (usersData?.users) setUsers(usersData.users);
 
@@ -112,95 +92,64 @@ export function StateProvider({ children }: { children: ReactNode }) {
       updateQuery: (prev, { subscriptionData }) => {
         if (!subscriptionData.data) return prev;
         const newUser = subscriptionData.data.userCreated;
-        console.log("<==== USER_CREATED subscription, newUser ====>", newUser);
-        setUsers((prevUsers) => [...prevUsers, newUser]);
-
-        return {
-          users: [...prev.users, newUser],
-        };
+        setUsers((prevUsers) =>
+          prevUsers ? [...prevUsers, newUser] : [newUser]
+        );
+        return { users: [...prev.users, newUser] };
       },
     });
 
     return () => unsubscribe();
   }, [usersData, subscribeToUsers]);
+
+  // ==================== MODAL ====================
   const showModal = (message: string, duration = 2000) => {
     setModalMessage(message);
     setIsModalOpen(true);
-    setShowIsModal(true);
     setTimeout(() => {
       setIsModalOpen(false);
       setModalMessage("");
     }, duration);
   };
-  useEffect(() => {
-    if (modalMessage) {
-      showModal(modalMessage);
-    }
-  }, [modalMessage]);
 
-  // --- инициализация htmlJson
-  const initialize = async () => {
-    try {
-      if (typeof window === "undefined") return;
-      const stored = localStorage.getItem("htmlJson");
-      if (stored) {
-        setHtmlJson(JSON.parse(stored));
-      } else {
-        const jsonToAdd = data?.jsonDocumentByName?.content;
-        console.log("<=====🧪jsonToAdd🧪====>", jsonToAdd);
-        if (jsonToAdd) {
-          localStorage.setItem("htmlJson", JSON.stringify(jsonToAdd));
-          setHtmlJson(jsonToAdd);
-        } else {
-          console.warn("Failed to fetch initial tags");
-          setHtmlJson([]);
-        }
-      }
-    } catch (error) {
-      console.error("Initialization error:", error);
+  // ==================== INIT HTML JSON ====================
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    console.log(
+      "<=🚀🚀🚀🚀===jsonData.jsonDocumentByName Provider===🚀🚀🚀🚀=>",
+      jsonData?.jsonDocumentByName
+    );
+    const stored = localStorage.getItem("htmlJson");
+    if (stored && stored !== "[]") {
+      setHtmlJson(JSON.parse(stored));
+    } else if (jsonData) {
+      const initialJson = jsonData?.jsonDocumentByName?.content[0];
+      localStorage.setItem("htmlJson", JSON.stringify(initialJson));
+      console.log("<=🚀🚀🚀🚀===initialJson====🚀🚀🚀🚀>", initialJson);
+      setHtmlJson(initialJson);
+      localStorage.setItem("htmlJson", JSON.stringify(initialJson));
+    } else {
       setHtmlJson([]);
     }
-  };
-  useEffect(() => {
-    initialize();
-  }, [data]);
-
-  useEffect(() => {
-    if (htmlJson && htmlJson.length > 0) {
-      localStorage.setItem("htmlJson", JSON.stringify(htmlJson));
-    }
-    if (htmlJson === null) {
-      localStorage.removeItem("htmlJson");
-      initialize();
-    }
-  }, [htmlJson]);
+  }, [jsonData]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (nodeToAdd) {
-      console.log("<=====🧪nodeToAdd🧪=====>", nodeToAdd);
-      // codeRemoveActive();
+    // const stored = localStorage.getItem("htmlJson");
+    // if (stored && stored !== "[]") {
+    //   localStorage.setItem("htmlJson", JSON.stringify(htmlJson));
+    // } else
+    if (
+      (htmlJson === null || htmlJson === undefined || htmlJson.length === 0) &&
+      jsonData
+    ) {
+      const initialJson = jsonData?.jsonDocumentByName?.content[0];
+      localStorage.setItem("htmlJson", JSON.stringify(initialJson));
+    } else {
+      localStorage.setItem("htmlJson", JSON.stringify(htmlJson));
     }
-  }, [nodeToAdd]);
+  }, [htmlJson]);
 
-  useEffect(() => {
-    if (result) {
-      console.log("<====💥💥💥 result====>", result);
-    }
-  }, [result]);
-
-  useEffect(() => {
-    if (resHtml) {
-      console.log("<====💥💥💥 resHtml====>", resHtml);
-    }
-  }, [resHtml]);
-  useEffect(() => {
-    if (resScss) {
-      console.log("<====💥💥💥 resScss====>", resScss);
-    }
-  }, [resScss]);
-
-  // ----------------------------------------------
   return (
     <StateContext.Provider
       value={{
@@ -208,22 +157,18 @@ export function StateProvider({ children }: { children: ReactNode }) {
         setHtmlJson,
         nodeToAdd,
         setNodeToAdd,
-        result,
-        setResult,
-        setModalMessage,
-        transformTo,
-        setTransformTo,
-        resHtml,
-        setResHtml,
-        resScss,
-        setResScss,
         user,
         setUser,
         users,
         setUsers,
+        modalMessage,
+        setModalMessage,
+        isModalOpen,
+        setIsModalOpen,
+        showModal,
       }}
     >
-      {showIsModal && (
+      {isModalOpen && (
         <ModalMessage open={isModalOpen} message={modalMessage} />
       )}
       {children}
@@ -233,8 +178,7 @@ export function StateProvider({ children }: { children: ReactNode }) {
 
 export function useStateContext() {
   const context = useContext(StateContext);
-  if (context === null) {
+  if (!context)
     throw new Error("useStateContext must be used within a StateProvider");
-  }
   return context;
 }

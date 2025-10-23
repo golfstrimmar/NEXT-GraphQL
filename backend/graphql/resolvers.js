@@ -22,18 +22,28 @@ export const resolvers = {
           projects: true,
         },
       }),
-    project: (_, { id }) =>
+    findProject: (_, { id }) =>
       prisma.project.findUnique({
         where: { id: Number(id) },
         include: { owner: true },
       }),
+    // getAllProjectsByUser: (_, { userId }) =>
+    //   prisma.project.findMany({
+    //     where: { ownerId: Number(userId) },
+    //   }),
     getAllProjectsByUser: (_, { userId }) =>
       prisma.project.findMany({ where: { ownerId: Number(userId) } }),
-
-    jsonDocumentByName: (_, { name }) =>
-      prisma.jsonDocument.findFirst({
+    // jsonDocumentByName: (_, { name }) =>
+    //   prisma.jsonDocument.findFirst({
+    //     where: { name },
+    //   }),
+    jsonDocumentByName: async (_, { name }) => {
+      const Doc = await prisma.jsonDocument.findUnique({
         where: { name },
-      }),
+      });
+      console.log("<=🚀🚀🚀🚀jsonDocument🚀🚀🚀=>", Doc);
+      return Doc || null;
+    },
     getFigmaProjectData: async (_, { projectId }) => {
       // const allProjects = await prisma.figmaProject.findMany();
       const project = await prisma.figmaProject.findUnique({
@@ -200,24 +210,21 @@ export const resolvers = {
       return { token, user: formattedUser };
     },
     createProject: async (_, { ownerId, name, data }) => {
-      try {
-        const project = await prisma.project.create({
-          data: { name, data, ownerId: Number(ownerId) },
-        });
-        return { id: project.id, name: project.name };
-      } catch (error) {
-        if (error.code === "P2002") {
-          throw new Error("Project with this name already exists.");
-        }
-        throw error;
-      }
-    },
-    findProject: async (_, { projectId }) => {
-      const project = await prisma.project.findUnique({
-        where: { id: Number(projectId) },
+      return await prisma.project.create({
+        data: { name, data, ownerId: Number(ownerId) },
       });
-      return project;
     },
+    // createProject: async (_, { ownerId, name, data }) => {
+    //   const parsedData = JSON.parse(data); // превращаем обратно в массив/объект
+    //   const project = await prisma.project.create({
+    //     data: {
+    //       name,
+    //       data: parsedData,
+    //       ownerId: Number(ownerId),
+    //     },
+    //   });
+    //   return { id: project.id, name: project.name };
+    // },
     updateProject: async (_, { projectId, data }) => {
       const updated = await prisma.project.update({
         where: { id: Number(projectId) },
