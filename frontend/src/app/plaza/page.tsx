@@ -28,6 +28,10 @@ type ProjectData = {
   style: string;
   children: ProjectData[] | string;
 };
+type OpenInfo = {
+  open: boolean;
+  infoIndex: string;
+};
 // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
 // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
 export default function Plaza() {
@@ -38,6 +42,8 @@ export default function Plaza() {
   const [newProjectName, setNewProjectName] = useState<string>("");
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [projectId, setProjectId] = useState<string>("");
+  const [openInfoKey, setOpenInfoKey] = useState<string | null>(null);
+  const [projectName, setProjectName] = useState<string>("");
   // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
   // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
   // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
@@ -49,28 +55,27 @@ export default function Plaza() {
     skip: !user?.id,
     fetchPolicy: "cache-and-network",
   });
+  // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
+  // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
   const [
     findProject,
     { data: dataProject, loading: loadingProject, error: errorProject },
   ] = useLazyQuery(FIND_PROJECT);
 
   const { data: jsonData, refetch: refetchJson } = useQuery(GET_JSON_DOCUMENT, {
-    variables: { name: "flex-row" },
+    variables: { name: "initialTags" },
     fetchPolicy: "network-only",
   });
   const [createProject] = useMutation(CREATE_PROJECT, {
     refetchQueries: [{ query: GET_ALL_PROJECTS_BY_USER, variables }],
-
     awaitRefetchQueries: true,
   });
   const [removeProject] = useMutation(REMOVE_PROJECT, {
     refetchQueries: [{ query: GET_ALL_PROJECTS_BY_USER, variables }],
-
     awaitRefetchQueries: true,
   });
   const [updateProject] = useMutation(UPDATE_PROJECT, {
     refetchQueries: [{ query: GET_ALL_PROJECTS_BY_USER, variables }],
-
     awaitRefetchQueries: true,
   });
 
@@ -80,10 +85,20 @@ export default function Plaza() {
   // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
   // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
   useEffect(() => {
-    console.log("<⇨⇨⇨⇨ htmlJson ⇨⇨⇨⇨⇨>", htmlJson);
-    if (htmlJson) {
-      setProject(htmlJson);
-    }
+    resetAll();
+  }, []);
+  useEffect(() => {
+    if (!user) resetAll();
+  }, [user]);
+  useEffect(() => {
+    if (!htmlJson) return;
+
+    // Преобразуем в структуру с ключами
+    const withKeys = Array.isArray(htmlJson)
+      ? htmlJson.map(addRuntimeKeys)
+      : addRuntimeKeys(htmlJson);
+
+    setProject(withKeys);
   }, [htmlJson]);
 
   useEffect(() => {
@@ -103,8 +118,13 @@ export default function Plaza() {
     if (dataProject?.findProject) {
       const proj = dataProject.findProject;
       setProjectId(proj.id);
-      setProject(proj.data); // если project — это JSON структуры
-      setHtmlJson(proj.data); // если используешь htmlJson для рендера
+      const withKeys = addRuntimeKeys(proj.data);
+      console.log(
+        "🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹withKeys:🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹",
+        withKeys
+      );
+      setProject(withKeys);
+      setHtmlJson(proj.data);
     }
 
     if (errorProject) {
@@ -131,13 +151,24 @@ export default function Plaza() {
   }, [projectData]);
 
   const finPro = (id: string) => {};
+  //// ♻️♻️♻️♻️♻️♻️♻️♻️
+  //// ♻️♻️♻️♻️♻️♻️♻️♻️
+  //// ♻️♻️♻️♻️♻️♻️♻️♻️
+  //// ♻️♻️♻️♻️♻️♻️♻️♻️
+  //// ♻️♻️♻️♻️♻️♻️♻️♻️
+  const resetAll = () => {
+    setProject(null);
+    setProjectId(undefined);
+    setProjectName("");
+    setOpenInfoKey(null);
+    localStorage.removeItem("htmlJson");
 
-  //// ♻️♻️♻️♻️♻️♻️♻️♻️NewProject
-  //// ♻️♻️♻️♻️♻️♻️♻️♻️NewProject
-  //// ♻️♻️♻️♻️♻️♻️♻️♻️NewProject
-  //// ♻️♻️♻️♻️♻️♻️♻️♻️NewProject
-  //// ♻️♻️♻️♻️♻️♻️♻️♻️NewProject
-  //// ♻️♻️♻️♻️♻️♻️♻️♻️NewProject
+    const initialJson = jsonData?.jsonDocumentByName?.content?.[0];
+    if (initialJson) {
+      setHtmlJson(initialJson);
+      localStorage.setItem("htmlJson", JSON.stringify(initialJson));
+    }
+  };
   //// ♻️♻️♻️♻️♻️♻️♻️♻️NewProject
   const prepareProjectDataForDB = (
     data: ProjectData | ProjectData[]
@@ -145,6 +176,8 @@ export default function Plaza() {
     const arr = Array.isArray(data) ? data : [data];
     return JSON.stringify(arr); // вложенные children тоже будут строкой
   };
+
+  //// ♻️♻️♻️♻️♻️♻️♻️♻️
   const createNewProject = async () => {
     if (!newProjectName || !user) {
       setModalMessage(" All fields are required.");
@@ -163,8 +196,41 @@ export default function Plaza() {
         },
       });
 
-      setModalMessage(`Project ${newProjectName} created`);
+      setModalMessage(`Project ${newProjectName} created.`);
       setNewProjectName("");
+    } catch (error) {
+      setModalMessage(error);
+    }
+  };
+  //// ♻️♻️♻️♻️♻️♻️♻️♻️
+  const removeKeys = (node: any): any => {
+    if (typeof node === "string") return node;
+
+    const { _key, children, ...rest } = node; // удаляем _key
+
+    return {
+      ...rest,
+      children: Array.isArray(children) ? children.map(removeKeys) : children,
+    };
+  };
+  const updateTempProject = async () => {
+    console.log("<==♻️♻️==update projectId====>", projectId);
+
+    if (!projectId || !project) return;
+
+    // Убираем _key из всех узлов
+    const cleanedProject = removeKeys(project);
+    console.log("<=♻️♻️==update cleanedProject====>", cleanedProject);
+
+    try {
+      await updateProject({
+        variables: {
+          projectId,
+          data: cleanedProject, // передаем объект/массив, без JSON.stringify
+        },
+      });
+      setOpenInfoKey(null);
+      setModalMessage("Project updated successfully.");
     } catch (error) {
       setModalMessage(error);
     }
@@ -174,8 +240,101 @@ export default function Plaza() {
   const delProject = async (id) => {
     if (!id) return;
     await removeProject({ variables: { projectId: id } });
-    setProjects((prev) => prev.filter((p) => p.id !== id));
+    resetAll();
     setModalMessage("Project removed");
+  };
+  // ♻️♻️♻️♻️♻️♻️♻️♻️рендеринг♻️♻️♻️♻️♻️♻️♻️♻️
+  const addRuntimeKeys = (node: ProjectData | string): ProjectData | string => {
+    if (typeof node === "string") return node;
+
+    return {
+      ...node,
+      _key: node._key || crypto.randomUUID(),
+      children: Array.isArray(node.children)
+        ? node.children.map(addRuntimeKeys)
+        : node.children,
+    };
+  };
+  // Функция для обновления узла по _key рекурсивно
+  const updateNodeByKey = (
+    nodes: ProjectData | ProjectData[],
+    key: string,
+    changes: Partial<ProjectData>
+  ): ProjectData | ProjectData[] => {
+    if (Array.isArray(nodes)) {
+      return nodes.map((n) => updateNodeByKey(n, key, changes) as ProjectData);
+    } else {
+      if (nodes._key === key) {
+        return { ...nodes, ...changes };
+      }
+      if (Array.isArray(nodes.children)) {
+        return {
+          ...nodes,
+          children: nodes.children.map((child) =>
+            typeof child === "string"
+              ? child
+              : updateNodeByKey(child, key, changes)
+          ),
+        };
+      }
+      return nodes;
+    }
+  };
+
+  const infoProject = (node: ProjectData) => {
+    return (
+      <div className="mt-4 flex flex-col gap-4">
+        <Input
+          typeInput="text"
+          data="Text"
+          value={node?.text}
+          onChange={(e) => {
+            const newValue = e.target.value;
+            if (newValue === node?.text) return;
+
+            const updatedProject = updateNodeByKey(project, node?._key, {
+              text: newValue,
+            });
+            setProject(updatedProject);
+            setHtmlJson(updatedProject); // если нужно синхронизировать json
+          }}
+        />
+        <Input
+          typeInput="text"
+          data="Class"
+          value={node?.class}
+          onChange={(e) => {
+            const newValue = e.target.value;
+            if (newValue === node?.class) return;
+
+            const updatedProject = updateNodeByKey(project, node?._key, {
+              class: newValue,
+            });
+            setProject(updatedProject);
+            setHtmlJson(updatedProject);
+          }}
+        />
+        <h5 className=" mb-1">Style</h5>
+        <textarea
+          ref={textareaRef}
+          value={node?.style ?? ""}
+          onChange={(e) => {
+            const newValue = e.target.value;
+            if (newValue === node?.style) return;
+
+            const updatedProject = updateNodeByKey(project, node?._key, {
+              style: newValue,
+            });
+            setProject(updatedProject);
+            setHtmlJson(updatedProject);
+
+            e.target.style.height = "auto";
+            e.target.style.height = `${e.target.scrollHeight}px`;
+          }}
+          className="textarea-styles"
+        />
+      </div>
+    );
   };
 
   // ♻️♻️♻️♻️♻️♻️♻️♻️рендеринг♻️♻️♻️♻️♻️♻️♻️♻️
@@ -198,19 +357,49 @@ export default function Plaza() {
       .map((line) => line.trim())
       .filter(Boolean);
   };
+
+  // вне render / вне JSX
+  const findNodeByKey = (
+    nodes: ProjectData | ProjectData[],
+    key: string
+  ): ProjectData | null => {
+    if (!nodes) return null;
+
+    if (Array.isArray(nodes)) {
+      for (const n of nodes) {
+        const found = findNodeByKey(n, key);
+        if (found) return found;
+      }
+      return null;
+    } else {
+      if (nodes._key === key) return nodes;
+      if (Array.isArray(nodes.children))
+        return findNodeByKey(nodes.children, key);
+      return null;
+    }
+  };
+
   // Рекурсивный рендеринг
-  const renderNode = (node: ProjectData | string, key?: number | string) => {
-    if (typeof node === "string") return <span key={key}>{node}</span>;
+  const renderNode = (node: ProjectData | string) => {
+    if (typeof node === "string")
+      return <span key={crypto.randomUUID()}>{node}</span>;
 
     const Tag = node.tag as keyof JSX.IntrinsicElements;
     if (!Tag) return null;
 
     const children = Array.isArray(node.children)
-      ? node.children.map((child, i) => renderNode(child, i))
-      : node.children || null; // если children пустая строка или undefined
+      ? node.children.map(renderNode)
+      : node.children || null;
 
     return (
-      <Tag key={key} style={parseInlineStyle(node.style)}>
+      <Tag
+        key={node._key}
+        style={parseInlineStyle(node.style)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpenInfoKey((prev) => (prev === node._key ? null : node._key)); // открываем только этот узел
+        }}
+      >
         {node.text}
         {children}
       </Tag>
@@ -221,160 +410,155 @@ export default function Plaza() {
   return (
     <section className="pt-[100px]">
       <div className="container">
-        <span>All projects of </span>
-        {user && <h5 className="inline-block">{user?.name}</h5>}
+        {user && (
+          <h3 className="inline-block">
+            <span className="font-normal text-[16px]">
+              All projects of: &nbsp;
+            </span>{" "}
+            {user?.name}
+          </h3>
+        )}
         <div className="flex flex-col">
-          <div className="flex flex-col">
-            {projects?.length === 0 && (
-              <p className="text-red-300">No projects yet.</p>
-            )}
-            {loading ? (
-              <Loading />
-            ) : (
-              <div className="flex flex-col gap-2">
-                {projects?.map((p) => (
-                  <div className="relative" key={p.id}>
-                    <button
-                      className="border absolute top-0 left-0 w-5 h-full flex items-center justify-center bg-red-400 hover:bg-red-600 z-20 transition duration-300"
-                      onClick={() => delProject(p?.id)}
-                    >
-                      <Image
-                        src="/svg/cross-com.svg"
-                        alt="icon"
-                        width={10}
-                        height={10}
-                      />
-                    </button>
-                    <button
-                      className={`flex w-full flex-col gap-2 pl-6 text-start border rounded-md p-2 hover:bg-slate-200 ${
-                        projectId === p.id
-                          ? "opacity-10 !cursor-not-allowed"
-                          : "cursor-pointer"
-                      }`}
-                      onClick={async () => {
-                        const res = await findProject({
-                          variables: { id: p.id },
-                        });
-                        if (res.data?.findProject?.data) {
-                          setProject(res.data.findProject.data);
-                          setHtmlJson(res.data.findProject.data);
-                          setProjectId(p.id); // <-- вот здесь присваиваем id выбранного проекта
-                        }
-                      }}
-                      type="button"
-                      disabled={projectId === p.id}
-                    >
-                      <h4>{p?.name}</h4>
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          <hr className="bordered-2 border-slate-200 mt-2 mb-2" />
-          <h5>Create a new project</h5>
-          <div className="relative">
-            <Input
-              typeInput="text"
-              data="Project name"
-              value={newProjectName}
-              onChange={(e) => setNewProjectName(e.target.value)}
-            />
-            <div className="absolute z-20 top-[50%] right-0 -translate-y-[50%]!">
-              <button onClick={createNewProject}>Create</button>
+          {user && (
+            <div className="flex flex-col">
+              {projects?.length === 0 && (
+                <p className="text-red-300">No projects yet.</p>
+              )}
+              {loading ? (
+                <Loading />
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {projects?.map((p) => (
+                    <div className="relative" key={p.id}>
+                      <button
+                        // className="border absolute top-0 left-0 w-5 h-full flex items-center justify-center bg-red-400 hover:bg-red-600 z-20 transition duration-300"
+                        className={`border absolute top-0 left-0 w-5 h-full flex items-center justify-center bg-red-400 hover:bg-red-600 z-20 transition duration-300 ${
+                          projectId === p.id
+                            ? "opacity-10 !cursor-not-allowed"
+                            : "cursor-pointer"
+                        }`}
+                        onClick={() => delProject(p?.id)}
+                        disabled={projectId === p.id}
+                      >
+                        <Image
+                          src="/svg/cross-com.svg"
+                          alt="icon"
+                          width={10}
+                          height={10}
+                        />
+                      </button>
+                      <button
+                        className={`flex w-full flex-col gap-2 pl-6 text-start border rounded-md p-2 hover:bg-slate-200 ${
+                          projectId === p.id
+                            ? "opacity-10 !cursor-not-allowed"
+                            : "cursor-pointer"
+                        }`}
+                        onClick={async () => {
+                          const res = await findProject({
+                            variables: { id: p.id },
+                          });
+                          if (res.data?.findProject?.data) {
+                            setProject(res.data.findProject.data);
+                            setHtmlJson(res.data.findProject.data);
+                            setProjectId(p.id);
+                            setProjectName(p.name);
+                          }
+                        }}
+                        type="button"
+                        disabled={projectId === p.id}
+                      >
+                        <h4>{p?.name}</h4>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
+          )}
+
+          {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
+          {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
+          {user && (
+            <>
+              <hr className="bordered-2 border-slate-200 mt-2 mb-2" />
+              <h5>Create a new project</h5>
+              <div className="relative">
+                <Input
+                  typeInput="text"
+                  data="Project name"
+                  value={newProjectName}
+                  onChange={(e) => setNewProjectName(e.target.value)}
+                />
+                <div className="absolute z-20 top-[50%] right-0 -translate-y-[50%]!">
+                  <button
+                    type="button"
+                    className="btn btn-primary h-full"
+                    onClick={createNewProject}
+                  >
+                    Create
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+          <hr className="bordered border-slate-200 mt-6 mb-2" />
+          {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
+          {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
+          <div className="flex items-center gap-2">
+            {projectName && (
+              <h3>
+                <span className="font-normal text-[16px]">Project: </span>{" "}
+                {projectName}
+              </h3>
+            )}
+            {projectId && projectId !== "" && (
+              <>
+                <button
+                  onClick={() => {
+                    resetAll();
+                  }}
+                  className="btn btn-primary"
+                >
+                  Clear the project demo
+                </button>
+                <button
+                  onClick={() => {
+                    updateTempProject();
+                  }}
+                  className="btn btn-primary"
+                >
+                  Update project
+                </button>
+                <button
+                  onClick={() => delProject(projectId)}
+                  className="btn btn-allert"
+                >
+                  Remove project
+                </button>
+              </>
+            )}
           </div>
-          <hr className="bordered-2 border-slate-200 mt-2 mb-2" />
-          {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
-          {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
-          {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
-
-          <button
-            onClick={() => {
-              setProject(null);
-              setProjectId(undefined); // сбрасываем выбранный проект
-              localStorage.removeItem("htmlJson");
-
-              const initialJson = jsonData?.jsonDocumentByName?.content?.[0];
-              if (initialJson) {
-                setHtmlJson(initialJson);
-                localStorage.setItem("htmlJson", JSON.stringify(initialJson));
-              }
-            }}
-            className="btn btn-primary"
-          >
-            Clear project
-          </button>
-
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
           <div className="mt-2">
-            {project &&
-              (Array.isArray(project) ? (
-                project.map((node, i) => (
-                  <React.Fragment key={i}>
-                    {renderNode(node)}
-                    <div>
-                      <p>class: {node.class}</p>
-                      {/* Каждое правило стиля в отдельной строке */}
-                      {getStyleLines(node.style).map((style, j) => (
-                        <p key={j}>style: {style}</p>
-                      ))}
-                      <p>children: {JSON.stringify(node.children)}</p>
-                    </div>
-                  </React.Fragment>
-                ))
-              ) : (
-                <div className="">
-                  {renderNode(project)}
-                  <div className="mt-4">
-                    <Input
-                      typeInput="text"
-                      data="Text"
-                      value={project.text}
-                      onChange={(e) => {
-                        const newValue = e.target.value;
-                        if (newValue === project?.text) return;
-                        setProject((prev) => ({
-                          ...prev,
-                          text: newValue,
-                        }));
-                      }}
-                    />
-                    <br className="mt-4" />
-                    <Input
-                      typeInput="text"
-                      value={project.class}
-                      data="Class"
-                      onChange={(e) => {
-                        const newValue = e.target.value;
-                        if (newValue === project?.class) return;
-                        setProject((prev) => ({
-                          ...prev,
-                          class: newValue,
-                        }));
-                      }}
-                    />
-                    <h5 className="mt-4 mb-1">Style</h5>
-                    <textarea
-                      ref={textareaRef}
-                      value={project?.style ?? ""}
-                      onChange={(e) => {
-                        const newValue = e.target.value;
-                        if (newValue === project?.style) return;
-                        setProject((prev) => ({
-                          ...prev,
-                          style: newValue,
-                        }));
+            <div
+              className={`grid  gap-4 ${openInfoKey !== null ? "grid-cols-[1fr_300px]" : "grid-cols-[1fr]"}`}
+            >
+              <div className="flex flex-col gap-2">
+                {project &&
+                  (Array.isArray(project)
+                    ? project.map(renderNode)
+                    : renderNode(project))}
+              </div>
 
-                        e.target.style.height = "auto";
-                        e.target.style.height = `${e.target.scrollHeight}px`;
-                      }}
-                      className="textarea-styles"
-                    />
-                  </div>
-                </div>
-              ))}
+              <div>
+                {openInfoKey &&
+                  project &&
+                  infoProject(findNodeByKey(project, openInfoKey))}
+              </div>
+            </div>
+
+            {/* ))} */}
           </div>
         </div>
       </div>

@@ -92,7 +92,7 @@ export const FIND_PROJECT = gql`
   }
 `;
 export const UPDATE_PROJECT = gql`
-  mutation UpdateProject($projectId: ID!, $data: String!) {
+  mutation UpdateProject($projectId: ID!, $data: JSON!) {
     updateProject(projectId: $projectId, data: $data) {
       id
       name

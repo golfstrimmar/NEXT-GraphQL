@@ -66,7 +66,7 @@ export function StateProvider({ children }: { children: ReactNode }) {
   );
 
   const { data: jsonData } = useQuery(GET_JSON_DOCUMENT, {
-    variables: { name: "flex-row" },
+    variables: { name: "initialTags" },
     fetchPolicy: "network-only",
   });
 
@@ -111,7 +111,9 @@ export function StateProvider({ children }: { children: ReactNode }) {
       setModalMessage("");
     }, duration);
   };
-
+  useEffect(() => {
+    if (modalMessage) showModal(modalMessage);
+  }, [modalMessage]);
   // ==================== INIT HTML JSON ====================
   useEffect(() => {
     if (typeof window === "undefined") return;
