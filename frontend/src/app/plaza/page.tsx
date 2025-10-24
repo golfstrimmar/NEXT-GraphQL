@@ -44,6 +44,10 @@ export default function Plaza() {
   const [projectId, setProjectId] = useState<string>("");
   const [openInfoKey, setOpenInfoKey] = useState<string | null>(null);
   const [projectName, setProjectName] = useState<string>("");
+  const [nodeToDrag, setNodeToDrag] = useState<any>(null);
+  const [placeholders, setPlaceholders] = useState<
+    { parentKey: string; index: number; type: "before" | "after" }[]
+  >([]);
   // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
   // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
   // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
@@ -90,6 +94,10 @@ export default function Plaza() {
   useEffect(() => {
     if (!user) resetAll();
   }, [user]);
+  useEffect(() => {
+    if (!openInfoKey) return;
+    console.log("<====openInfoKey====>", openInfoKey);
+  }, [openInfoKey]);
   useEffect(() => {
     if (!htmlJson) return;
 
@@ -283,7 +291,21 @@ export default function Plaza() {
 
   const infoProject = (node: ProjectData) => {
     return (
-      <div className="mt-4 flex flex-col gap-4">
+      <div className=" flex flex-col gap-4">
+        {node && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setProject((prev) => removeNodeByKey(prev, node._key));
+              setOpenInfoKey(null);
+            }}
+            className="btn btn-allert"
+          >
+            Remove node
+          </button>
+        )}
+
+        {node?.tag && <h5>Tag: {node?.tag}</h5>}
         <Input
           typeInput="text"
           data="Text"
@@ -314,7 +336,7 @@ export default function Plaza() {
             setHtmlJson(updatedProject);
           }}
         />
-        <h5 className=" mb-1">Style</h5>
+        <h5 className=" mb-1">Style:</h5>
         <textarea
           ref={textareaRef}
           value={node?.style ?? ""}
@@ -380,6 +402,44 @@ export default function Plaza() {
   };
 
   // Рекурсивный рендеринг
+  // const renderNode = (node: ProjectData | string) => {
+  //   if (typeof node === "string")
+  //     return <span key={crypto.randomUUID()}>{node}</span>;
+
+  //   const Tag = node.tag as keyof JSX.IntrinsicElements;
+  //   if (!Tag) return null;
+
+  //   const children = Array.isArray(node.children)
+  //     ? node.children.map(renderNode)
+  //     : node.children || null;
+
+  //   return (
+  //     <Tag
+  //       draggable
+  //       key={node._key}
+  //       style={{
+  //         ...parseInlineStyle(node.style),
+  //         ...(openInfoKey === node._key ? { outline: "2px solid red" } : {}),
+  //       }}
+  //       onClick={(e) => {
+  //         e.stopPropagation();
+  //         setOpenInfoKey((prev) => (prev === node._key ? null : node._key)); // открываем только этот узел
+  //       }}
+  //       className="cursor-grab"
+  //       // ⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️
+  //       onDragStart={(e) => handleDragStart(e, node)}
+  //       onDragOver={(e) => handleDragOver(e, node)}
+  //       onDragEnter={(e) => handleDragEnter(e, node)}
+  //       onDragLeave={(e) => handleDragLeave(e, node)}
+  //       onDrop={(e) => handleDrop(e, node)}
+  //       onDragEnd={(e) => handleDragEnd(e, node)}
+  //       // ⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️
+  //     >
+  //       {node.text}
+  //       {children}
+  //     </Tag>
+  //   );
+  // };
   const renderNode = (node: ProjectData | string) => {
     if (typeof node === "string")
       return <span key={crypto.randomUUID()}>{node}</span>;
@@ -388,27 +448,533 @@ export default function Plaza() {
     if (!Tag) return null;
 
     const children = Array.isArray(node.children)
-      ? node.children.map(renderNode)
+      ? node.children.flatMap((child, idx) => {
+          const before = placeholders.find(
+            (p) =>
+              p.parentKey === node._key &&
+              p.index === idx &&
+              p.type === "before"
+          );
+          const after = placeholders.find(
+            (p) =>
+              p.parentKey === node._key && p.index === idx && p.type === "after"
+          );
+
+          return [
+            before && (
+              <div
+                key={`before-${child._key}`}
+                className="placeholder"
+                style={{
+                  height: nodeToDrag?.height || 50,
+                  border: "2px dashed #4d6a92",
+                  margin: "2px 0",
+                  background: "rgba(77,106,146,0.3)",
+                }}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => handleDropOnPlaceholder(e, node._key, idx)}
+              />
+            ),
+            renderNode(child),
+            after && (
+              <div
+                key={`after-${child._key}`}
+                className="placeholder"
+                style={{
+                  height: nodeToDrag?.height || 50,
+                  border: "2px dashed #4d6a92",
+                  margin: "2px 0",
+                  background: "rgba(77,106,146,0.3)",
+                }}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => handleDropOnPlaceholder(e, node._key, idx + 1)}
+              />
+            ),
+          ].filter(Boolean);
+        })
       : node.children || null;
 
     return (
       <Tag
+        draggable
         key={node._key}
-        style={parseInlineStyle(node.style)}
+        style={{
+          ...parseInlineStyle(node.style),
+          ...(openInfoKey === node._key ? { outline: "2px solid red" } : {}),
+        }}
         onClick={(e) => {
           e.stopPropagation();
-          setOpenInfoKey((prev) => (prev === node._key ? null : node._key)); // открываем только этот узел
+          setOpenInfoKey((prev) => (prev === node._key ? null : node._key));
         }}
+        className="cursor-grab"
+        onDragStart={(e) => handleDragStart(e, node)}
+        onDragOver={(e) => handleDragOver(e, node)}
+        onDragEnter={(e) => handleDragEnter(e, node)}
+        onDragLeave={(e) => handleDragLeave(e, node)}
+        onDrop={(e) => handleDrop(e, node)}
+        onDragEnd={(e) => handleDragEnd(e, node)}
       >
         {node.text}
         {children}
       </Tag>
     );
   };
+  const handleDropOnPlaceholder = (
+    e: React.DragEvent<HTMLElement>,
+    parentKey: string,
+    index: number
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!nodeToDrag) return;
+
+    setProject((prevProject) => {
+      if (!prevProject) return prevProject;
+      const treeCopy = deepClone(prevProject);
+
+      // 1) Удаляем nodeToDrag из старого места
+      const withoutDragged = removeNodeByKey(treeCopy, nodeToDrag._key);
+
+      // 2) Клонируем узел для вставки
+      const nodeToInsert = deepClone(nodeToDrag);
+
+      // 3) Находим родителя по parentKey
+      const insertIntoParent = (node: any): any => {
+        if (Array.isArray(node)) {
+          return node.map(insertIntoParent);
+        } else if (node._key === parentKey) {
+          if (!Array.isArray(node.children)) node.children = [];
+          const newChildren = [...node.children];
+          newChildren.splice(index, 0, nodeToInsert);
+          return { ...node, children: newChildren };
+        } else if (Array.isArray(node.children)) {
+          return {
+            ...node,
+            children: node.children.map(insertIntoParent),
+          };
+        }
+        return node;
+      };
+
+      return insertIntoParent(withoutDragged);
+    });
+    setPlaceholders([]);
+    setNodeToDrag(null);
+  };
+
+  // =========================================
+
+  // ⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️
+  // ⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️
+  // ⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️
+  // ⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️
+
+  // Удаляет узел по _key и возвращает новый JSON без него
+  // Полезные помощники
+  const deepClone = (obj: any) => {
+    // Если в среде есть structuredClone, используем её — быстрее и точнее.
+    if (typeof structuredClone === "function") return structuredClone(obj);
+    return JSON.parse(JSON.stringify(obj));
+  };
+
+  // Удаление узла по _key — возвращает новый tree (массив или объект)
+  const removeNodeByKey = (node: any, keyToRemove: string): any => {
+    if (!node) return node;
+    if (typeof node === "string") return node;
+
+    // Если node — массив корневой
+    if (Array.isArray(node)) {
+      const res = [];
+      for (const child of node) {
+        const updated = removeNodeByKey(child, keyToRemove);
+        if (updated !== null && updated !== undefined) res.push(updated);
+      }
+      return res;
+    }
+
+    // node — объект
+    if (node._key === keyToRemove) {
+      return null; // удаляем этот узел
+    }
+
+    if (Array.isArray(node.children)) {
+      const newChildren = [];
+      for (const c of node.children) {
+        const updated = removeNodeByKey(c, keyToRemove);
+        if (updated !== null && updated !== undefined)
+          newChildren.push(updated);
+      }
+      return { ...node, children: newChildren };
+    }
+
+    return node;
+  };
+
+  // Вставка nodeToAdd внутрь узла с targetKey (в конец children)
+  // Возвращает новый tree
+  const addNodeToTargetByKey = (
+    node: any,
+    targetKey: string,
+    nodeToAdd: any
+  ): any => {
+    if (!node) return node;
+    if (typeof node === "string") return node;
+
+    if (Array.isArray(node)) {
+      return node.map((child) =>
+        addNodeToTargetByKey(child, targetKey, nodeToAdd)
+      );
+    }
+
+    if (node._key === targetKey) {
+      const existingChildren = Array.isArray(node.children)
+        ? node.children
+        : [];
+      return {
+        ...node,
+        children: [...existingChildren, nodeToAdd],
+      };
+    }
+
+    if (Array.isArray(node.children)) {
+      return {
+        ...node,
+        children: node.children.map((child) =>
+          addNodeToTargetByKey(child, targetKey, nodeToAdd)
+        ),
+      };
+    }
+
+    return node;
+  };
+
+  // Вставка клона рядом с узлом в том же массиве детей родителя
+  // Возвращает новый tree
+  const duplicateNodeNextToIt = (node: any, targetKey: string): any => {
+    if (!node) return node;
+    if (typeof node === "string") return node;
+
+    if (Array.isArray(node)) {
+      const res: any[] = [];
+      for (const child of node) {
+        if (child._key === targetKey) {
+          // push original, then push clone
+          res.push(child);
+          const clone = cloneNodeWithNewKeys(child);
+          res.push(clone);
+        } else {
+          // рекурсивно ищем внутри child
+          res.push(duplicateNodeNextToIt(child, targetKey));
+        }
+      }
+      return res;
+    }
+
+    // node is object
+    if (Array.isArray(node.children)) {
+      // Пройдёмся по children и попробуем вставить рядом внутри них
+      const newChildren = [];
+      let changed = false;
+      for (const child of node.children) {
+        if (child._key === targetKey) {
+          newChildren.push(child);
+          newChildren.push(cloneNodeWithNewKeys(child));
+          changed = true;
+        } else {
+          const updatedChild = duplicateNodeNextToIt(child, targetKey);
+          newChildren.push(updatedChild);
+          if (updatedChild !== child) changed = true;
+        }
+      }
+      // Если ничего не изменилось в children — вернуть node как есть (чтобы сохранить === где возможно)
+      if (!changed) return node;
+      return { ...node, children: newChildren };
+    }
+
+    return node;
+  };
+
+  // Клонирование узла со всеми потомками, создавая новые _key
+  const cloneNodeWithNewKeys = (node: any): any => {
+    if (typeof node === "string") return node;
+    const cloned: any = { ...deepClone(node) };
+    const regenerate = (n: any) => {
+      if (typeof n === "string") return n;
+      n._key = crypto.randomUUID();
+      if (Array.isArray(n.children)) {
+        n.children = n.children.map((c: any) => regenerate(c));
+      }
+      return n;
+    };
+    return regenerate(cloned);
+  };
+
+  // ⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️
+
+  // const handleDragStart = (e: React.DragEvent<HTMLElement>, node: any) => {
+  //   e.stopPropagation();
+  //   const target = e.currentTarget as HTMLElement;
+  //   console.log("<⚙️⚙️⚙️⚙️=node====>", node);
+  //   console.log("<⚙️⚙️⚙️⚙️=target====>", target);
+  //   const dragGhost = target.cloneNode(true) as HTMLElement;
+  //   dragGhost.style.position = "absolute";
+  //   dragGhost.style.top = "-9999px";
+  //   dragGhost.style.backgroundColor = "#4d6a92";
+  //   dragGhost.style.pointerEvents = "none";
+  //   // Добавляем в DOM, чтобы браузер мог захватить изображение
+  //   document.body.appendChild(dragGhost);
+  //   // Передаём его в качестве drag image
+  //   e.dataTransfer.setDragImage(dragGhost, 0, 0);
+  //   // Убираем после небольшого таймаута
+  //   setTimeout(() => {
+  //     document.body.removeChild(dragGhost);
+  //   }, 0);
+  //   target.style.opacity = "0.4";
+  //   target.style.transition = "opacity 0.2s ease";
+  //   setNodeToDrag(node);
+  //   // handleDeleteNode(node.attributes["data-index"]);
+  // };
+  const handleDragStart = (e: React.DragEvent<HTMLElement>, node: any) => {
+    e.stopPropagation();
+    const target = e.currentTarget as HTMLElement;
+
+    // Настраиваем dragGhost
+    const dragGhost = target.cloneNode(true) as HTMLElement;
+    dragGhost.style.position = "absolute";
+    dragGhost.style.top = "-9999px";
+    dragGhost.style.backgroundColor = "#4d6a92";
+    dragGhost.style.pointerEvents = "none";
+    document.body.appendChild(dragGhost);
+    e.dataTransfer.setDragImage(dragGhost, 0, 0);
+    setTimeout(() => document.body.removeChild(dragGhost), 0);
+
+    target.style.opacity = "0.4";
+    target.style.transition = "opacity 0.2s ease";
+
+    setNodeToDrag(node);
+
+    // Создаём placeholder-ы для всех блоков
+    const generatePlaceholders = (
+      n: ProjectData | string,
+      parentKey: string | null = null
+    ) => {
+      if (typeof n === "string") return [];
+      let result: typeof placeholders = [];
+      if (Array.isArray(n.children)) {
+        n.children.forEach((child, idx) => {
+          // before
+          result.push({ parentKey: n._key, index: idx, type: "before" });
+          // рекурсивно для детей
+          result = result.concat(generatePlaceholders(child, n._key));
+          // after
+          result.push({ parentKey: n._key, index: idx, type: "after" });
+        });
+      }
+      return result;
+    };
+
+    const newPlaceholders = Array.isArray(project)
+      ? project.flatMap((n) => generatePlaceholders(n))
+      : generatePlaceholders(project);
+
+    setPlaceholders(newPlaceholders);
+  };
+  // 🟡 Наведение на зону сброса
+  const handleDragOver = (e: React.DragEvent<HTMLElement>, node: any) => {
+    e.preventDefault(); // Обязательно, чтобы `drop` сработал
+    e.stopPropagation();
+    e.currentTarget.style.outline = "2px dashed #aaa";
+    // console.log("🟡 dragOver", node);
+  };
+
+  // 🟢 Сброс
+  const handleDrop = (e: React.DragEvent<HTMLElement>, targetNode: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    (e.currentTarget as HTMLElement).style.outline = "none";
+
+    if (!nodeToDrag) return;
+
+    // если дропаем на самого себя -> клонируем рядом в том же родителе
+    if (nodeToDrag._key === targetNode._key) {
+      setProject((prevProject) => {
+        if (!prevProject) return prevProject;
+        const treeCopy = deepClone(prevProject);
+        const newTree = duplicateNodeNextToIt(treeCopy, nodeToDrag._key);
+        return newTree;
+      });
+
+      // выделяем клонированный элемент (опционально)
+      // нам нужно найти только что созданный клон, но поскольку у него новый _key,
+      // можно найти его как ближайшего после оригинала при повторном поиске.
+      setNodeToDrag(null);
+      return;
+    }
+
+    // Иначе: обычное перемещение внутрь targetNode
+    setProject((prevProject) => {
+      if (!prevProject) return prevProject;
+      const treeCopy = deepClone(prevProject);
+
+      // 1) удалим узел из старого места
+      const withoutDragged = removeNodeByKey(treeCopy, nodeToDrag._key);
+
+      // 2) добавим nodeToDrag внутрь targetNode
+      // ВАЖНО: nodeToDrag может ссылаться на объект из старого дерева.
+      // Мы должны клонировать nodeToDrag (чтобы не оставить ссылки), но сохранить его _key.
+      // Если хочешь перемещение (не клонирование), то можно оставить тот же _key.
+      // Я использую глубокое клонирование, но *не* меняю _key, т.е. это перемещение.
+      const nodeToInsert = deepClone(nodeToDrag);
+
+      const updated = addNodeToTargetByKey(
+        withoutDragged,
+        targetNode._key,
+        nodeToInsert
+      );
+      return updated;
+    });
+
+    setNodeToDrag(null);
+  };
+  // const handleDrop = (e: React.DragEvent<HTMLElement>, targetNode: any) => {
+  //   e.preventDefault();
+  //   e.stopPropagation();
+  //   (e.currentTarget as HTMLElement).style.outline = "none";
+
+  //   if (!nodeToDrag) return;
+
+  //   // Дублирование при броске на самого себя
+  //   if (nodeToDrag._key === targetNode._key) {
+  //     setProject((prev) => {
+  //       if (!prev) return prev;
+  //       const treeCopy = deepClone(prev);
+  //       return duplicateNodeNextToIt(treeCopy, nodeToDrag._key);
+  //     });
+  //     setNodeToDrag(null);
+  //     return;
+  //   }
+
+  //   setProject((prev) => {
+  //     if (!prev) return prev;
+  //     const treeCopy = deepClone(prev);
+
+  //     // Удаляем узел с предыдущего места
+  //     const withoutDragged = removeNodeByKey(treeCopy, nodeToDrag._key);
+
+  //     // Находим родителя targetNode в treeCopy
+  //     const findParentKey = (node: any, childKey: string): string | null => {
+  //       if (!node || typeof node === "string") return null;
+  //       if (Array.isArray(node.children)) {
+  //         for (const c of node.children) {
+  //           if (typeof c !== "string" && c._key === childKey) return node._key;
+  //           const nested = findParentKey(c, childKey);
+  //           if (nested) return nested;
+  //         }
+  //       }
+  //       return null;
+  //     };
+
+  //     const parentKey = findParentKey(withoutDragged, targetNode._key);
+
+  //     // Вставляем nodeToDrag в родителя между детьми
+  //     return insertNodeBetweenParent(
+  //       withoutDragged,
+  //       parentKey || null,
+  //       targetNode._key,
+  //       nodeToDrag,
+  //       e
+  //     );
+  //   });
+
+  //   setNodeToDrag(null);
+  // };
+
+  // // Вспомогательная функция: вставка между детьми родителя
+  // function insertNodeBetweenParent(
+  //   tree: any,
+  //   parentKey: string | null,
+  //   targetKey: string,
+  //   nodeToInsert: any,
+  //   e: React.DragEvent<HTMLElement>
+  // ): any {
+  //   if (Array.isArray(tree)) {
+  //     return tree.map((n) =>
+  //       insertNodeBetweenParent(n, parentKey, targetKey, nodeToInsert, e)
+  //     );
+  //   } else if (parentKey === null || tree._key === parentKey) {
+  //     if (!Array.isArray(tree.children)) tree.children = [];
+
+  //     const rects = tree.children.map((child: any) => {
+  //       const el = document.querySelector(
+  //         `[data-key='${child._key}']`
+  //       ) as HTMLElement;
+  //       return el?.getBoundingClientRect();
+  //     });
+
+  //     const cursorX = e.clientX;
+  //     const cursorY = e.clientY;
+
+  //     let insertIndex = tree.children.findIndex((child: any, idx: number) => {
+  //       const rect = rects[idx];
+  //       if (!rect) return false;
+
+  //       // Определяем направление: vertical или horizontal
+  //       const parentEl = document.querySelector(
+  //         `[data-key='${tree._key}']`
+  //       ) as HTMLElement;
+  //       const style = window.getComputedStyle(parentEl);
+  //       const isVertical =
+  //         style.display.includes("flex") &&
+  //         style.flexDirection.includes("column");
+
+  //       if (isVertical || style.display.includes("grid")) {
+  //         return cursorY < rect.top + rect.height / 2;
+  //       } else {
+  //         return cursorX < rect.left + rect.width / 2;
+  //       }
+  //     });
+
+  //     if (insertIndex === -1) insertIndex = tree.children.length;
+
+  //     const newNode = deepClone(nodeToInsert);
+  //     const newChildren = [...tree.children];
+  //     newChildren.splice(insertIndex, 0, newNode);
+
+  //     return { ...tree, children: newChildren };
+  //   } else if (Array.isArray(tree.children)) {
+  //     return {
+  //       ...tree,
+  //       children: tree.children.map((c: any) =>
+  //         insertNodeBetweenParent(c, parentKey, targetKey, nodeToInsert, e)
+  //       ),
+  //     };
+  //   }
+  //   return tree;
+  // }
+
+  // 🟣 Наведение началось
+  const handleDragEnter = (e: React.DragEvent<HTMLElement>, node: any) => {
+    e.stopPropagation();
+    e.currentTarget.style.outline = "2px dashed blue";
+    // console.log("➡️ dragEnter", node);
+  };
+  // 🔘 Уход с зоны
+  const handleDragLeave = (e: React.DragEvent<HTMLElement>, node: any) => {
+    e.stopPropagation();
+    e.currentTarget.style.outline = "none";
+    // console.log("⬅️ dragLeave", node);
+  };
+  // 🔴 Завершение перетаскивания
+  const handleDragEnd = (e: React.DragEvent<HTMLElement>, node: any) => {
+    e.stopPropagation();
+    e.currentTarget.style.outline = "none";
+    (e.currentTarget as HTMLElement).style.opacity = "1";
+  };
 
   // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
   return (
-    <section className="pt-[100px]">
+    <section className="pt-[100px] pb-[100px]">
       <div className="container">
         {user && (
           <h3 className="inline-block">
@@ -552,7 +1118,7 @@ export default function Plaza() {
               </div>
 
               <div>
-                {openInfoKey &&
+                {openInfoKey !== null &&
                   project &&
                   infoProject(findNodeByKey(project, openInfoKey))}
               </div>

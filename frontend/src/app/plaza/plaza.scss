@@ -14,3 +14,10 @@
   }
 }
 
+.placeholder {
+  transition: all 0.2s ease;
+  background-color: rgba(77,106,146,0.3);
+  border: 2px dashed #4d6a92;
+  min-height: 50px;
+  min-width: 50px;
+}
