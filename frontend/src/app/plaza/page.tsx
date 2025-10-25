@@ -277,29 +277,35 @@ export default function Plaza() {
     };
   };
   // Функция для обновления узла по _key рекурсивно
+  // Универсальное обновление узла по key
   const updateNodeByKey = (
     nodes: ProjectData | ProjectData[],
     key: string,
     changes: Partial<ProjectData>
   ): ProjectData | ProjectData[] => {
     if (Array.isArray(nodes)) {
-      return nodes.map((n) => updateNodeByKey(n, key, changes) as ProjectData);
-    } else {
-      if (nodes._key === key) {
-        return { ...nodes, ...changes };
-      }
-      if (Array.isArray(nodes.children)) {
-        return {
-          ...nodes,
-          children: nodes.children.map((child) =>
-            typeof child === "string"
-              ? child
-              : updateNodeByKey(child, key, changes)
-          ),
-        };
-      }
-      return nodes;
+      // Всегда создаём новый массив
+      return nodes.map(
+        (node) => updateNodeByKey(node, key, changes) as ProjectData
+      );
     }
+
+    // Если нашли нужный элемент
+    if (nodes._key === key) {
+      return { ...nodes, ...changes }; // обновим text, class, style и т.д.
+    }
+
+    // Если есть дети — создаём новый объект с изменёнными children
+    if (Array.isArray(nodes.children)) {
+      const updatedChildren = nodes.children.map((child) =>
+        typeof child === "string"
+          ? child
+          : (updateNodeByKey(child, key, changes) as ProjectData)
+      );
+      return { ...nodes, children: updatedChildren };
+    }
+
+    return { ...nodes }; // Возвращаем копию, чтобы не потерять ререндер
   };
 
   const infoProject = (node: ProjectData) => {
@@ -319,31 +325,27 @@ export default function Plaza() {
         )}
 
         {node?.tag && <h5>Tag: {node?.tag}</h5>}
+
         <Input
           typeInput="text"
-          data="Text"
-          value={node?.text}
+          data="text"
+          value={node?.text || ""}
           onChange={(e) => {
-            const newValue = e.target.value;
-            if (newValue === node?.text) return;
-
-            const updatedProject = updateNodeByKey(project, node?._key, {
-              text: newValue,
+            const updatedProject = updateNodeByKey(project, node._key, {
+              text: e.target.value,
             });
             setProject(updatedProject);
-            setHtmlJson(updatedProject); // если нужно синхронизировать json
+            setHtmlJson(updatedProject);
           }}
         />
+
         <Input
           typeInput="text"
-          data="Class"
-          value={node?.class}
+          data="class"
+          value={node?.class || ""}
           onChange={(e) => {
-            const newValue = e.target.value;
-            if (newValue === node?.class) return;
-
-            const updatedProject = updateNodeByKey(project, node?._key, {
-              class: newValue,
+            const updatedProject = updateNodeByKey(project, node._key, {
+              class: e.target.value,
             });
             setProject(updatedProject);
             setHtmlJson(updatedProject);
@@ -428,20 +430,37 @@ export default function Plaza() {
 
     const Tag = node.tag as keyof JSX.IntrinsicElements;
     if (!Tag) return null;
+    const handleNodeClick = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      // Если есть ожидающий таймаут, значит пришёл второй клик — это double
+      if ((handleNodeClick as any).timeout) {
+        clearTimeout((handleNodeClick as any).timeout);
+        (handleNodeClick as any).timeout = null;
+        handleDoubleClick(e);
+      } else {
+        (handleNodeClick as any).timeout = setTimeout(() => {
+          handleSingleClick(e);
+          (handleNodeClick as any).timeout = null;
+        }, 300);
+      }
+    };
+    const handleSingleClick = (e: React.MouseEvent) => {
+      setOpenInfoKey((prev) => (prev === node._key ? null : node._key));
+    };
 
+    const handleDoubleClick = (e: React.MouseEvent) => {
+      setProject((prev) => removeNodeByKey(prev, node._key));
+      setOpenInfoKey(null);
+    };
     const children = Array.isArray(node.children)
       ? node.children.flatMap((child, idx) => {
-          const elements = [];
+          const elements: JSX.Element[] = [];
 
-          // Плейсхолдер перед узлом
           if (editMode) {
             elements.push(
               <div
-                key={`before-${child._key}`}
+                key={`before-${typeof child === "string" ? crypto.randomUUID() : child._key}`}
                 className="placeholder"
-                style={{
-                  background: "lightcoral",
-                }}
                 draggable={false}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -459,18 +478,13 @@ export default function Plaza() {
             );
           }
 
-          // Рекурсивно рендерим дочерний узел
           elements.push(renderNode(child));
 
-          // Плейсхолдер после узла
           if (editMode) {
             elements.push(
               <div
-                key={`after-${child._key}`}
+                key={`before-${typeof child === "string" ? crypto.randomUUID() : child._key}`}
                 className="placeholder"
-                style={{
-                  background: "crimson",
-                }}
                 draggable={false}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -492,26 +506,37 @@ export default function Plaza() {
         })
       : node.children || null;
 
+    // парсим стиль
+    const originalStyle = parseInlineStyle(node.style) || {};
+
+    // оставляем только flex/grid свойства
+    const filteredStyle = editMode
+      ? Object.fromEntries(
+          Object.entries(originalStyle).filter(([key]) =>
+            /^(display|flex|grid|justify|align)/.test(key)
+          )
+        )
+      : originalStyle;
+
     return (
       <Tag
         key={node._key}
-        draggable={editMode} // можно перетаскивать только в режиме редактирования
+        draggable={editMode}
         onDragStart={editMode ? (e) => handleDragStart(e, node) : undefined}
         onDragOver={editMode ? (e) => handleDragOver(e, node) : undefined}
         onDragLeave={editMode ? handleDragLeave : undefined}
         onDrop={editMode ? (e) => handleDrop(e, node, true) : undefined}
-        className={`cursor-${editMode ? "grab" : "default"}`}
+        className={`${editMode ? "card" : node.class} cursor-${
+          editMode ? "grab" : "default"
+        }`}
         style={{
-          ...parseInlineStyle(node.style),
+          ...filteredStyle,
           outline: openInfoKey === node._key ? "2px solid red" : "none",
           position: "relative",
           transition: "opacity 0.2s ease",
           cursor: editMode ? "grab" : "pointer",
         }}
-        onClick={(e) => {
-          e.stopPropagation();
-          setOpenInfoKey((prev) => (prev === node._key ? null : node._key));
-        }}
+        onClick={handleNodeClick}
       >
         {node.text}
         {children}
@@ -1014,19 +1039,17 @@ export default function Plaza() {
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
           <div className="mt-2">
             <div
-              className={`grid  gap-4 ${openInfoKey !== null ? "grid-cols-[1fr_300px]" : "grid-cols-[1fr]"}`}
+              className={`grid  gap-4 ${openInfoKey !== null ? "grid-cols-[300px_1fr]" : "grid-cols-[1fr]"}`}
             >
+              {openInfoKey !== null && openInfoKey !== undefined && project && (
+                <div> {infoProject(findNodeByKey(project, openInfoKey))}</div>
+              )}
+
               <div className="flex flex-col gap-2">
                 {project &&
                   (Array.isArray(project)
                     ? project.map(renderNode)
                     : renderNode(project))}
-              </div>
-
-              <div>
-                {openInfoKey !== null &&
-                  project &&
-                  infoProject(findNodeByKey(project, openInfoKey))}
               </div>
             </div>
 
