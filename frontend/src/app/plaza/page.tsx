@@ -20,6 +20,7 @@ import PProject from "@/types/PProject";
 import PProjectDataElement from "@/types/PProject";
 import "./plaza.scss";
 import { set } from "lodash";
+import { Value } from "sass";
 // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
 type ProjectData = {
   tag: string;
@@ -311,19 +312,6 @@ export default function Plaza() {
   const infoProject = (node: ProjectData) => {
     return (
       <div className=" flex flex-col gap-4">
-        {node && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setProject((prev) => removeNodeByKey(prev, node._key));
-              setOpenInfoKey(null);
-            }}
-            className="btn btn-allert"
-          >
-            Remove node
-          </button>
-        )}
-
         {node?.tag && <h5>Tag: {node?.tag}</h5>}
 
         <Input
@@ -352,13 +340,25 @@ export default function Plaza() {
           }}
         />
         <h5 className=" mb-1">Style:</h5>
-        <textarea
-          ref={textareaRef}
-          value={node?.style ?? ""}
+        {/* <textarea
+          ref={(el) => {
+            if (!el) return;
+            textareaRef.current = el;
+            el.style.height = "auto";
+            el.style.height = `${el.scrollHeight}px`;
+          }}
+          // форматируем только один раз при показе
+          value={
+            node?.style
+              ? node.style
+                  .split(";")
+                  .map((s) => s.trim())
+                  .filter(Boolean)
+                  .join(";\n")
+              : ""
+          }
           onChange={(e) => {
-            const newValue = e.target.value;
-            if (newValue === node?.style) return;
-
+            const newValue = e.target.value; // сохраняем ровно то, что набрал пользователь
             const updatedProject = updateNodeByKey(project, node?._key, {
               style: newValue,
             });
@@ -368,8 +368,74 @@ export default function Plaza() {
             e.target.style.height = "auto";
             e.target.style.height = `${e.target.scrollHeight}px`;
           }}
+          style={{
+            whiteSpace: "pre-wrap", // сохраняет пробелы и переносы
+            fontFamily: "monospace",
+            width: "100%",
+            overflow: "hidden",
+            resize: "none",
+          }}
+          className="textarea-styles"
+        /> */}
+        <textarea
+          ref={(el) => {
+            if (!el) return;
+            textareaRef.current = el;
+            el.style.height = "auto";
+            el.style.height = `${el.scrollHeight}px`;
+          }}
+          // Форматируем на показе только если это начальная подгрузка.
+          value={
+            node?.style
+              ? (() => {
+                  // Если пользователь уже вручную отформатировал — ничего не трогаем.
+                  if (node.style.includes("\n")) return node.style;
+                  // Первый импорт: красиво разложить по строкам
+                  const styleText = node.style;
+                  const parts = styleText
+                    .split(";")
+                    .filter((s) => s.length > 0);
+                  // Показываем ; на конце, если была (и свойства есть)
+                  let needsSemicolon =
+                    styleText.endsWith(";") && parts.length > 0;
+                  return parts.join(";\n") + (needsSemicolon ? ";" : "");
+                })()
+              : ""
+          }
+          onChange={(e) => {
+            // Просто сохраняем пользовательский ввод целиком, включая все пробелы и ; !
+            const newValue = e.target.value;
+            const updatedProject = updateNodeByKey(project, node?._key, {
+              style: newValue,
+            });
+            setProject(updatedProject);
+            setHtmlJson(updatedProject);
+
+            e.target.style.height = "auto";
+            e.target.style.height = `${e.target.scrollHeight}px`;
+          }}
+          style={{
+            whiteSpace: "pre-wrap",
+            fontFamily: "monospace",
+            width: "100%",
+            overflow: "hidden",
+            resize: "none",
+          }}
           className="textarea-styles"
         />
+
+        {node && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setProject((prev) => removeNodeByKey(prev, node._key));
+              setOpenInfoKey(null);
+            }}
+            className="btn btn-allert"
+          >
+            Remove node
+          </button>
+        )}
       </div>
     );
   };
@@ -918,7 +984,6 @@ export default function Plaza() {
                   {projects?.map((p) => (
                     <div className="relative" key={p.id}>
                       <button
-                        // className="border absolute top-0 left-0 w-5 h-full flex items-center justify-center bg-red-400 hover:bg-red-600 z-20 transition duration-300"
                         className={`border absolute top-0 left-0 w-5 h-full flex items-center justify-center bg-red-400 hover:bg-red-600 z-20 transition duration-300 ${
                           projectId === p.id
                             ? "opacity-10 !cursor-not-allowed"
@@ -988,9 +1053,10 @@ export default function Plaza() {
               </div>
             </>
           )}
-          <hr className="bordered border-slate-200 mt-6 mb-2" />
+
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
+          <hr className="bordered border-slate-200 mt-6 " />
           <div className="flex items-center gap-2">
             {projectName && (
               <h3>
@@ -1001,59 +1067,85 @@ export default function Plaza() {
             {projectId && projectId !== "" && (
               <>
                 <button
+                  className="cursor-pointer relative"
+                  type="button"
                   onClick={() => {
                     resetAll();
                   }}
-                  className="btn btn-primary"
                 >
-                  Clear the project demo
+                  <Image
+                    src="/svg/clear.svg"
+                    alt="icon"
+                    width={20}
+                    height={20}
+                    className="prev"
+                  />
+                  <div className="nextafterButton" style={{}}>
+                    Clear the project demo
+                  </div>
                 </button>
                 <button
+                  className="cursor-pointer relative"
+                  type="button"
                   onClick={() => {
                     updateTempProject();
                   }}
-                  className="btn btn-primary"
                 >
-                  Update project
+                  <Image
+                    src="/svg/update.svg"
+                    alt="icon"
+                    width={15}
+                    height={15}
+                    className="prev"
+                  />
+                  <div className="nextafterButton">Update project</div>
                 </button>
                 <button
+                  className={`cursor-pointer relative p-1 rounded ${editMode ? "bg-slate-400" : ""}`}
+                  type="button"
                   onClick={() => setEditMode((prev) => !prev)}
-                  className={`btn btn-primary  ${
-                    editMode
-                      ? "bg-red-600! text-white"
-                      : "bg-sky-600 text-white"
-                  }`}
                 >
-                  {editMode ? "Drug & Drop out" : "Drug & Drop in"}
+                  <Image
+                    src="/svg/drag.svg"
+                    alt="icon"
+                    width={15}
+                    height={15}
+                    className="prev"
+                  />
+                  <div className="nextafterButton">Drug & Drop</div>
                 </button>
                 <button
+                  className={` cursor-pointer relative `}
+                  type="button"
                   onClick={() => delProject(projectId)}
-                  className="btn btn-allert"
                 >
-                  Remove project
+                  <Image
+                    src="/svg/cross.svg"
+                    alt="icon"
+                    width={15}
+                    height={15}
+                    className="prev"
+                  />
+                  <div className="nextafterButton">Remove project</div>
                 </button>
               </>
             )}
           </div>
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
-          <div className="mt-2">
-            <div
-              className={`grid  gap-4 ${openInfoKey !== null ? "grid-cols-[300px_1fr]" : "grid-cols-[1fr]"}`}
-            >
-              {openInfoKey !== null && openInfoKey !== undefined && project && (
-                <div> {infoProject(findNodeByKey(project, openInfoKey))}</div>
-              )}
+          <div
+            className={`grid  gap-4 ${openInfoKey !== null ? "grid-cols-[300px_1fr]" : "grid-cols-[1fr]"}`}
+          >
+            {openInfoKey !== null && openInfoKey !== undefined && project && (
+              <div> {infoProject(findNodeByKey(project, openInfoKey))}</div>
+            )}
 
-              <div className="flex flex-col gap-2">
-                {project &&
-                  (Array.isArray(project)
-                    ? project.map(renderNode)
-                    : renderNode(project))}
-              </div>
+            <div className="flex flex-col gap-2">
+              {project &&
+                (Array.isArray(project)
+                  ? project.map(renderNode)
+                  : renderNode(project))}
             </div>
-
-            {/* ))} */}
           </div>
         </div>
       </div>
