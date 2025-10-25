@@ -490,15 +490,136 @@ export default function Plaza() {
   // renderNode
   // renderNode
   // renderNode
+  // const renderNode = (node: ProjectData | string) => {
+  //   if (typeof node === "string")
+  //     return <span key={crypto.randomUUID()}>{node}</span>;
+
+  //   const Tag = node.tag as keyof JSX.IntrinsicElements;
+  //   if (!Tag) return null;
+  //   const handleNodeClick = (e: React.MouseEvent) => {
+  //     e.stopPropagation();
+  //     // Если есть ожидающий таймаут, значит пришёл второй клик — это double
+  //     if ((handleNodeClick as any).timeout) {
+  //       clearTimeout((handleNodeClick as any).timeout);
+  //       (handleNodeClick as any).timeout = null;
+  //       handleDoubleClick(e);
+  //     } else {
+  //       (handleNodeClick as any).timeout = setTimeout(() => {
+  //         handleSingleClick(e);
+  //         (handleNodeClick as any).timeout = null;
+  //       }, 300);
+  //     }
+  //   };
+  //   const handleSingleClick = (e: React.MouseEvent) => {
+  //     setOpenInfoKey((prev) => (prev === node._key ? null : node._key));
+  //   };
+
+  //   const handleDoubleClick = (e: React.MouseEvent) => {
+  //     setProject((prev) => removeNodeByKey(prev, node._key));
+  //     setOpenInfoKey(null);
+  //   };
+  //   const children = Array.isArray(node.children)
+  //     ? node.children.flatMap((child, idx) => {
+  //         const elements: JSX.Element[] = [];
+
+  //         if (editMode) {
+  //           elements.push(
+  //             <div
+  //               key={`before-${typeof child === "string" ? crypto.randomUUID() : child._key}`}
+  //               className="placeholder"
+  //               draggable={false}
+  //               onDragOver={handleDragOver}
+  //               onDragLeave={handleDragLeave}
+  //               onDrop={(e) =>
+  //                 handleDropOnPlaceholder(
+  //                   e,
+  //                   node._key,
+  //                   Array.isArray(node.children)
+  //                     ? node.children[idx]._key
+  //                     : null,
+  //                   "before"
+  //                 )
+  //               }
+  //             />
+  //           );
+  //         }
+
+  //         elements.push(renderNode(child));
+
+  //         if (editMode) {
+  //           elements.push(
+  //             <div
+  //               key={`before-${typeof child === "string" ? crypto.randomUUID() : child._key}`}
+  //               className="placeholder"
+  //               draggable={false}
+  //               onDragOver={handleDragOver}
+  //               onDragLeave={handleDragLeave}
+  //               onDrop={(e) =>
+  //                 handleDropOnPlaceholder(
+  //                   e,
+  //                   node._key,
+  //                   Array.isArray(node.children)
+  //                     ? node.children[idx]._key
+  //                     : null,
+  //                   "after"
+  //                 )
+  //               }
+  //             />
+  //           );
+  //         }
+
+  //         return elements;
+  //       })
+  //     : node.children || null;
+
+  //   // парсим стиль
+  //   const originalStyle = parseInlineStyle(node.style) || {};
+
+  //   // оставляем только flex/grid свойства
+  //   const filteredStyle = editMode
+  //     ? Object.fromEntries(
+  //         Object.entries(originalStyle).filter(([key]) =>
+  //           /^(display|flex|grid|justify|align)/.test(key)
+  //         )
+  //       )
+  //     : originalStyle;
+
+  //   return (
+  //     <Tag
+  //       key={node._key}
+  //       draggable={editMode}
+  //       onDragStart={editMode ? (e) => handleDragStart(e, node) : undefined}
+  //       onDragOver={editMode ? (e) => handleDragOver(e, node) : undefined}
+  //       onDragLeave={editMode ? handleDragLeave : undefined}
+  //       onDrop={editMode ? (e) => handleDrop(e, node, true) : undefined}
+  //       className={`${editMode ? "card" : node.class} cursor-${
+  //         editMode ? "grab" : "default"
+  //       }`}
+  //       style={{
+  //         ...filteredStyle,
+  //         outline: openInfoKey === node._key ? "2px solid red" : "none",
+  //         position: "relative",
+  //         transition: "opacity 0.2s ease",
+  //         cursor: editMode ? "grab" : "pointer",
+  //       }}
+  //       onClick={handleNodeClick}
+  //     >
+  //       {node.text}
+  //       {children}
+  //     </Tag>
+  //   );
+  // };
   const renderNode = (node: ProjectData | string) => {
-    if (typeof node === "string")
+    if (typeof node === "string") {
       return <span key={crypto.randomUUID()}>{node}</span>;
+    }
 
     const Tag = node.tag as keyof JSX.IntrinsicElements;
     if (!Tag) return null;
+
+    // Клики: одиночный/двойной
     const handleNodeClick = (e: React.MouseEvent) => {
       e.stopPropagation();
-      // Если есть ожидающий таймаут, значит пришёл второй клик — это double
       if ((handleNodeClick as any).timeout) {
         clearTimeout((handleNodeClick as any).timeout);
         (handleNodeClick as any).timeout = null;
@@ -510,14 +631,14 @@ export default function Plaza() {
         }, 300);
       }
     };
-    const handleSingleClick = (e: React.MouseEvent) => {
+    const handleSingleClick = () =>
       setOpenInfoKey((prev) => (prev === node._key ? null : node._key));
-    };
-
-    const handleDoubleClick = (e: React.MouseEvent) => {
+    const handleDoubleClick = () => {
       setProject((prev) => removeNodeByKey(prev, node._key));
       setOpenInfoKey(null);
     };
+
+    // Плейсхолдеры только в editMode
     const children = Array.isArray(node.children)
       ? node.children.flatMap((child, idx) => {
           const elements: JSX.Element[] = [];
@@ -534,9 +655,7 @@ export default function Plaza() {
                   handleDropOnPlaceholder(
                     e,
                     node._key,
-                    Array.isArray(node.children)
-                      ? node.children[idx]._key
-                      : null,
+                    node.children[idx]?._key || null,
                     "before"
                   )
                 }
@@ -549,7 +668,7 @@ export default function Plaza() {
           if (editMode) {
             elements.push(
               <div
-                key={`before-${typeof child === "string" ? crypto.randomUUID() : child._key}`}
+                key={`after-${typeof child === "string" ? crypto.randomUUID() : child._key}`}
                 className="placeholder"
                 draggable={false}
                 onDragOver={handleDragOver}
@@ -558,9 +677,7 @@ export default function Plaza() {
                   handleDropOnPlaceholder(
                     e,
                     node._key,
-                    Array.isArray(node.children)
-                      ? node.children[idx]._key
-                      : null,
+                    node.children[idx]?._key || null,
                     "after"
                   )
                 }
@@ -572,10 +689,8 @@ export default function Plaza() {
         })
       : node.children || null;
 
-    // парсим стиль
+    // Стили: editMode — только flex/grid, иначе все оригинальные
     const originalStyle = parseInlineStyle(node.style) || {};
-
-    // оставляем только flex/grid свойства
     const filteredStyle = editMode
       ? Object.fromEntries(
           Object.entries(originalStyle).filter(([key]) =>
@@ -592,15 +707,14 @@ export default function Plaza() {
         onDragOver={editMode ? (e) => handleDragOver(e, node) : undefined}
         onDragLeave={editMode ? handleDragLeave : undefined}
         onDrop={editMode ? (e) => handleDrop(e, node, true) : undefined}
-        className={`${editMode ? "card" : node.class} cursor-${
-          editMode ? "grab" : "default"
-        }`}
+        className={`${editMode ? "card" : node.class} cursor-${editMode ? "grab" : "default"}`}
         style={{
-          ...filteredStyle,
+          ...(editMode ? filteredStyle : originalStyle),
           outline: openInfoKey === node._key ? "2px solid red" : "none",
           position: "relative",
           transition: "opacity 0.2s ease",
           cursor: editMode ? "grab" : "pointer",
+          padding: editMode ? "10px" : "0"
         }}
         onClick={handleNodeClick}
       >
