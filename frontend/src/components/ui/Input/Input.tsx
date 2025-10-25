@@ -44,19 +44,19 @@ const Input: React.FC<InputProps> = ({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   // Используем useLayoutEffect чтобы подгонять высоту до paint
-  useLayoutEffect(() => {
-    if (typeInput !== "textarea") return;
-    const el = textareaRef.current;
-    if (!el) return;
+  // useLayoutEffect(() => {
+  //   if (typeInput !== "textarea") return;
+  //   const el = textareaRef.current;
+  //   if (!el) return;
 
-    const adjust = () => {
-      el.style.height = "auto";
-      el.style.height = `${el.scrollHeight}px`;
-    };
-    adjust();
-    const raf = requestAnimationFrame(() => adjust());
-    return () => cancelAnimationFrame(raf);
-  }, [value, typeInput]);
+  //   const adjust = () => {
+  //     el.style.height = "auto";
+  //     el.style.height = `${el.scrollHeight}px`;
+  //   };
+  //   adjust();
+  //   const raf = requestAnimationFrame(() => adjust());
+  //   return () => cancelAnimationFrame(raf);
+  // }, [value, typeInput]);
 
   return (
     <div className="input-field input-field--ui">
@@ -82,17 +82,17 @@ const Input: React.FC<InputProps> = ({
       ) : (
         <input
           id={id}
-          ref={inputRef as RefObject<HTMLInputElement>}
+          // ref={inputRef as RefObject<HTMLInputElement>}
           name={name}
           type={typeInput}
           value={value ?? ""}
           onChange={onChange}
-          onClick={onClick}
+          // onClick={onClick}
           disabled={disabled}
           className={`${
             activ ? "bg-emerald-400" : ""
           } cursor-pointer border rounded px-1 border-emerald-900`}
-          required
+          // required
         />
       )}
       <label htmlFor={data}>{data}</label>

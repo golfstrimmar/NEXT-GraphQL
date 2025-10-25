@@ -314,9 +314,8 @@ export default function Plaza() {
       <div className=" flex flex-col gap-4">
         {node?.tag && <h5>Tag: {node?.tag}</h5>}
 
-        <Input
-          typeInput="text"
-          data="text"
+        <input
+          type="text"
           value={node?.text || ""}
           onChange={(e) => {
             const updatedProject = updateNodeByKey(project, node._key, {
@@ -327,9 +326,8 @@ export default function Plaza() {
           }}
         />
 
-        <Input
-          typeInput="text"
-          data="class"
+        <input
+          type="text"
           value={node?.class || ""}
           onChange={(e) => {
             const updatedProject = updateNodeByKey(project, node._key, {
@@ -340,43 +338,6 @@ export default function Plaza() {
           }}
         />
         <h5 className=" mb-1">Style:</h5>
-        {/* <textarea
-          ref={(el) => {
-            if (!el) return;
-            textareaRef.current = el;
-            el.style.height = "auto";
-            el.style.height = `${el.scrollHeight}px`;
-          }}
-          // форматируем только один раз при показе
-          value={
-            node?.style
-              ? node.style
-                  .split(";")
-                  .map((s) => s.trim())
-                  .filter(Boolean)
-                  .join(";\n")
-              : ""
-          }
-          onChange={(e) => {
-            const newValue = e.target.value; // сохраняем ровно то, что набрал пользователь
-            const updatedProject = updateNodeByKey(project, node?._key, {
-              style: newValue,
-            });
-            setProject(updatedProject);
-            setHtmlJson(updatedProject);
-
-            e.target.style.height = "auto";
-            e.target.style.height = `${e.target.scrollHeight}px`;
-          }}
-          style={{
-            whiteSpace: "pre-wrap", // сохраняет пробелы и переносы
-            fontFamily: "monospace",
-            width: "100%",
-            overflow: "hidden",
-            resize: "none",
-          }}
-          className="textarea-styles"
-        /> */}
         <textarea
           ref={(el) => {
             if (!el) return;
@@ -714,7 +675,7 @@ export default function Plaza() {
           position: "relative",
           transition: "opacity 0.2s ease",
           cursor: editMode ? "grab" : "pointer",
-          padding: editMode ? "10px" : "0"
+          padding: editMode ? "10px" : "0",
         }}
         onClick={handleNodeClick}
       >
