@@ -21,6 +21,10 @@ import PProjectDataElement from "@/types/PProject";
 import "./plaza.scss";
 import { set } from "lodash";
 import { Value } from "sass";
+import removeNodeByKey from "@/utils/plaza/removeNodeByKey";
+import findNodeByKey from "@/utils/plaza/findNodeByKey";
+import InfoProject from "@/components/InfoProject/InfoProject";
+import CreateNewProject from "@/components/CreateNewProject/CreateNewProject";
 // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
 type ProjectData = {
   tag: string;
@@ -39,9 +43,6 @@ export default function Plaza() {
   const { htmlJson, setHtmlJson, user, setModalMessage } = useStateContext();
   const [projects, setProjects] = useState<PProject[]>([]);
   const [project, setProject] = useState<PProject>(null);
-  const [projectData, setProjectData] = useState<ProjectData>([]);
-  const [newProjectName, setNewProjectName] = useState<string>("");
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [projectId, setProjectId] = useState<string>("");
   const [openInfoKey, setOpenInfoKey] = useState<string | null>(null);
   const [projectName, setProjectName] = useState<string>("");
@@ -73,10 +74,7 @@ export default function Plaza() {
     variables: { name: "initialTags" },
     fetchPolicy: "network-only",
   });
-  const [createProject] = useMutation(CREATE_PROJECT, {
-    refetchQueries: [{ query: GET_ALL_PROJECTS_BY_USER, variables }],
-    awaitRefetchQueries: true,
-  });
+
   const [removeProject] = useMutation(REMOVE_PROJECT, {
     refetchQueries: [{ query: GET_ALL_PROJECTS_BY_USER, variables }],
     awaitRefetchQueries: true,
@@ -145,7 +143,6 @@ export default function Plaza() {
 
   useEffect(() => {
     if (!editMode) {
-      // Очистим все временные стили (outline и т.п.)
       const outlined =
         document.querySelectorAll<HTMLElement>("[style*='outline']");
       outlined.forEach((el) => {
@@ -163,17 +160,15 @@ export default function Plaza() {
       console.log("<🔹🔹🔹🔹🔹🔹🔹🔹🔹 project🔹🔹🔹🔹🔹🔹🔹🔹🔹>", project);
     }
   }, [project]);
-  useEffect(() => {
-    if (projectData) {
-      console.log(
-        "<🔹🔹🔹🔹🔹🔹🔹🔹🔹 projectData 🔹🔹🔹🔹🔹🔹🔹🔹🔹>",
-        projectData
-      );
-    }
-  }, [projectData]);
+  // useEffect(() => {
+  //   if (projectData) {
+  //     console.log(
+  //       "<🔹🔹🔹🔹🔹🔹🔹🔹🔹 projectData 🔹🔹🔹🔹🔹🔹🔹🔹🔹>",
+  //       projectData
+  //     );
+  //   }
+  // }, [projectData]);
 
-  const finPro = (id: string) => {};
-  //// ♻️♻️♻️♻️♻️♻️♻️♻️
   //// ♻️♻️♻️♻️♻️♻️♻️♻️
   //// ♻️♻️♻️♻️♻️♻️♻️♻️
   //// ♻️♻️♻️♻️♻️♻️♻️♻️
@@ -192,38 +187,15 @@ export default function Plaza() {
     }
   };
   //// ♻️♻️♻️♻️♻️♻️♻️♻️NewProject
-  const prepareProjectDataForDB = (
-    data: ProjectData | ProjectData[]
-  ): string => {
-    const arr = Array.isArray(data) ? data : [data];
-    return JSON.stringify(arr); // вложенные children тоже будут строкой
-  };
+  // const prepareProjectDataForDB = (
+  //   data: ProjectData | ProjectData[]
+  // ): string => {
+  //   const arr = Array.isArray(data) ? data : [data];
+  //   return JSON.stringify(arr); // вложенные children тоже будут строкой
+  // };
 
   //// ♻️♻️♻️♻️♻️♻️♻️♻️
-  const createNewProject = async () => {
-    if (!newProjectName || !user) {
-      setModalMessage(" All fields are required.");
-      return;
-    }
-    if (!projectData) {
-      setModalMessage(" Data fields are required.");
-      return;
-    }
-    try {
-      await createProject({
-        variables: {
-          ownerId: user.id,
-          name: newProjectName,
-          data: project,
-        },
-      });
 
-      setModalMessage(`Project ${newProjectName} created.`);
-      setNewProjectName("");
-    } catch (error) {
-      setModalMessage(error);
-    }
-  };
   //// ♻️♻️♻️♻️♻️♻️♻️♻️
   const removeKeys = (node: any): any => {
     if (typeof node === "string") return node;
@@ -277,129 +249,6 @@ export default function Plaza() {
         : node.children,
     };
   };
-  // Функция для обновления узла по _key рекурсивно
-  // Универсальное обновление узла по key
-  const updateNodeByKey = (
-    nodes: ProjectData | ProjectData[],
-    key: string,
-    changes: Partial<ProjectData>
-  ): ProjectData | ProjectData[] => {
-    if (Array.isArray(nodes)) {
-      // Всегда создаём новый массив
-      return nodes.map(
-        (node) => updateNodeByKey(node, key, changes) as ProjectData
-      );
-    }
-
-    // Если нашли нужный элемент
-    if (nodes._key === key) {
-      return { ...nodes, ...changes }; // обновим text, class, style и т.д.
-    }
-
-    // Если есть дети — создаём новый объект с изменёнными children
-    if (Array.isArray(nodes.children)) {
-      const updatedChildren = nodes.children.map((child) =>
-        typeof child === "string"
-          ? child
-          : (updateNodeByKey(child, key, changes) as ProjectData)
-      );
-      return { ...nodes, children: updatedChildren };
-    }
-
-    return { ...nodes }; // Возвращаем копию, чтобы не потерять ререндер
-  };
-
-  const infoProject = (node: ProjectData) => {
-    return (
-      <div className=" flex flex-col gap-4">
-        {node?.tag && <h5>Tag: {node?.tag}</h5>}
-
-        <input
-          type="text"
-          value={node?.text || ""}
-          onChange={(e) => {
-            const updatedProject = updateNodeByKey(project, node._key, {
-              text: e.target.value,
-            });
-            setProject(updatedProject);
-            setHtmlJson(updatedProject);
-          }}
-        />
-
-        <input
-          type="text"
-          value={node?.class || ""}
-          onChange={(e) => {
-            const updatedProject = updateNodeByKey(project, node._key, {
-              class: e.target.value,
-            });
-            setProject(updatedProject);
-            setHtmlJson(updatedProject);
-          }}
-        />
-        <h5 className=" mb-1">Style:</h5>
-        <textarea
-          ref={(el) => {
-            if (!el) return;
-            textareaRef.current = el;
-            el.style.height = "auto";
-            el.style.height = `${el.scrollHeight}px`;
-          }}
-          // Форматируем на показе только если это начальная подгрузка.
-          value={
-            node?.style
-              ? (() => {
-                  // Если пользователь уже вручную отформатировал — ничего не трогаем.
-                  if (node.style.includes("\n")) return node.style;
-                  // Первый импорт: красиво разложить по строкам
-                  const styleText = node.style;
-                  const parts = styleText
-                    .split(";")
-                    .filter((s) => s.length > 0);
-                  // Показываем ; на конце, если была (и свойства есть)
-                  let needsSemicolon =
-                    styleText.endsWith(";") && parts.length > 0;
-                  return parts.join(";\n") + (needsSemicolon ? ";" : "");
-                })()
-              : ""
-          }
-          onChange={(e) => {
-            // Просто сохраняем пользовательский ввод целиком, включая все пробелы и ; !
-            const newValue = e.target.value;
-            const updatedProject = updateNodeByKey(project, node?._key, {
-              style: newValue,
-            });
-            setProject(updatedProject);
-            setHtmlJson(updatedProject);
-
-            e.target.style.height = "auto";
-            e.target.style.height = `${e.target.scrollHeight}px`;
-          }}
-          style={{
-            whiteSpace: "pre-wrap",
-            fontFamily: "monospace",
-            width: "100%",
-            overflow: "hidden",
-            resize: "none",
-          }}
-          className="textarea-styles"
-        />
-
-        {node && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setProject((prev) => removeNodeByKey(prev, node._key));
-              setOpenInfoKey(null);
-            }}
-            className="btn btn-allert"
-          >
-            Remove node
-          </button>
-        )}
-      </div>
-    );
-  };
 
   // ♻️♻️♻️♻️♻️♻️♻️♻️рендеринг♻️♻️♻️♻️♻️♻️♻️♻️
   // Функция для преобразования inline-стиля из строки в объект
@@ -414,34 +263,15 @@ export default function Plaza() {
       return acc;
     }, {} as React.CSSProperties);
   };
-  const getStyleLines = (styleString: string) => {
-    if (!styleString) return [];
-    return styleString
-      .split(";")
-      .map((line) => line.trim())
-      .filter(Boolean);
-  };
+  // const getStyleLines = (styleString: string) => {
+  //   if (!styleString) return [];
+  //   return styleString
+  //     .split(";")
+  //     .map((line) => line.trim())
+  //     .filter(Boolean);
+  // };
 
   // вне render / вне JSX
-  const findNodeByKey = (
-    nodes: ProjectData | ProjectData[],
-    key: string
-  ): ProjectData | null => {
-    if (!nodes) return null;
-
-    if (Array.isArray(nodes)) {
-      for (const n of nodes) {
-        const found = findNodeByKey(n, key);
-        if (found) return found;
-      }
-      return null;
-    } else {
-      if (nodes._key === key) return nodes;
-      if (Array.isArray(nodes.children))
-        return findNodeByKey(nodes.children, key);
-      return null;
-    }
-  };
 
   // renderNode
   // renderNode
@@ -570,7 +400,69 @@ export default function Plaza() {
   //     </Tag>
   //   );
   // };
+
+  // const handleDrop = (
+  //   e: React.DragEvent<HTMLElement>,
+  //   node: any,
+  //   duplicate = false
+  // ) => {
+  //   e.preventDefault();
+  //   e.stopPropagation();
+
+  //   const el = e.currentTarget as HTMLElement;
+  //   el.style.outline = "none";
+
+  //   if (!nodeToDrag) return;
+
+  //   setProject((prevProject) => {
+  //     if (!prevProject) return prevProject;
+  //     const treeCopy = deepClone(prevProject);
+
+  //     // === Дроп на самого себя ===
+  //     if (nodeToDrag._key === node._key) {
+  //       return duplicateNodeNextToIt(treeCopy, node._key);
+  //     }
+
+  //     // === Дублирование через флаг ===
+  //     if (duplicate) {
+  //       return duplicateNodeNextToIt(treeCopy, node._key);
+  //     }
+
+  //     // === Обычный drag ===
+  //     const withoutDragged = removeNodeByKey(treeCopy, nodeToDrag._key);
+
+  //     const insertIntoNode = (n: any): any => {
+  //       if (Array.isArray(n)) return n.map(insertIntoNode);
+  //       if (n._key === node._key) {
+  //         if (!Array.isArray(n.children)) n.children = [];
+  //         return {
+  //           ...n,
+  //           children: [...n.children, cloneNodeWithNewKeys(nodeToDrag)],
+  //         };
+  //       }
+  //       if (Array.isArray(n.children)) {
+  //         return { ...n, children: n.children.map(insertIntoNode) };
+  //       }
+  //       return n;
+  //     };
+
+  //     return insertIntoNode(withoutDragged);
+  //   });
+
+  //   if (nodeToDragEl) {
+  //     nodeToDragEl.style.opacity = "1";
+  //     setNodeToDragEl(null);
+  //   }
+
+  //   if (!duplicate) setNodeToDrag(null);
+  // };
+
+  // Бросок на плейсхолдер
+
+  // =========================================
   const renderNode = (node: ProjectData | string) => {
+    if (!node) return null;
+    console.log("<====typeof node====>", typeof node);
     if (typeof node === "string") {
       return <span key={crypto.randomUUID()}>{node}</span>;
     }
@@ -662,7 +554,7 @@ export default function Plaza() {
 
     return (
       <Tag
-        key={node._key}
+        key={`${node._key}-${node.text}`}
         draggable={editMode}
         onDragStart={editMode ? (e) => handleDragStart(e, node) : undefined}
         onDragOver={editMode ? (e) => handleDragOver(e, node) : undefined}
@@ -679,196 +571,11 @@ export default function Plaza() {
         }}
         onClick={handleNodeClick}
       >
-        {node.text}
+        {node?.text}
         {children}
       </Tag>
     );
   };
-
-  // События для плейсхолдера
-  const handleDragOver = (e: React.DragEvent<HTMLElement>, node?: any) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const el = e.currentTarget as HTMLElement;
-    // if (el.classList.contains("placeholder")) {
-    el.style.outline = "3px dashed #4d6a92";
-    // }
-  };
-
-  const handleDragLeave = (e: React.DragEvent<HTMLElement>) => {
-    const el = e.currentTarget as HTMLElement;
-    // if (el.classList.contains("placeholder")) {
-    el.style.outline = "none";
-    // }
-  };
-
-  // const handleDrop = (
-  //   e: React.DragEvent<HTMLElement>,
-  //   node: any,
-  //   duplicate = false
-  // ) => {
-  //   e.preventDefault();
-  //   e.stopPropagation();
-
-  //   const el = e.currentTarget as HTMLElement;
-  //   el.style.outline = "none";
-
-  //   if (!nodeToDrag) return;
-
-  //   setProject((prevProject) => {
-  //     if (!prevProject) return prevProject;
-  //     const treeCopy = deepClone(prevProject);
-
-  //     // === Дроп на самого себя ===
-  //     if (nodeToDrag._key === node._key) {
-  //       return duplicateNodeNextToIt(treeCopy, node._key);
-  //     }
-
-  //     // === Дублирование через флаг ===
-  //     if (duplicate) {
-  //       return duplicateNodeNextToIt(treeCopy, node._key);
-  //     }
-
-  //     // === Обычный drag ===
-  //     const withoutDragged = removeNodeByKey(treeCopy, nodeToDrag._key);
-
-  //     const insertIntoNode = (n: any): any => {
-  //       if (Array.isArray(n)) return n.map(insertIntoNode);
-  //       if (n._key === node._key) {
-  //         if (!Array.isArray(n.children)) n.children = [];
-  //         return {
-  //           ...n,
-  //           children: [...n.children, cloneNodeWithNewKeys(nodeToDrag)],
-  //         };
-  //       }
-  //       if (Array.isArray(n.children)) {
-  //         return { ...n, children: n.children.map(insertIntoNode) };
-  //       }
-  //       return n;
-  //     };
-
-  //     return insertIntoNode(withoutDragged);
-  //   });
-
-  //   if (nodeToDragEl) {
-  //     nodeToDragEl.style.opacity = "1";
-  //     setNodeToDragEl(null);
-  //   }
-
-  //   if (!duplicate) setNodeToDrag(null);
-  // };
-
-  // Бросок на плейсхолдер
-  const handleDrop = (e: React.DragEvent<HTMLElement>, node: any) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const el = e.currentTarget as HTMLElement;
-    el.style.outline = "none";
-
-    if (!nodeToDrag) return;
-    setTimeout(() => {
-      document
-        .querySelectorAll<HTMLElement>("[style*='outline']")
-        .forEach((el) => (el.style.outline = "none"));
-    }, 0);
-    // ✅ Если узел сбрасывают на самого себя — клонировать рядом
-    if (nodeToDrag._key === node._key) {
-      setProject((prevProject) => {
-        if (!prevProject) return prevProject;
-        const treeCopy = deepClone(prevProject);
-        return duplicateNodeNextToIt(treeCopy, node._key);
-      });
-
-      // Очистка состояния
-      if (nodeToDragEl) {
-        nodeToDragEl.style.opacity = "1";
-        setNodeToDragEl(null);
-      }
-      setNodeToDrag(null);
-      return;
-    }
-
-    // ✅ Если узел сбрасывают на другой — добавить его в конец
-    setProject((prevProject) => {
-      if (!prevProject) return prevProject;
-      const treeCopy = deepClone(prevProject);
-      const cleaned = removeNodeByKey(treeCopy, nodeToDrag._key); // удаляем из старого места
-      const toInsert = cloneNodeWithNewKeys(nodeToDrag); // создаем копию с новыми ключами
-      return addNodeToTargetByKey(cleaned, node._key, toInsert); // добавляем в конец
-    });
-
-    // Сброс состояния
-    if (nodeToDragEl) {
-      nodeToDragEl.style.opacity = "1";
-      setNodeToDragEl(null);
-    }
-    setNodeToDrag(null);
-  };
-
-  const handleDropOnPlaceholder = (
-    e: React.DragEvent<HTMLElement>,
-    parentKey: string,
-    siblingKey: string | null, // ключ целевого "соседа", ИМЕННО _key
-    type: "before" | "after"
-  ) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!nodeToDrag) return;
-
-    const el = e.currentTarget as HTMLElement;
-    el.style.outline = "none";
-    setTimeout(() => {
-      document
-        .querySelectorAll<HTMLElement>("[style*='outline']")
-        .forEach((el) => (el.style.outline = "none"));
-    }, 0);
-    setProject((prevProject) => {
-      if (!prevProject) return prevProject;
-      const treeCopy = deepClone(prevProject);
-      const withoutDragged = removeNodeByKey(treeCopy, nodeToDrag._key);
-      const nodeToInsert = cloneNodeWithNewKeys(nodeToDrag);
-
-      const insertIntoParent = (node: any): any => {
-        if (Array.isArray(node)) return node.map(insertIntoParent);
-
-        if (node._key === parentKey) {
-          if (!Array.isArray(node.children)) node.children = [];
-          const newChildren = [...node.children];
-
-          // Если нет ключа — вставлять в конец
-          if (!siblingKey) {
-            newChildren.push(nodeToInsert);
-          } else {
-            const idx = newChildren.findIndex((c) => c._key === siblingKey);
-            // Вставка строго до или после найденного ключа (idx гарантированно актуален!)
-            if (type === "before") {
-              newChildren.splice(idx, 0, nodeToInsert);
-            } else {
-              newChildren.splice(idx + 1, 0, nodeToInsert);
-            }
-          }
-          return { ...node, children: newChildren };
-        }
-
-        if (Array.isArray(node.children)) {
-          return { ...node, children: node.children.map(insertIntoParent) };
-        }
-        return node;
-      };
-
-      return insertIntoParent(withoutDragged);
-    });
-
-    if (nodeToDragEl) {
-      nodeToDragEl.style.opacity = "1";
-      setNodeToDragEl(null);
-    }
-    setNodeToDrag(null);
-  };
-
-  // =========================================
-
   // ⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️
   // ⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️
   // ⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️
@@ -879,39 +586,6 @@ export default function Plaza() {
     // Если в среде есть structuredClone, используем её — быстрее и точнее.
     if (typeof structuredClone === "function") return structuredClone(obj);
     return JSON.parse(JSON.stringify(obj));
-  };
-
-  // Удаление узла по _key — возвращает новый tree (массив или объект)
-  const removeNodeByKey = (node: any, keyToRemove: string): any => {
-    if (!node) return node;
-    if (typeof node === "string") return node;
-
-    // Если node — массив корневой
-    if (Array.isArray(node)) {
-      const res = [];
-      for (const child of node) {
-        const updated = removeNodeByKey(child, keyToRemove);
-        if (updated !== null && updated !== undefined) res.push(updated);
-      }
-      return res;
-    }
-
-    // node — объект
-    if (node._key === keyToRemove) {
-      return null; // удаляем этот узел
-    }
-
-    if (Array.isArray(node.children)) {
-      const newChildren = [];
-      for (const c of node.children) {
-        const updated = removeNodeByKey(c, keyToRemove);
-        if (updated !== null && updated !== undefined)
-          newChildren.push(updated);
-      }
-      return { ...node, children: newChildren };
-    }
-
-    return node;
   };
 
   // Вставка nodeToAdd внутрь узла с targetKey (в конец children)
@@ -1011,7 +685,10 @@ export default function Plaza() {
     return regenerate(cloned);
   };
 
-  // ⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️
+  // ⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️
+  // ⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️
+  // ⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️
+  // ⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️
 
   const handleDragStart = (e: React.DragEvent<HTMLElement>, node: any) => {
     if (!editMode) return; // 🧱 блокируем, если режим не включён
@@ -1033,7 +710,130 @@ export default function Plaza() {
     setNodeToDragEl(target);
     setNodeToDrag(node);
   };
+  // ⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️
+  const handleDropOnPlaceholder = (
+    e: React.DragEvent<HTMLElement>,
+    parentKey: string,
+    siblingKey: string | null, // ключ целевого "соседа", ИМЕННО _key
+    type: "before" | "after"
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!nodeToDrag) return;
 
+    const el = e.currentTarget as HTMLElement;
+    el.style.outline = "none";
+    setTimeout(() => {
+      document
+        .querySelectorAll<HTMLElement>("[style*='outline']")
+        .forEach((el) => (el.style.outline = "none"));
+    }, 0);
+    setProject((prevProject) => {
+      if (!prevProject) return prevProject;
+      const treeCopy = deepClone(prevProject);
+      const withoutDragged = removeNodeByKey(treeCopy, nodeToDrag._key);
+      const nodeToInsert = cloneNodeWithNewKeys(nodeToDrag);
+
+      const insertIntoParent = (node: any): any => {
+        if (Array.isArray(node)) return node.map(insertIntoParent);
+
+        if (node._key === parentKey) {
+          if (!Array.isArray(node.children)) node.children = [];
+          const newChildren = [...node.children];
+
+          // Если нет ключа — вставлять в конец
+          if (!siblingKey) {
+            newChildren.push(nodeToInsert);
+          } else {
+            const idx = newChildren.findIndex((c) => c._key === siblingKey);
+            // Вставка строго до или после найденного ключа (idx гарантированно актуален!)
+            if (type === "before") {
+              newChildren.splice(idx, 0, nodeToInsert);
+            } else {
+              newChildren.splice(idx + 1, 0, nodeToInsert);
+            }
+          }
+          return { ...node, children: newChildren };
+        }
+
+        if (Array.isArray(node.children)) {
+          return { ...node, children: node.children.map(insertIntoParent) };
+        }
+        return node;
+      };
+
+      return insertIntoParent(withoutDragged);
+    });
+
+    if (nodeToDragEl) {
+      nodeToDragEl.style.opacity = "1";
+      setNodeToDragEl(null);
+    }
+    setNodeToDrag(null);
+  };
+  // ⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️
+  const handleDrop = (e: React.DragEvent<HTMLElement>, node: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const el = e.currentTarget as HTMLElement;
+    el.style.outline = "none";
+
+    if (!nodeToDrag) return;
+    setTimeout(() => {
+      document
+        .querySelectorAll<HTMLElement>("[style*='outline']")
+        .forEach((el) => (el.style.outline = "none"));
+    }, 0);
+    // ✅ Если узел сбрасывают на самого себя — клонировать рядом
+    if (nodeToDrag._key === node._key) {
+      setProject((prevProject) => {
+        if (!prevProject) return prevProject;
+        const treeCopy = deepClone(prevProject);
+        return duplicateNodeNextToIt(treeCopy, node._key);
+      });
+
+      // Очистка состояния
+      if (nodeToDragEl) {
+        nodeToDragEl.style.opacity = "1";
+        setNodeToDragEl(null);
+      }
+      setNodeToDrag(null);
+      return;
+    }
+
+    // ✅ Если узел сбрасывают на другой — добавить его в конец
+    setProject((prevProject) => {
+      if (!prevProject) return prevProject;
+      const treeCopy = deepClone(prevProject);
+      const cleaned = removeNodeByKey(treeCopy, nodeToDrag._key); // удаляем из старого места
+      const toInsert = cloneNodeWithNewKeys(nodeToDrag); // создаем копию с новыми ключами
+      return addNodeToTargetByKey(cleaned, node._key, toInsert); // добавляем в конец
+    });
+
+    // Сброс состояния
+    if (nodeToDragEl) {
+      nodeToDragEl.style.opacity = "1";
+      setNodeToDragEl(null);
+    }
+    setNodeToDrag(null);
+  };
+  // ⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️
+  const handleDragOver = (e: React.DragEvent<HTMLElement>, node?: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const el = e.currentTarget as HTMLElement;
+    // if (el.classList.contains("placeholder")) {
+    el.style.outline = "3px dashed #4d6a92";
+    // }
+  };
+  // ⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️
+  const handleDragLeave = (e: React.DragEvent<HTMLElement>) => {
+    const el = e.currentTarget as HTMLElement;
+    // if (el.classList.contains("placeholder")) {
+    el.style.outline = "none";
+    // }
+  };
   // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
   return (
     <section className="pt-[100px] pb-[100px]">
@@ -1105,29 +905,7 @@ export default function Plaza() {
 
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
-          {user && (
-            <>
-              <hr className="bordered-2 border-slate-200 mt-2 mb-2" />
-              <h5>Create a new project</h5>
-              <div className="relative">
-                <Input
-                  typeInput="text"
-                  data="Project name"
-                  value={newProjectName}
-                  onChange={(e) => setNewProjectName(e.target.value)}
-                />
-                <div className="absolute z-20 top-[50%] right-0 -translate-y-[50%]!">
-                  <button
-                    type="button"
-                    className="btn btn-primary h-full"
-                    onClick={createNewProject}
-                  >
-                    Create
-                  </button>
-                </div>
-              </div>
-            </>
-          )}
+          {user && <CreateNewProject project={project} />}
 
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
@@ -1209,14 +987,22 @@ export default function Plaza() {
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
           <hr className="bordered border-slate-200 " />
+          {/* {project && (
+            <pre>
+              <code>{JSON.stringify(project, null, 2)}</code>
+            </pre>
+          )} */}
           <div
             className={`grid pt-2 gap-4 ${openInfoKey !== null ? "grid-cols-[300px_1fr]" : "grid-cols-[1fr]"}`}
           >
             {openInfoKey !== null && openInfoKey !== undefined && project && (
-              <div className="">
-                {" "}
-                {infoProject(findNodeByKey(project, openInfoKey))}
-              </div>
+              <InfoProject
+                setProject={setProject}
+                setHtmlJson={setHtmlJson}
+                project={project}
+                setOpenInfoKey={setOpenInfoKey}
+                openInfoKey={openInfoKey}
+              />
             )}
 
             <div className="flex flex-col gap-2  pt-2 -mt-2 ">
