@@ -18,18 +18,14 @@
   // outline: 1px dashed #105fd4;
   // outline: 1px dashed rgb(6, 77, 185);
   background: repeating-linear-gradient(45deg,
-      /* угол наклона полос */
       black,
-      /* первая полоса */
       black 4px,
-      /* ширина чёрной полосы */
       yellow 4px,
-      /* следующая начинается сразу после */
-      yellow 8px
-      /* ширина жёлтой полосы тоже 4px */
-    );
+      yellow 8px);
   min-height: 15px;
   min-width: 15px;
+  opacity: 0.2;
+  position: relative;
 }
 
 .card {

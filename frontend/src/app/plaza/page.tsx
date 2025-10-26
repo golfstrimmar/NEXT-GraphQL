@@ -160,14 +160,6 @@ export default function Plaza() {
       console.log("<🔹🔹🔹🔹🔹🔹🔹🔹🔹 project🔹🔹🔹🔹🔹🔹🔹🔹🔹>", project);
     }
   }, [project]);
-  // useEffect(() => {
-  //   if (projectData) {
-  //     console.log(
-  //       "<🔹🔹🔹🔹🔹🔹🔹🔹🔹 projectData 🔹🔹🔹🔹🔹🔹🔹🔹🔹>",
-  //       projectData
-  //     );
-  //   }
-  // }, [projectData]);
 
   //// ♻️♻️♻️♻️♻️♻️♻️♻️
   //// ♻️♻️♻️♻️♻️♻️♻️♻️
@@ -186,17 +178,6 @@ export default function Plaza() {
       localStorage.setItem("htmlJson", JSON.stringify(initialJson));
     }
   };
-  //// ♻️♻️♻️♻️♻️♻️♻️♻️NewProject
-  // const prepareProjectDataForDB = (
-  //   data: ProjectData | ProjectData[]
-  // ): string => {
-  //   const arr = Array.isArray(data) ? data : [data];
-  //   return JSON.stringify(arr); // вложенные children тоже будут строкой
-  // };
-
-  //// ♻️♻️♻️♻️♻️♻️♻️♻️
-
-  //// ♻️♻️♻️♻️♻️♻️♻️♻️
   const removeKeys = (node: any): any => {
     if (typeof node === "string") return node;
 
@@ -250,7 +231,6 @@ export default function Plaza() {
     };
   };
 
-  // ♻️♻️♻️♻️♻️♻️♻️♻️рендеринг♻️♻️♻️♻️♻️♻️♻️♻️
   // Функция для преобразования inline-стиля из строки в объект
   const parseInlineStyle = (styleString: string): React.CSSProperties => {
     if (!styleString) return {};
@@ -263,24 +243,7 @@ export default function Plaza() {
       return acc;
     }, {} as React.CSSProperties);
   };
-  // const getStyleLines = (styleString: string) => {
-  //   if (!styleString) return [];
-  //   return styleString
-  //     .split(";")
-  //     .map((line) => line.trim())
-  //     .filter(Boolean);
-  // };
 
-  // вне render / вне JSX
-
-  // renderNode
-  // renderNode
-  // renderNode
-  // renderNode
-  // renderNode
-  // renderNode
-  // renderNode
-  // renderNode
   // const renderNode = (node: ProjectData | string) => {
   //   if (typeof node === "string")
   //     return <span key={crypto.randomUUID()}>{node}</span>;
@@ -691,8 +654,7 @@ export default function Plaza() {
   // ⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️
 
   const handleDragStart = (e: React.DragEvent<HTMLElement>, node: any) => {
-    if (!editMode) return; // 🧱 блокируем, если режим не включён
-
+    if (!editMode) return;
     e.stopPropagation();
     const target = e.currentTarget as HTMLElement;
 
@@ -714,7 +676,7 @@ export default function Plaza() {
   const handleDropOnPlaceholder = (
     e: React.DragEvent<HTMLElement>,
     parentKey: string,
-    siblingKey: string | null, // ключ целевого "соседа", ИМЕННО _key
+    siblingKey: string | null,
     type: "before" | "after"
   ) => {
     e.preventDefault();
