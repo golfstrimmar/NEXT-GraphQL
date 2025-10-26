@@ -1208,14 +1208,18 @@ export default function Plaza() {
           </div>
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
+          <hr className="bordered border-slate-200 " />
           <div
-            className={`grid  gap-4 ${openInfoKey !== null ? "grid-cols-[300px_1fr]" : "grid-cols-[1fr]"}`}
+            className={`grid pt-2 gap-4 ${openInfoKey !== null ? "grid-cols-[300px_1fr]" : "grid-cols-[1fr]"}`}
           >
             {openInfoKey !== null && openInfoKey !== undefined && project && (
-              <div> {infoProject(findNodeByKey(project, openInfoKey))}</div>
+              <div className="">
+                {" "}
+                {infoProject(findNodeByKey(project, openInfoKey))}
+              </div>
             )}
 
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2  pt-2 -mt-2 ">
               {project &&
                 (Array.isArray(project)
                   ? project.map(renderNode)
