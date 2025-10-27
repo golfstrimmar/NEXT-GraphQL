@@ -9,7 +9,7 @@ import React, {
 import "./infoproject.scss";
 import removeNodeByKey from "@/utils/plaza/removeNodeByKey";
 import findNodeByKey from "@/utils/plaza/findNodeByKey";
-
+import Image from "next/image";
 type ProjectData = {
   tag: string;
   text: string;
@@ -33,6 +33,7 @@ const InfoProject: React.FC<InfoProjectProps> = ({
   openInfoKey,
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const textareaRefText = useRef<HTMLTextAreaElement | null>(null);
 
   // ================================
   const updateNodeByKey = (
@@ -67,22 +68,39 @@ const InfoProject: React.FC<InfoProjectProps> = ({
   // ================================
   const infoProject = (node: ProjectData) => {
     return (
-      <div className=" flex flex-col gap-4">
-        {node?.tag && <h5>Tag: {node?.tag}</h5>}
+      <div className=" flex flex-col relative  ">
+        {node?.tag && <p>Tag: {node?.tag}</p>}
+        <p className="bg-white inline-block z-30 py-1 rounded mt-2 -mb-3 w-[max-content]">
+          Text:{" "}
+        </p>
 
-        <input
-          type="text"
+        <textarea
+          ref={(el) => {
+            if (!el) return;
+            textareaRefText.current = el;
+            el.style.height = "auto";
+            el.style.height = `${el.scrollHeight}px`;
+          }}
           value={node?.text || ""}
           onChange={(e) => {
             const updatedProject = updateNodeByKey(project, node._key, {
               text: e.target.value,
             });
-
             setProject(updatedProject as ProjectData);
             setHtmlJson(updatedProject as any);
           }}
+          style={{
+            whiteSpace: "pre-wrap",
+            fontFamily: "monospace",
+            width: "100%",
+            overflow: "hidden",
+            resize: "none",
+          }}
+          className="textarea-styles"
         />
-
+        <p className="bg-white inline-block z-30 py-1 rounded  -mb-3 w-[max-content]">
+          Class:
+        </p>
         <input
           type="text"
           value={node?.class || ""}
@@ -93,8 +111,18 @@ const InfoProject: React.FC<InfoProjectProps> = ({
             setProject(updatedProject as ProjectData);
             setHtmlJson(updatedProject as any);
           }}
+          style={{
+            whiteSpace: "pre-wrap",
+            fontFamily: "monospace",
+            width: "100%",
+            overflow: "hidden",
+            resize: "none",
+          }}
+          className="textarea-styles"
         />
-        <h5 className=" mb-1">Style:</h5>
+        <p className="bg-white inline-block z-30 py-1 rounded -mb-3 w-[max-content]">
+          Style:
+        </p>
         <textarea
           ref={(el) => {
             if (!el) return;
@@ -102,7 +130,6 @@ const InfoProject: React.FC<InfoProjectProps> = ({
             el.style.height = "auto";
             el.style.height = `${el.scrollHeight}px`;
           }}
-          // Форматируем на показе только если это начальная подгрузка.
           value={
             node?.style
               ? (() => {
@@ -141,19 +168,17 @@ const InfoProject: React.FC<InfoProjectProps> = ({
           }}
           className="textarea-styles"
         />
-
-        {node && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setProject((prev) => removeNodeByKey(prev, node._key));
-              setOpenInfoKey(null);
-            }}
-            className="btn btn-allert"
-          >
-            Remove node
-          </button>
-        )}
+        <button
+          onClick={() => setOpenInfoKey(null)}
+          className="absolute left-[50%] -bottom-3 border rounded bg-slate-200 p-1 hover:bg-slate-300 transition-all duration-200 rotate-90"
+        >
+          <Image
+            src="/svg/chevron-left.svg"
+            alt="placeholder"
+            width={10}
+            height={10}
+          />
+        </button>
       </div>
     );
   };

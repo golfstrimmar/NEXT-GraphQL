@@ -38,7 +38,7 @@ export default function RootLayout({
         </Script>
       </head>
       <body>
-        <ColorsButton></ColorsButton>
+        {/* <ColorsButton></ColorsButton> */}
         <ClientLayout>{children} </ClientLayout>
         <Analytics />
       </body>
