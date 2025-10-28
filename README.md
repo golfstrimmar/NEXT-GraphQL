@@ -9,3 +9,16 @@ https://ulon-graphql.vercel.app
           width={10}
           height={10}
         />
+INSERT INTO "JsonDocument" ("name", "content")
+VALUES (
+  'initialTags',
+  '[
+    {
+      "tag": "div",
+      "text": "default div",
+      "class": "default-div",
+      "style": "background-color: #e2e8f0;",
+      "children": []
+    }
+  ]'::jsonb
+);

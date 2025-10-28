@@ -1,8 +1,18 @@
 [
   {
-    "type": "div",
-    "attributes": {
-      "class": "cart"
-    }
+    "tag": "div",
+    "text": "default",
+    "class": "cart",
+    "style": "background: #e2e8f0;",
+    "children":[
+  {
+    "tag": "div",
+    "text": "default",
+    "class": "cart",
+    "style": "background: #e2e8f0;",
+    "children": []
+  }
+    ]
+
   }
 ]

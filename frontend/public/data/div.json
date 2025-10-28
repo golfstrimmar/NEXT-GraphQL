@@ -1,12 +1,9 @@
 [
   {
-    "type": "div",
-    "attributes": {
-      "tag": "div",
-      "text": "default div",
-      "class": "default-div",
-      "style": "background-color: #e2e8f0;"
-    },
-    "children": "div"
+    "tag": "div",
+    "text": "default div",
+    "class": "default-div",
+    "style": "background-color: #e2e8f0;",
+    "children": []
   }
 ]

@@ -17,6 +17,7 @@ import CreateNewProject from "@/components/CreateNewProject/CreateNewProject";
 import createRenderNode from "@/utils/plaza/RenderNode.tsx";
 import "./plaza.scss";
 import { motion, AnimatePresence } from "framer-motion";
+import AdminComponent from "@/components/AdminComponent/AdminComponent";
 // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
 type ProjectData = {
   tag: string;
@@ -84,7 +85,7 @@ export default function Plaza() {
   }, [openInfoKey]);
   useEffect(() => {
     if (!htmlJson) return;
-
+    console.log("<====htmlJson====>", htmlJson);
     // Преобразуем в структуру с ключами
     const withKeys = Array.isArray(htmlJson)
       ? htmlJson.map(addRuntimeKeys)
@@ -111,10 +112,10 @@ export default function Plaza() {
       const proj = dataProject.findProject;
       setProjectId(proj.id);
       const withKeys = addRuntimeKeys(proj.data);
-      console.log(
-        "🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹withKeys:🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹",
-        withKeys
-      );
+      // console.log(
+      //   "🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹withKeys:🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹",
+      //   withKeys
+      // );
       setProject(withKeys);
       setHtmlJson(proj.data);
     }
@@ -124,18 +125,18 @@ export default function Plaza() {
     }
   }, [dataProject, errorProject]);
 
-  // useEffect(() => {
-  //   if (!editMode) {
-  //     const outlined =
-  //       document.querySelectorAll<HTMLElement>("[style*='outline']");
-  //     outlined.forEach((el) => {
-  //       el.style.outline = "none";
-  //     });
-  //   }
-  // }, [editMode]);
+  useEffect(() => {
+    if (editMode) {
+      console.log("<==== editMode====>", editMode);
+    }
+  }, [editMode]);
 
   // 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹Project
+  // 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹Project
+  // 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹Project
   useLayoutEffect(() => {
+    if (!project) return;
+    console.log("<====🔹🔹🔹🔹🔹project🔹🔹🔹🔹🔹====>", project);
     if (project && editMode) {
       requestAnimationFrame(() => shiftNeighbors());
     }
@@ -247,7 +248,6 @@ export default function Plaza() {
         : node.children,
     };
   };
-
   // ⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️
   const renderNode = useMemo(
     () =>
@@ -275,6 +275,14 @@ export default function Plaza() {
             {user?.name}
           </h3>
         )}
+        {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
+        {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
+        <hr className="bordered border-slate-200 mt-6 mb-6" />
+        <AdminComponent />
+        <hr className="bordered border-slate-200 mt-6 mb-6" />
+        {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
+        {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
+
         <div className="flex flex-col">
           {user && (
             <div className="flex flex-col">
@@ -338,6 +346,44 @@ export default function Plaza() {
 
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
+          <hr className="bordered border-slate-200 mt-2 " />
+          <div className="flex items-center mt-2">
+            <button
+              className="cursor-pointer relative"
+              type="button"
+              onClick={() => {
+                resetAll();
+              }}
+            >
+              <Image
+                src="/svg/clear.svg"
+                alt="icon"
+                width={20}
+                height={20}
+                className="prev"
+              />
+              <div className="nextafterButton" style={{}}>
+                Clear the demo
+              </div>
+            </button>
+            <button
+              className={`cursor-pointer relative p-1 rounded ${editMode ? "bg-slate-400" : ""}`}
+              type="button"
+              onClick={() => setEditMode((prev) => !prev)}
+            >
+              <Image
+                src="/svg/drag.svg"
+                alt="icon"
+                width={15}
+                height={15}
+                className="prev"
+              />
+              <div className="nextafterButton">Drug & Drop</div>
+            </button>
+          </div>
+
+          {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
+          {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
           <hr className="bordered border-slate-200 mt-6 " />
           <div className="flex items-center gap-2">
             {projectName && (
@@ -346,26 +392,9 @@ export default function Plaza() {
                 {projectName}
               </h3>
             )}
+
             {projectId && projectId !== "" && (
               <>
-                <button
-                  className="cursor-pointer relative"
-                  type="button"
-                  onClick={() => {
-                    resetAll();
-                  }}
-                >
-                  <Image
-                    src="/svg/clear.svg"
-                    alt="icon"
-                    width={20}
-                    height={20}
-                    className="prev"
-                  />
-                  <div className="nextafterButton" style={{}}>
-                    Clear the project demo
-                  </div>
-                </button>
                 <button
                   className="cursor-pointer relative"
                   type="button"
@@ -382,20 +411,7 @@ export default function Plaza() {
                   />
                   <div className="nextafterButton">Update project</div>
                 </button>
-                <button
-                  className={`cursor-pointer relative p-1 rounded ${editMode ? "bg-slate-400" : ""}`}
-                  type="button"
-                  onClick={() => setEditMode((prev) => !prev)}
-                >
-                  <Image
-                    src="/svg/drag.svg"
-                    alt="icon"
-                    width={15}
-                    height={15}
-                    className="prev"
-                  />
-                  <div className="nextafterButton">Drug & Drop</div>
-                </button>
+
                 <button
                   className={` cursor-pointer relative `}
                   type="button"
@@ -421,10 +437,15 @@ export default function Plaza() {
               <code>{JSON.stringify(project, null, 2)}</code>
             </pre>
           )} */}
+          {/* {htmlJson && (
+            <pre>
+              <code>{JSON.stringify(htmlJson, null, 2)}</code>
+            </pre>
+          )} */}
           <motion.div
             id="plaza-container"
             className={`grid transition-all duration-300 pt-2 gap-4 
-             
+             overflow-hidden
            `}
           >
             <AnimatePresence mode="wait">

@@ -1,19 +1,8 @@
+"use client";
 import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import removeNodeByKey from "@/utils/plaza/removeNodeByKey";
 import findNodeByKey from "@/utils/plaza/findNodeByKey";
-
-const parseInlineStyle = (styleString: string): React.CSSProperties => {
-  if (!styleString) return {};
-  return styleString.split(";").reduce((acc, rule) => {
-    const [prop, value] = rule.split(":").map((s) => s.trim());
-    if (prop && value) {
-      const jsProp = prop.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
-      (acc as any)[jsProp] = value;
-    }
-    return acc;
-  }, {} as React.CSSProperties);
-};
 
 const createRenderNode = ({
   editMode,
@@ -26,6 +15,7 @@ const createRenderNode = ({
   setNodeToDrag,
 }: any) => {
   // ⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️
+
   // ⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️
   // ⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️
 
@@ -157,7 +147,7 @@ const createRenderNode = ({
     let prev = el.previousElementSibling as HTMLElement | null;
     let next = el.nextElementSibling as HTMLElement | null;
 
-    if (el.classList.contains("card")) {
+    if (el.classList.contains("card") && prev && next) {
       el.style.background = "rgba(0, 0, 0, 0.3)";
       prev.style.opacity = "1";
       prev.style.height = `${el.offsetHeight}px`;
@@ -170,7 +160,7 @@ const createRenderNode = ({
 
       el.style.opacity = "1";
     }
-    if (nodeToDrag._key === node._key) {
+    if (nodeToDrag._key === node._key && prev && next) {
       el.style.background = "rgb(236, 236, 236, 0.3)";
       prev.style.opacity = "0";
       next.style.opacity = "0";
@@ -257,12 +247,13 @@ const createRenderNode = ({
     const el = e.currentTarget as HTMLElement;
     const prev = el.previousElementSibling as HTMLElement | null;
     const next = el.nextElementSibling as HTMLElement | null;
-    setTimeout(() => {
-      el.style.background = "rgb(236, 236, 236)";
-      prev.style.opacity = "0";
-      next.style.opacity = "0";
-    }, 0);
-
+    if (prev && next) {
+      setTimeout(() => {
+        el.style.background = "rgb(236, 236, 236)";
+        prev.style.opacity = "0";
+        next.style.opacity = "0";
+      }, 0);
+    }
     // ✅ Если узел сбрасывают на самого себя — клонировать рядом
 
     if (nodeToDrag._key === node._key) {
@@ -298,7 +289,18 @@ const createRenderNode = ({
     }
     setNodeToDrag(null);
   };
-
+  const parseInlineStyle = (styleString: string): React.CSSProperties => {
+    if (!styleString) return {};
+    console.log("<====styleString====>", styleString);
+    return styleString.split(";").reduce((acc, rule) => {
+      const [prop, value] = rule.split(":").map((s) => s.trim());
+      if (prop && value) {
+        const jsProp = prop.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+        (acc as any)[jsProp] = value;
+      }
+      return acc;
+    }, {} as React.CSSProperties);
+  };
   // ⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️
   // ⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️
   // ⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️
@@ -417,15 +419,48 @@ const createRenderNode = ({
         onDragLeave={editMode ? handleDragLeave : undefined}
         onDrop={editMode ? (e) => handleDrop(e, node, true) : undefined}
         className={`${editMode ? "card" : node.class} render-tag relative  cursor-${editMode ? "grab" : "default"}`}
-        style={{
-          ...(editMode ? filteredStyle : originalStyle),
-          border: openInfoKey === node._key ? "2px solid red" : "none",
-          position: "relative",
-          transition: "opacity 0.2s ease",
-          cursor: editMode ? "grab" : "pointer",
-          padding: editMode ? "0 18px" : "0",
-          overflow: "hidden",
-        }}
+        // style={
+        //   parseInlineStyle(node.style)
+        //   //   {
+        //   //   // ...(editMode ? filteredStyle : ),
+
+        //   //   border: openInfoKey === node._key ? "2px solid red" : "none",
+        //   //   position: "relative",
+        //   //   transition: "opacity 0.2s ease",
+        //   //   cursor: editMode ? "grab" : "pointer",
+        //   //   padding: editMode ? "0 18px" : "0",
+        //   //   overflow: "hidden",
+        //   // }}
+        // }
+        style={(() => {
+          const originalStyle = parseInlineStyle(node.style) || {};
+
+          // 1. Базовые стили: в editMode — только layout-свойства
+          const baseStyle = editMode
+            ? Object.fromEntries(
+                Object.entries(originalStyle).filter(([key]) =>
+                  /^(display|flex|grid|justify|align)/i.test(key)
+                )
+              )
+            : originalStyle;
+
+          // 2. Редакторские стили — только в editMode
+          if (!editMode) return baseStyle;
+
+          const editorStyle: React.CSSProperties = {
+            border:
+              openInfoKey === node._key ? "2px solid red" : "1px solid #aaa",
+            padding: "0 18px",
+            cursor: "grab",
+            position: "relative",
+            transition: "opacity 0.2s ease, border 0.2s ease",
+            overflow: "hidden",
+            // background: "rgba(255, 255, 255, 0.9)", // опционально
+          };
+
+          // 3. Объединяем: baseStyle (layout) + editorStyle (визуал)
+          return { ...baseStyle, ...editorStyle };
+        })()}
         onClick={handleNodeClick}
       >
         {node?.text}

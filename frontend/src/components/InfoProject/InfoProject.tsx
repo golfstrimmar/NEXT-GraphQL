@@ -66,12 +66,46 @@ const InfoProject: React.FC<InfoProjectProps> = ({
     return { ...nodes }; // Возвращаем копию, чтобы не потерять ререндер
   };
   // ================================
+  const adjustHeight = (el: HTMLTextAreaElement) => {
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  };
+
+  const formatStyleForDisplay = (raw: string): string => {
+    // Если уже есть переносы — пользователь редактировал вручную
+    if (raw.includes("\n")) return raw;
+
+    const trimmed = raw.trim();
+    if (!trimmed) return "";
+
+    const hasTrailingSemicolon = trimmed.endsWith(";");
+    const clean = hasTrailingSemicolon ? trimmed.slice(0, -1) : trimmed;
+
+    const properties = clean
+      .split(";")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0)
+      .map((prop) => {
+        const colonIndex = prop.indexOf(":");
+        if (colonIndex === -1) return prop;
+        const key = prop.slice(0, colonIndex).trim();
+        const value = prop.slice(colonIndex + 1).trim();
+        return `${key}: ${value}`;
+      });
+
+    // Используем реальный \n — React и textarea его правильно отобразят
+    return properties.join(";\n") + (hasTrailingSemicolon ? ";" : "");
+  };
+  // ================================
   const infoProject = (node: ProjectData) => {
     return (
       <div className=" flex flex-col relative  ">
-        {node?.tag && <p>Tag: {node?.tag}</p>}
-        <p className="bg-white inline-block z-30 py-1 rounded mt-2 -mb-3 w-[max-content]">
-          Text:{" "}
+        <div className="flex w-[max-content] px-1  items-center rounded border-2 border-[red]">
+          <p className="!font-bold text-[16px]">Tag: &nbsp;</p>
+          <h5 className="inline-block">{node?.tag}</h5>
+        </div>
+        <p className="bg-white !font-bold  inline-block z-30 py-1 rounded mt-2 -mb-3 w-[max-content]">
+          Text:
         </p>
 
         <textarea
@@ -98,7 +132,7 @@ const InfoProject: React.FC<InfoProjectProps> = ({
           }}
           className="textarea-styles"
         />
-        <p className="bg-white inline-block z-30 py-1 rounded  -mb-3 w-[max-content]">
+        <p className="bg-white !font-bold inline-block z-30 py-1 rounded  -mb-3 w-[max-content]">
           Class:
         </p>
         <input
@@ -120,35 +154,17 @@ const InfoProject: React.FC<InfoProjectProps> = ({
           }}
           className="textarea-styles"
         />
-        <p className="bg-white inline-block z-30 py-1 rounded -mb-3 w-[max-content]">
+        <p className="bg-white !font-bold inline-block z-30 py-1 rounded -mb-3 w-[max-content]">
           Style:
         </p>
         <textarea
           ref={(el) => {
             if (!el) return;
             textareaRef.current = el;
-            el.style.height = "auto";
-            el.style.height = `${el.scrollHeight}px`;
+            adjustHeight(el);
           }}
-          value={
-            node?.style
-              ? (() => {
-                  // Если пользователь уже вручную отформатировал — ничего не трогаем.
-                  if (node.style.includes("\n")) return node.style;
-                  // Первый импорт: красиво разложить по строкам
-                  const styleText = node.style;
-                  const parts = styleText
-                    .split(";")
-                    .filter((s) => s.length > 0);
-                  // Показываем ; на конце, если была (и свойства есть)
-                  let needsSemicolon =
-                    styleText.endsWith(";") && parts.length > 0;
-                  return parts.join(";\n") + (needsSemicolon ? ";" : "");
-                })()
-              : ""
-          }
+          value={node?.style ? formatStyleForDisplay(node.style) : ""}
           onChange={(e) => {
-            // Просто сохраняем пользовательский ввод целиком, включая все пробелы и ; !
             const newValue = e.target.value;
             const updatedProject = updateNodeByKey(project, node?._key, {
               style: newValue,
@@ -156,17 +172,24 @@ const InfoProject: React.FC<InfoProjectProps> = ({
             setProject(updatedProject as ProjectData);
             setHtmlJson(updatedProject as any);
 
-            e.target.style.height = "auto";
-            e.target.style.height = `${e.target.scrollHeight}px`;
+            adjustHeight(e.target);
           }}
+          onInput={(e) => adjustHeight(e.target as HTMLTextAreaElement)}
           style={{
-            whiteSpace: "pre-wrap",
+            whiteSpace: "pre", // КЛЮЧЕВОЕ: сохраняет \n как переносы
             fontFamily: "monospace",
             width: "100%",
+            minHeight: "20px",
             overflow: "hidden",
             resize: "none",
+            padding: "8px",
+            border: "1px solid #e2e8f0",
+            borderRadius: "4px",
+            fontSize: "14px",
+            lineHeight: "1.5",
           }}
           className="textarea-styles"
+          placeholder="background-color: #e2e8f0;\npadding: 40px;"
         />
         <button
           onClick={() => setOpenInfoKey(null)}
