@@ -3,16 +3,24 @@
     "tag": "div",
     "text": "default",
     "class": "cart",
-    "style": "background: #e2e8f0;",
-    "children":[
+    "style": "background: #e2e8f0; padding: 2px 4px; border: 1px solid #adadad; ",
+    "children": [
+      {
+        "tag": "div",
+        "text": "default",
+        "class": "cart",
+        "style": "background: #e2e8f0; padding: 2px 4px; border: 1px solid #adadad; ",
+        "children": []
+      }
+    ]
+  }
+]
+[
   {
     "tag": "div",
-    "text": "default",
-    "class": "cart",
-    "style": "background: #e2e8f0;",
+    "text": "div",
+    "class": "",
+    "style": "background: #e2e8f0; padding: 2px 4px; border: 1px solid #adadad; ",
     "children": []
-  }
-    ]
-
   }
 ]

@@ -347,9 +347,9 @@ export default function Plaza() {
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
           <hr className="bordered border-slate-200 mt-2 " />
-          <div className="flex items-center mt-2">
+          <div className="flex items-center mt-2  gap-1">
             <button
-              className="cursor-pointer relative"
+              className=" cursor-pointer relative hover:bg-slate-200 flex items-center justify-center  w-6 h-6 rounded"
               type="button"
               onClick={() => {
                 resetAll();
@@ -367,7 +367,7 @@ export default function Plaza() {
               </div>
             </button>
             <button
-              className={`cursor-pointer relative p-1 rounded ${editMode ? "bg-slate-400" : ""}`}
+              className={` hover:bg-slate-200 flex items-center    w-6 h-6 cursor-pointer justify-center  relative  rounded ${editMode ? "bg-slate-400" : ""}`}
               type="button"
               onClick={() => setEditMode((prev) => !prev)}
             >
@@ -385,7 +385,7 @@ export default function Plaza() {
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
           <hr className="bordered border-slate-200 mt-6 " />
-          <div className="flex items-center gap-2">
+          <div className="">
             {projectName && (
               <h3>
                 <span className="font-normal text-[16px]">Project: </span>{" "}
@@ -394,9 +394,9 @@ export default function Plaza() {
             )}
 
             {projectId && projectId !== "" && (
-              <>
+              <div className="flex items-center gap-1">
                 <button
-                  className="cursor-pointer relative"
+                  className="cursor-pointer relative hover:bg-slate-200 flex items-center justify-center  w-6 h-6 rounded"
                   type="button"
                   onClick={() => {
                     updateTempProject();
@@ -413,7 +413,7 @@ export default function Plaza() {
                 </button>
 
                 <button
-                  className={` cursor-pointer relative `}
+                  className="cursor-pointer relative hover:bg-slate-200 flex items-center justify-center  w-6 h-6 rounded"
                   type="button"
                   onClick={() => delProject(projectId)}
                 >
@@ -426,7 +426,7 @@ export default function Plaza() {
                   />
                   <div className="nextafterButton">Remove project</div>
                 </button>
-              </>
+              </div>
             )}
           </div>
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
@@ -444,7 +444,7 @@ export default function Plaza() {
           )} */}
           <motion.div
             id="plaza-container"
-            className={`grid transition-all duration-300 pt-2 gap-4 
+            className={`grid transition-all duration-300 py-2 gap-4 mt-2 ${editMode ? "bg-slate-400 rounded" : ""}
              overflow-hidden
            `}
           >

@@ -121,6 +121,35 @@ import { GET_JSON_DOCUMENT } from "@/apollo/queries";
 //     inputs: ["input", "textarea", "search", "checkbox", "radio"],
 //   };
 // };
+const TagsNamen = [
+  { tag: "div", color: "slate" },
+  { tag: "span", color: "violet" },
+  // "p",
+  // "a",
+  // "button",
+  // "ul",
+  // "li",
+  // "img",
+  // "svg",
+  // "br",
+  // "hr",
+  // "header",
+  // "footer",
+  // "nav",
+  // "strong",
+  // "ol",
+  // "h1",
+  // "h2",
+  // "h3",
+  // "h4",
+  // "h5",
+  // "h6",
+  // "input",
+  // "textarea",
+  // "search",
+  // "checkbox",
+  // "radio",
+];
 // =====================================
 const AdminComponent = () => {
   const { htmlJson, setHtmlJson, setModalMessage } = useStateContext();
@@ -131,33 +160,29 @@ const AdminComponent = () => {
     fetchPolicy: "no-cache",
   });
   // =============================
-  const handleLoad = async () => {
-    if (!nodeToFetch) return;
-    await refetchJson({ name: nodeToFetch });
-    setLoadKey((k) => k + 1);
-  };
-
-  useEffect(() => {
-    if (!jsonData?.jsonDocumentByName?.content) return;
-    const content = jsonData.jsonDocumentByName.content;
+  const handleLoad = async (name: string) => {
+    if (!name) return;
+    const { data } = await refetchJson({ name });
+    const content = data?.jsonDocumentByName?.content;
+    if (!content) return;
     setHtmlJson((prev) => ({
       ...prev,
       children: [...prev.children, ...content],
     }));
-  }, [jsonData, loadKey]);
+  };
 
   return (
     <div className="admincomponent">
-      <button
-        className="btn"
-        type="button"
-        onClick={() => {
-          handleLoad();
-          setNodeToFetch("initialTags");
-        }}
-      >
-        span
-      </button>
+      {TagsNamen.map((el, i) => (
+        <button
+          key={i}
+          className={`btn bg-${el.color}-300 hover:bg-${el.color}-500`}
+          type="button"
+          onClick={() => handleLoad(el.tag)}
+        >
+          {el.tag}
+        </button>
+      ))}
     </div>
   );
 };

@@ -291,8 +291,13 @@ const createRenderNode = ({
   };
   const parseInlineStyle = (styleString: string): React.CSSProperties => {
     if (!styleString) return {};
+
     console.log("<====styleString====>", styleString);
-    return styleString.split(";").reduce((acc, rule) => {
+
+    // добавляем свойство cursor: pointer
+    const finalStyle = styleString + ";cursor: pointer;";
+
+    return finalStyle.split(";").reduce((acc, rule) => {
       const [prop, value] = rule.split(":").map((s) => s.trim());
       if (prop && value) {
         const jsProp = prop.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
@@ -301,6 +306,7 @@ const createRenderNode = ({
       return acc;
     }, {} as React.CSSProperties);
   };
+
   // ⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️
   // ⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️
   // ⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️
@@ -401,15 +407,6 @@ const createRenderNode = ({
         })
       : node.children || null;
 
-    const originalStyle = parseInlineStyle(node.style) || {};
-    const filteredStyle = editMode
-      ? Object.fromEntries(
-          Object.entries(originalStyle).filter(([key]) =>
-            /^(display|flex|grid|justify|align)/.test(key)
-          )
-        )
-      : originalStyle;
-
     return (
       <Tag
         key={`${node._key}-${node.text}`}
@@ -418,24 +415,18 @@ const createRenderNode = ({
         onDragOver={editMode ? (e) => handleDragOver(e, node) : undefined}
         onDragLeave={editMode ? handleDragLeave : undefined}
         onDrop={editMode ? (e) => handleDrop(e, node, true) : undefined}
-        className={`${editMode ? "card" : node.class} render-tag relative  cursor-${editMode ? "grab" : "default"}`}
-        // style={
-        //   parseInlineStyle(node.style)
-        //   //   {
-        //   //   // ...(editMode ? filteredStyle : ),
-
-        //   //   border: openInfoKey === node._key ? "2px solid red" : "none",
-        //   //   position: "relative",
-        //   //   transition: "opacity 0.2s ease",
-        //   //   cursor: editMode ? "grab" : "pointer",
-        //   //   padding: editMode ? "0 18px" : "0",
-        //   //   overflow: "hidden",
-        //   // }}
-        // }
+        className={`${editMode ? "card" : node.class} render-tag relative cursor-${
+          editMode ? "grab" : "default"
+        }`}
         style={(() => {
-          const originalStyle = parseInlineStyle(node.style) || {};
+          // 1. Исходные инлайн-стили + рамка (всегда)
+          const originalStyle = {
+            ...parseInlineStyle(node.style),
+            border:
+              openInfoKey === node._key ? "2px solid red" : "1px solid #aaa",
+          };
 
-          // 1. Базовые стили: в editMode — только layout-свойства
+          // 2. В режиме редактирования — оставляем только layout-свойства
           const baseStyle = editMode
             ? Object.fromEntries(
                 Object.entries(originalStyle).filter(([key]) =>
@@ -444,21 +435,21 @@ const createRenderNode = ({
               )
             : originalStyle;
 
-          // 2. Редакторские стили — только в editMode
+          // 3. Если не editMode → просто вернуть baseStyle (с рамкой)
           if (!editMode) return baseStyle;
 
+          // 4. Дополнительные стили для editMode
           const editorStyle: React.CSSProperties = {
-            border:
-              openInfoKey === node._key ? "2px solid red" : "1px solid #aaa",
             padding: "0 18px",
             cursor: "grab",
             position: "relative",
             transition: "opacity 0.2s ease, border 0.2s ease",
             overflow: "hidden",
-            // background: "rgba(255, 255, 255, 0.9)", // опционально
+            border:
+              openInfoKey === node._key ? "2px solid red" : "1px solid #aaa",
           };
 
-          // 3. Объединяем: baseStyle (layout) + editorStyle (визуал)
+          // 5. Объединяем: baseStyle (layout) + editorStyle (визуал)
           return { ...baseStyle, ...editorStyle };
         })()}
         onClick={handleNodeClick}
@@ -473,6 +464,3 @@ const createRenderNode = ({
 };
 
 export default createRenderNode;
-
-// выводим плейсхолдеры абсолютом. пробуем добавить свойства програмно
-// находим у тэга предыдущий элемент и последующий. смещаем их абсолютом соответсвенно влево или вправо на 15px, чтобы они наползли на сам элемент

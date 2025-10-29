@@ -99,8 +99,8 @@ const InfoProject: React.FC<InfoProjectProps> = ({
   // ================================
   const infoProject = (node: ProjectData) => {
     return (
-      <div className=" flex flex-col relative  ">
-        <div className="flex w-[max-content] px-1  items-center rounded border-2 border-[red]">
+      <div className=" flex flex-col relative rounded border-2 border-[red] p-1 ">
+        <div className="flex w-[max-content] px-1  items-center ">
           <p className="!font-bold text-[16px]">Tag: &nbsp;</p>
           <h5 className="inline-block">{node?.tag}</h5>
         </div>

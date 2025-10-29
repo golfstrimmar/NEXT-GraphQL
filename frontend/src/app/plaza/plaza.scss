@@ -49,19 +49,20 @@
   opacity: 0;
   position: absolute;
   z-index: -1;
-  color: "silver";
   background: gray;
   color: white;
   border: 1px solid gray;
   padding: 5px;
   border-radius: 5px;
   cursor: pointer;
-  transform: translateY(-50px);
+  left: 0;
+  top: 0;
+  transform: translateY(-35px);
   white-space: nowrap;
 }
 
 .prev:hover~.nextafterButton {
-  transform: translateY(-60px);
+  transform: translateY(-40px);
   opacity: 1;
   z-index: 100;
 
