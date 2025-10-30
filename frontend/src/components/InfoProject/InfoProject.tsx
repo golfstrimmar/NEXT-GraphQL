@@ -15,8 +15,10 @@ type ProjectData = {
   text: string;
   class: string;
   style: string;
+  attributes?: Record<string, string>; // ✅ сюда пойдут src, alt и т.п.
   children: ProjectData[] | string;
 };
+
 interface InfoProjectProps {
   setProject: React.Dispatch<React.SetStateAction<ProjectData>>;
   setHtmlJson: React.Dispatch<React.SetStateAction<string>>;
@@ -42,18 +44,22 @@ const InfoProject: React.FC<InfoProjectProps> = ({
     changes: Partial<ProjectData>
   ): ProjectData | ProjectData[] => {
     if (Array.isArray(nodes)) {
-      // Всегда создаём новый массив
       return nodes.map(
         (node) => updateNodeByKey(node, key, changes) as ProjectData
       );
     }
 
-    // Если нашли нужный элемент
     if (nodes._key === key) {
-      return { ...nodes, ...changes }; // обновим text, class, style и т.д.
+      // если в changes есть attributes — аккуратно мержим
+      if (changes.attributes) {
+        return {
+          ...nodes,
+          attributes: { ...nodes.attributes, ...changes.attributes },
+        };
+      }
+      return { ...nodes, ...changes };
     }
 
-    // Если есть дети — создаём новый объект с изменёнными children
     if (Array.isArray(nodes.children)) {
       const updatedChildren = nodes.children.map((child) =>
         typeof child === "string"
@@ -63,8 +69,9 @@ const InfoProject: React.FC<InfoProjectProps> = ({
       return { ...nodes, children: updatedChildren };
     }
 
-    return { ...nodes }; // Возвращаем копию, чтобы не потерять ререндер
+    return { ...nodes };
   };
+
   // ================================
   const adjustHeight = (el: HTMLTextAreaElement) => {
     el.style.height = "auto";
@@ -154,6 +161,7 @@ const InfoProject: React.FC<InfoProjectProps> = ({
           }}
           className="textarea-styles"
         />
+
         <p className="bg-white !font-bold inline-block z-30 py-1 rounded -mb-3 w-[max-content]">
           Style:
         </p>
@@ -191,6 +199,34 @@ const InfoProject: React.FC<InfoProjectProps> = ({
           className="textarea-styles"
           placeholder="background-color: #e2e8f0;\npadding: 40px;"
         />
+        {node?.tag === "img" && (
+          <>
+            <p className="bg-white !font-bold inline-block z-30 py-1 rounded  -mb-3 w-[max-content]">
+              Src:
+            </p>
+            <input
+              type="text"
+              value={node?.attributes?.src || ""}
+              onChange={(e) => {
+                const updatedProject = updateNodeByKey(project, node._key, {
+                  attributes: { src: e.target.value }, // ✅ обновляем только src
+                });
+                setProject(updatedProject as ProjectData);
+                setHtmlJson(updatedProject as any);
+              }}
+              style={{
+                whiteSpace: "pre-wrap",
+                fontFamily: "monospace",
+                width: "100%",
+                overflow: "hidden",
+                resize: "none",
+              }}
+              className="textarea-styles"
+              placeholder="https://example.com/image.jpg"
+            />
+          </>
+        )}
+
         <button
           onClick={() => setOpenInfoKey(null)}
           className="absolute left-[50%] -bottom-3 border rounded bg-slate-200 p-1 hover:bg-slate-300 transition-all duration-200 rotate-90"

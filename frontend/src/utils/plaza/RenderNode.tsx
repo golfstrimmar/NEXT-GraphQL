@@ -5,6 +5,7 @@ import removeNodeByKey from "@/utils/plaza/removeNodeByKey";
 import findNodeByKey from "@/utils/plaza/findNodeByKey";
 
 const createRenderNode = ({
+  project,
   editMode,
   openInfoKey,
   setOpenInfoKey,
@@ -13,6 +14,8 @@ const createRenderNode = ({
   nodeToDrag,
   setNodeToDragEl,
   setNodeToDrag,
+  removeKeys,
+  setHtmlJson,
 }: any) => {
   // ⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️
 
@@ -312,6 +315,7 @@ const createRenderNode = ({
   // ⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️
   // ⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️
 
+  // ⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️
   const renderNode = (node: ProjectData | string): JSX.Element | null => {
     if (!node) return null;
     if (typeof node === "string") {
@@ -320,6 +324,21 @@ const createRenderNode = ({
 
     const Tag = node.tag as keyof JSX.IntrinsicElements;
     if (!Tag) return null;
+
+    const voidTags = [
+      "img",
+      "input",
+      "textarea",
+      "br",
+      "hr",
+      "source",
+      "track",
+      "meta",
+      "link",
+      "canvas",
+      "iframe",
+    ];
+    const isVoid = voidTags.includes(node.tag);
 
     const handleNodeClick = (e: React.MouseEvent) => {
       e.stopPropagation();
@@ -339,125 +358,131 @@ const createRenderNode = ({
       setOpenInfoKey((prev: any) => (prev === node._key ? null : node._key));
 
     const handleDoubleClick = () => {
-      setProject((prev: any) => removeNodeByKey(prev, node._key));
+      setProject((prev) => {
+        if (!prev) return prev;
+        const newTree = removeNodeByKey(prev, node._key);
+        setHtmlJson(removeKeys(newTree));
+        return newTree;
+      });
+      //
       setOpenInfoKey(null);
     };
 
-    const children = Array.isArray(node.children)
-      ? node.children.flatMap((child, idx) => {
-          const elements: JSX.Element[] = [];
-
-          if (editMode) {
-            elements.push(
-              <div
-                key={`before-${typeof child === "string" ? crypto.randomUUID() : child._key}`}
-                className="placeholder"
-                draggable={false}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={(e) =>
-                  handleDropOnPlaceholder(
-                    e,
-                    node._key,
-                    node.children[idx]?._key || null,
-                    "before"
-                  )
-                }
-              >
-                {/* <Image
-                  src="/svg/chevron-left.svg"
-                  alt="placeholder"
-                  width={10}
-                  height={10}
-                /> */}
-              </div>
-            );
-          }
-
-          elements.push(renderNode(child));
-
-          if (editMode) {
-            elements.push(
-              <div
-                key={`after-${typeof child === "string" ? crypto.randomUUID() : child._key}`}
-                className="placeholder"
-                draggable={false}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={(e) =>
-                  handleDropOnPlaceholder(
-                    e,
-                    node._key,
-                    node.children[idx]?._key || null,
-                    "after"
-                  )
-                }
-              >
-                {/* <Image
-                  src="/svg/chevron-right.svg"
-                  alt="placeholder"
-                  width={10}
-                  height={10}
-                /> */}
-              </div>
-            );
-          }
-
-          return elements;
-        })
-      : node.children || null;
-
-    return (
-      <Tag
-        key={`${node._key}-${node.text}`}
-        draggable={editMode}
-        onDragStart={editMode ? (e) => handleDragStart(e, node) : undefined}
-        onDragOver={editMode ? (e) => handleDragOver(e, node) : undefined}
-        onDragLeave={editMode ? handleDragLeave : undefined}
-        onDrop={editMode ? (e) => handleDrop(e, node, true) : undefined}
-        className={`${editMode ? "card" : node.class} render-tag relative cursor-${
-          editMode ? "grab" : "default"
-        }`}
-        style={(() => {
-          // 1. Исходные инлайн-стили + рамка (всегда)
-          const originalStyle = {
+    if (isVoid) {
+      return (
+        <Tag
+          key={node._key}
+          {...(node.attributes || {})}
+          draggable={editMode}
+          onDragStart={editMode ? (e) => handleDragStart(e, node) : undefined}
+          onDragOver={editMode ? (e) => handleDragOver(e, node) : undefined}
+          onDragLeave={editMode ? handleDragLeave : undefined}
+          onDrop={editMode ? (e) => handleDrop(e, node, true) : undefined}
+          className={`${editMode ? "card" : node.class} render-tag relative cursor-${editMode ? "grab" : "default"}`}
+          style={{
             ...parseInlineStyle(node.style),
             border:
               openInfoKey === node._key ? "2px solid red" : "1px solid #aaa",
-          };
+          }}
+          onClick={handleNodeClick}
+        />
+      );
+    } else {
+      // ---------------- NORMAL ELEMENT ----------------
+      const children = Array.isArray(node.children)
+        ? node.children.flatMap((child, idx) => {
+            const elements: JSX.Element[] = [];
 
-          // 2. В режиме редактирования — оставляем только layout-свойства
-          const baseStyle = editMode
-            ? Object.fromEntries(
-                Object.entries(originalStyle).filter(([key]) =>
-                  /^(display|flex|grid|justify|align)/i.test(key)
+            if (editMode) {
+              elements.push(
+                <div
+                  key={`before-${typeof child === "string" ? crypto.randomUUID() : child._key}`}
+                  className="placeholder"
+                  draggable={false}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) =>
+                    handleDropOnPlaceholder(
+                      e,
+                      node._key,
+                      node.children[idx]?._key || null,
+                      "before"
+                    )
+                  }
+                />
+              );
+            }
+
+            elements.push(renderNode(child));
+
+            if (editMode) {
+              elements.push(
+                <div
+                  key={`after-${typeof child === "string" ? crypto.randomUUID() : child._key}`}
+                  className="placeholder"
+                  draggable={false}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) =>
+                    handleDropOnPlaceholder(
+                      e,
+                      node._key,
+                      node.children[idx]?._key || null,
+                      "after"
+                    )
+                  }
+                />
+              );
+            }
+
+            return elements;
+          })
+        : null;
+
+      return (
+        <Tag
+          key={`${node._key}-${node.text}`}
+          draggable={editMode}
+          onDragStart={editMode ? (e) => handleDragStart(e, node) : undefined}
+          onDragOver={editMode ? (e) => handleDragOver(e, node) : undefined}
+          onDragLeave={editMode ? handleDragLeave : undefined}
+          onDrop={editMode ? (e) => handleDrop(e, node, true) : undefined}
+          className={`${editMode ? "card" : node.class} render-tag relative cursor-${editMode ? "grab" : "default"}`}
+          style={(() => {
+            const originalStyle = {
+              ...parseInlineStyle(node.style),
+              border:
+                openInfoKey === node._key ? "2px solid red" : "1px solid #aaa",
+            };
+            const baseStyle = editMode
+              ? Object.fromEntries(
+                  Object.entries(originalStyle).filter(([key]) =>
+                    /^(display|flex|grid|justify|align)/i.test(key)
+                  )
                 )
-              )
-            : originalStyle;
+              : originalStyle;
 
-          // 3. Если не editMode → просто вернуть baseStyle (с рамкой)
-          if (!editMode) return baseStyle;
+            if (!editMode) return baseStyle;
 
-          // 4. Дополнительные стили для editMode
-          const editorStyle: React.CSSProperties = {
-            padding: "0 18px",
-            cursor: "grab",
-            position: "relative",
-            transition: "opacity 0.2s ease, border 0.2s ease",
-            overflow: "hidden",
-            border:
-              openInfoKey === node._key ? "2px solid red" : "1px solid #aaa",
-          };
+            const editorStyle: React.CSSProperties = {
+              padding: "0 18px",
+              cursor: "grab",
+              position: "relative",
+              transition: "opacity 0.2s ease, border 0.2s ease",
+              overflow: "hidden",
+              border:
+                openInfoKey === node._key ? "2px solid red" : "1px solid #aaa",
+            };
 
-          // 5. Объединяем: baseStyle (layout) + editorStyle (визуал)
-          return { ...baseStyle, ...editorStyle };
-        })()}
-        onClick={handleNodeClick}
-      >
-        {node?.text}
-        {children}
-      </Tag>
-    );
+            return { ...baseStyle, ...editorStyle };
+          })()}
+          onClick={handleNodeClick}
+        >
+          {node.text}
+          {children}
+        </Tag>
+      );
+    }
   };
 
   return renderNode;

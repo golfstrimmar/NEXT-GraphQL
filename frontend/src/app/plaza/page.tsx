@@ -260,6 +260,10 @@ export default function Plaza() {
         setNodeToDrag,
         nodeToDragEl,
         nodeToDrag,
+        setModalMessage,
+        setHtmlJson,
+        project,
+        removeKeys,
       }),
     [editMode, nodeToDrag, nodeToDragEl, openInfoKey]
   );

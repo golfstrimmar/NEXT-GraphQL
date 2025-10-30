@@ -5,63 +5,63 @@
 //   border-radius: 5px;
 //   max-height: 80px;
 
-//   input[type="text"],
-//   input[type="email"],
-//   input[type="tel"],
-//   input[type="number"],
-//   input[type="date"],
-//   input[type="search"],
-//   input[type="password"],
-//   input[type="time"],
-//   input[type="number"] {
-//     width: 100% !important;
-//     height: 40px !important;
-//     cursor: pointer;
-//     position: relative;
-//     background: rgba(245, 245, 245, 0);
+// input[type="text"],
+// input[type="email"],
+// input[type="tel"],
+// input[type="number"],
+// input[type="date"],
+// input[type="search"],
+// input[type="password"],
+// input[type="time"],
+// input[type="number"] {
+//   width: 100% !important;
+//   height: 40px !important;
+//   cursor: pointer;
+//   position: relative;
+//   background: rgba(245, 245, 245, 0);
+//   transition: all 0.2s;
+//   border: 1px solid rgb(173, 173, 173);
+//   border-radius: 5px;
+//   padding: 0px 10px 0px !important;
+//   min-height: 40px;
+//   z-index: 2;
+
+//   &+label {
+//     position: absolute !important;
+//     top: 50%;
+//     transform: translateY(-50%);
+//     left: 10px;
 //     transition: all 0.2s;
-//     border: 1px solid rgb(173, 173, 173);
-//     border-radius: 5px;
-//     padding: 0px 10px 0px !important;
-//     min-height: 40px;
-//     z-index: 2;
-
-//     &+label {
-//       position: absolute !important;
-//       top: 50%;
-//       transform: translateY(-50%);
-//       left: 10px;
-//       transition: all 0.2s;
-//       z-index: 1;
-//       font-style: italic;
-//       font-size: 14px;
-//       background: #193756;
-//       color: #51C9CD;
-//       white-space: nowrap;
-//       padding: 2px 3px;
-//       line-height: 1;
-//       border-radius: 4px;
-//     }
-
-//     &::placeholder {
-//       opacity: 0;
-//     }
-
-
-//     &:hover {
-//       border: 1px solid #007bff;
-//     }
-
-//     &:hover+label {
-//       color: #007bff;
-//     }
-
-//     &:focus,
-//     &:valid {
-
-//       border: 1px solid #007bff !important;
-//     }
+//     z-index: 1;
+//     font-style: italic;
+//     font-size: 14px;
+//     background: #193756;
+//     color: #51C9CD;
+//     white-space: nowrap;
+//     padding: 2px 3px;
+//     line-height: 1;
+//     border-radius: 4px;
 //   }
+
+//   &::placeholder {
+//     opacity: 0;
+//   }
+
+
+//   &:hover {
+//     border: 1px solid #007bff;
+//   }
+
+//   &:hover+label {
+//     color: #007bff;
+//   }
+
+//   &:focus,
+//   &:valid {
+
+//     border: 1px solid #007bff !important;
+//   }
+// }
 
 //   textarea {
 //     height: 100%;
