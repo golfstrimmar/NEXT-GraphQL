@@ -130,20 +130,12 @@ const InfoProject: React.FC<InfoProjectProps> = ({
             setProject(updatedProject as ProjectData);
             setHtmlJson(updatedProject as any);
           }}
-          style={{
-            whiteSpace: "pre-wrap",
-            fontFamily: "monospace",
-            width: "100%",
-            overflow: "hidden",
-            resize: "none",
-          }}
           className="textarea-styles"
         />
         <p className="bg-white !font-bold inline-block z-30 py-1 rounded  -mb-3 w-[max-content]">
           Class:
         </p>
-        <input
-          type="text"
+        <textarea
           value={node?.class || ""}
           onChange={(e) => {
             const updatedProject = updateNodeByKey(project, node._key, {
@@ -151,13 +143,6 @@ const InfoProject: React.FC<InfoProjectProps> = ({
             });
             setProject(updatedProject as ProjectData);
             setHtmlJson(updatedProject as any);
-          }}
-          style={{
-            whiteSpace: "pre-wrap",
-            fontFamily: "monospace",
-            width: "100%",
-            overflow: "hidden",
-            resize: "none",
           }}
           className="textarea-styles"
         />
@@ -183,19 +168,7 @@ const InfoProject: React.FC<InfoProjectProps> = ({
             adjustHeight(e.target);
           }}
           onInput={(e) => adjustHeight(e.target as HTMLTextAreaElement)}
-          style={{
-            whiteSpace: "pre", // КЛЮЧЕВОЕ: сохраняет \n как переносы
-            fontFamily: "monospace",
-            width: "100%",
-            minHeight: "20px",
-            overflow: "hidden",
-            resize: "none",
-            padding: "8px",
-            border: "1px solid #e2e8f0",
-            borderRadius: "4px",
-            fontSize: "14px",
-            lineHeight: "1.5",
-          }}
+          style={{}}
           className="textarea-styles"
           placeholder="background-color: #e2e8f0;\npadding: 40px;"
         />
@@ -204,8 +177,7 @@ const InfoProject: React.FC<InfoProjectProps> = ({
             <p className="bg-white !font-bold inline-block z-30 py-1 rounded  -mb-3 w-[max-content]">
               Src:
             </p>
-            <input
-              type="text"
+            <textarea
               value={node?.attributes?.src || ""}
               onChange={(e) => {
                 const updatedProject = updateNodeByKey(project, node._key, {
@@ -213,13 +185,6 @@ const InfoProject: React.FC<InfoProjectProps> = ({
                 });
                 setProject(updatedProject as ProjectData);
                 setHtmlJson(updatedProject as any);
-              }}
-              style={{
-                whiteSpace: "pre-wrap",
-                fontFamily: "monospace",
-                width: "100%",
-                overflow: "hidden",
-                resize: "none",
               }}
               className="textarea-styles"
               placeholder="https://example.com/image.jpg"

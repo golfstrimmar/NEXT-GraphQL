@@ -137,20 +137,30 @@ export function StateProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    // const stored = localStorage.getItem("htmlJson");
-    // if (stored && stored !== "[]") {
-    //   localStorage.setItem("htmlJson", JSON.stringify(htmlJson));
-    // } else
+
     if (
       (htmlJson === null || htmlJson === undefined || htmlJson.length === 0) &&
       jsonData
     ) {
       const initialJson = jsonData?.jsonDocumentByName?.content[0];
-      localStorage.setItem("htmlJson", JSON.stringify(initialJson));
+
+      if (initialJson) {
+        // 🧩 создаём новый объект (глубокая копия)
+        const clone = JSON.parse(JSON.stringify(initialJson));
+
+        // сохраняем в localStorage и в состояние
+        localStorage.setItem("htmlJson", JSON.stringify(clone));
+        setHtmlJson(clone); // <-- гарантирует новое значение (новая ссылка)
+      } else {
+        // если вдруг jsonData пустое — обнуляем
+        setHtmlJson([]);
+        localStorage.setItem("htmlJson", "[]");
+      }
     } else {
+      // сохраняем текущее состояние в localStorage
       localStorage.setItem("htmlJson", JSON.stringify(htmlJson));
     }
-  }, [htmlJson]);
+  }, [htmlJson, jsonData]);
 
   return (
     <StateContext.Provider

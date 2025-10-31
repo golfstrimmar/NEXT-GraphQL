@@ -121,43 +121,49 @@ import { GET_JSON_DOCUMENT } from "@/apollo/queries";
 //     inputs: ["input", "textarea", "search", "checkbox", "radio"],
 //   };
 // };
-const TagsNamen = [
+const TagsNamen1 = [
   { tag: "a", color: "#3b82f6" }, // blue
-  { tag: "article", color: "#14b8a6" }, // teal
-  { tag: "aside", color: "#06b6d4" }, // cyan
-  { tag: "br", color: "#737373" }, // gray
-  { tag: "hr", color: "#71717a" }, // zinc
   { tag: "button", color: "#06b6d4" }, // cyan
   { tag: "div", color: "#64748b" }, // slate
-  { tag: "fieldset", color: "#f43f5e" }, // rose
-  { tag: "form", color: "#0ea5e9" }, // sky
   { tag: "h1", color: "#ef4444" }, // red
   { tag: "h2", color: "#f97316" }, // orange
   { tag: "h3", color: "#f59e0b" }, // amber
   { tag: "h4", color: "#eab308" }, // yellow
   { tag: "h5", color: "#84cc16" }, // lime
   { tag: "h6", color: "#22c55e" }, // green
-  { tag: "header", color: "#6366f1" }, // indigo
   { tag: "img", color: "#0ea5e9" }, // sky
   { tag: "svg", color: "#06b6d4" }, // cyan
+  { tag: "nav", color: "#14b8a6" }, // teal
+  { tag: "p", color: "#22c55e" }, // green
+  { tag: "span", color: "#8b5cf6" }, // violet
+  { tag: "ul", color: "#f97316" }, // orange
+  { tag: "li", color: "#eab308" }, // yellow
+];
+const TagsNamen2 = [
   { tag: "input", color: "#3b82f6" }, // blue
   { tag: "textarea", color: "#6366f1" }, // indigo
   { tag: "label", color: "#f97316" },
   { tag: "legend", color: "#ec4899" }, // pink
+];
+const TagsNamen3 = [
+  { tag: "article", color: "#14b8a6" }, // teal
+  { tag: "aside", color: "#06b6d4" }, // cyan
+  { tag: "br", color: "#737373" }, // gray
+  { tag: "hr", color: "#71717a" }, // zinc
 
-  { tag: "nav", color: "#14b8a6" }, // teal
+  { tag: "fieldset", color: "#f43f5e" }, // rose
+  { tag: "form", color: "#0ea5e9" }, // sky
+
+  { tag: "header", color: "#6366f1" }, // indigo
+
   { tag: "ol", color: "#f59e0b" }, // amber
   { tag: "option", color: "#a855f7" }, // purple
   { tag: "optgroup", color: "#d946ef" }, // fuchsia
-  { tag: "p", color: "#22c55e" }, // green
+
   { tag: "select", color: "#8b5cf6" }, // violet
-  { tag: "span", color: "#8b5cf6" }, // violet
+
   { tag: "source", color: "#38bdf8" }, // sky-light
-
-  { tag: "ul", color: "#f97316" }, // orange
-  { tag: "li", color: "#eab308" }, // yellow
 ];
-
 // =====================================
 const AdminComponent = () => {
   const { htmlJson, setHtmlJson, setModalMessage } = useStateContext();
@@ -182,7 +188,33 @@ const AdminComponent = () => {
   return (
     <div className="admincomponent">
       <div className="flex flex-wrap gap-2 bg-slate-200 ro p-2">
-        {TagsNamen.map((el, i) => (
+        {TagsNamen1.map((el, i) => (
+          <button
+            key={i}
+            className={"btn  px-2!  bordered "}
+            style={{ background: el.color }}
+            type="button"
+            onClick={() => handleLoad(el.tag)}
+          >
+            {el.tag}
+          </button>
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-2 bg-slate-200 ro p-2">
+        {TagsNamen2.map((el, i) => (
+          <button
+            key={i}
+            className={"btn  px-2!  bordered "}
+            style={{ background: el.color }}
+            type="button"
+            onClick={() => handleLoad(el.tag)}
+          >
+            {el.tag}
+          </button>
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-2 bg-slate-200 ro p-2">
+        {TagsNamen3.map((el, i) => (
           <button
             key={i}
             className={"btn  px-2!  bordered "}

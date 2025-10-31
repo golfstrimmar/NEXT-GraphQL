@@ -1,5 +1,11 @@
 "use client";
-import React, { useState, useEffect, useMemo, useLayoutEffect } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useLayoutEffect,
+  useCallback,
+} from "react";
 import { useStateContext } from "@/providers/StateProvider";
 import { useMutation, useQuery, useLazyQuery } from "@apollo/client";
 import Image from "next/image";
@@ -58,10 +64,10 @@ export default function Plaza() {
     { data: dataProject, loading: loadingProject, error: errorProject },
   ] = useLazyQuery(FIND_PROJECT);
 
-  const { data: jsonData, refetch: refetchJson } = useQuery(GET_JSON_DOCUMENT, {
-    variables: { name: "initialTags" },
-    fetchPolicy: "network-only",
-  });
+  // const { data: jsonData, refetch: refetchJson } = useQuery(GET_JSON_DOCUMENT, {
+  //   variables: { name: "initialTags" },
+  //   fetchPolicy: "network-only",
+  // });
 
   const [removeProject] = useMutation(REMOVE_PROJECT, {
     refetchQueries: [{ query: GET_ALL_PROJECTS_BY_USER, variables }],
@@ -112,10 +118,6 @@ export default function Plaza() {
       const proj = dataProject.findProject;
       setProjectId(proj.id);
       const withKeys = addRuntimeKeys(proj.data);
-      // console.log(
-      //   "🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹withKeys:🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹",
-      //   withKeys
-      // );
       setProject(withKeys);
       setHtmlJson(proj.data);
     }
@@ -188,19 +190,15 @@ export default function Plaza() {
     setProjectId(undefined);
     setProjectName("");
     setOpenInfoKey(null);
-    localStorage.removeItem("htmlJson");
-
-    const initialJson = jsonData?.jsonDocumentByName?.content?.[0];
-    if (initialJson) {
-      setHtmlJson(initialJson);
-      localStorage.setItem("htmlJson", JSON.stringify(initialJson));
-    }
+    setHtmlJson(null);
   };
+
   const removeKeys = (node: any): any => {
+    if (!node) return node;
     if (typeof node === "string") return node;
 
     const { _key, children, ...rest } = node; // удаляем _key
-
+    if (!_key) return;
     return {
       ...rest,
       children: Array.isArray(children) ? children.map(removeKeys) : children,
@@ -264,6 +262,7 @@ export default function Plaza() {
         setHtmlJson,
         project,
         removeKeys,
+        resetAll,
       }),
     [editMode, nodeToDrag, nodeToDragEl, openInfoKey]
   );
@@ -318,7 +317,7 @@ export default function Plaza() {
                       <button
                         className={`flex w-full flex-col gap-2 pl-6 text-start border rounded-md p-2 hover:bg-slate-200 ${
                           projectId === p.id
-                            ? "opacity-10 !cursor-not-allowed"
+                            ? "bg-slate-400 !cursor-not-allowed"
                             : "cursor-pointer"
                         }`}
                         onClick={async () => {
@@ -326,6 +325,7 @@ export default function Plaza() {
                             variables: { id: p.id },
                           });
                           if (res.data?.findProject?.data) {
+                            setOpenInfoKey(null);
                             setProject(res.data.findProject.data);
                             setHtmlJson(res.data.findProject.data);
                             setProjectId(p.id);

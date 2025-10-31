@@ -4,10 +4,14 @@
   padding: 10px !important;
   resize: none !important;
   overflow: hidden;
-  border: 1px solid rgb(173, 173, 173);
+  background: #e2e8f098;
+  border: 1px solid #e2e8f0;
   // min-height: 2rem;
   transition: all 0.2s;
   border-radius: 4px;
+  min-height: 20px;
+  font-size: 14px;
+  white-space: pre-wrap; // КЛЮЧЕВОЕ: сохраняет \n как переносы
 
   &:focus {
     border-color: #007bff !important;

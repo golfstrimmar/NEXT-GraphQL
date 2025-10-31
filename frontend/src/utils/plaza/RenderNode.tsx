@@ -16,6 +16,7 @@ const createRenderNode = ({
   setNodeToDrag,
   removeKeys,
   setHtmlJson,
+  resetAll,
 }: any) => {
   // ⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️
 
@@ -146,6 +147,8 @@ const createRenderNode = ({
   const handleDragOver = (e: React.DragEvent<HTMLElement>, node?: any) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!nodeToDrag && !node) return;
+    console.log("<====node====>", node);
     const el = e.currentTarget as HTMLElement;
     let prev = el.previousElementSibling as HTMLElement | null;
     let next = el.nextElementSibling as HTMLElement | null;
@@ -181,8 +184,10 @@ const createRenderNode = ({
       }
       if (el.classList.contains("card")) {
         el.style.background = "rgb(236, 236, 236)";
-        prev.style.opacity = "0";
-        next.style.opacity = "0";
+        if (prev && next) {
+          prev.style.opacity = "0";
+          next.style.opacity = "0";
+        }
       }
     }, 0);
   };
@@ -294,9 +299,6 @@ const createRenderNode = ({
   };
   const parseInlineStyle = (styleString: string): React.CSSProperties => {
     if (!styleString) return {};
-
-    console.log("<====styleString====>", styleString);
-
     // добавляем свойство cursor: pointer
     const finalStyle = styleString + ";cursor: pointer;";
 
@@ -358,14 +360,28 @@ const createRenderNode = ({
       setOpenInfoKey((prev: any) => (prev === node._key ? null : node._key));
 
     const handleDoubleClick = () => {
+      // console.log("<====node====>", node);
+
+      let nextTree: any = null;
+
       setProject((prev) => {
         if (!prev) return prev;
-        const newTree = removeNodeByKey(prev, node._key);
-        setHtmlJson(removeKeys(newTree));
-        return newTree;
+
+        const updated = removeNodeByKey(prev, node._key);
+        nextTree = updated;
+        return updated || null;
       });
-      //
+
       setOpenInfoKey(null);
+
+      // 👇 гарантируем, что React уже применил обновление
+      setTimeout(() => {
+        if (!nextTree) {
+          resetAll();
+        } else {
+          setHtmlJson(removeKeys(nextTree));
+        }
+      }, 0);
     };
 
     if (isVoid) {
