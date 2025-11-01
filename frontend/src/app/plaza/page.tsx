@@ -5,6 +5,7 @@ import React, {
   useMemo,
   useLayoutEffect,
   useCallback,
+  useRef,
 } from "react";
 import { useStateContext } from "@/providers/StateProvider";
 import { useMutation, useQuery, useLazyQuery } from "@apollo/client";
@@ -45,10 +46,11 @@ export default function Plaza() {
   const [projectId, setProjectId] = useState<string>("");
   const [openInfoKey, setOpenInfoKey] = useState<string | null>(null);
   const [projectName, setProjectName] = useState<string>("");
-
+  const [pId, setpId] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [nodeToDragEl, setNodeToDragEl] = useState<HTMLElement | null>(null);
   const [nodeToDrag, setNodeToDrag] = useState<any>(null);
+  const isSyncingRef = useRef(false);
   // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
 
   const variables = React.useMemo(() => ({ userId: user?.id }), [user?.id]);
@@ -57,18 +59,18 @@ export default function Plaza() {
     skip: !user?.id,
     fetchPolicy: "cache-and-network",
   });
+  const {
+    data: dataProject,
+    loading: loadingProject,
+    error: errorProject,
+  } = useQuery(FIND_PROJECT, {
+    variables: { id: Number(pId) || null },
+    skip: !pId,
+    fetchPolicy: "cache-and-network",
+  });
+
   // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
   // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
-  const [
-    findProject,
-    { data: dataProject, loading: loadingProject, error: errorProject },
-  ] = useLazyQuery(FIND_PROJECT);
-
-  // const { data: jsonData, refetch: refetchJson } = useQuery(GET_JSON_DOCUMENT, {
-  //   variables: { name: "initialTags" },
-  //   fetchPolicy: "network-only",
-  // });
-
   const [removeProject] = useMutation(REMOVE_PROJECT, {
     refetchQueries: [{ query: GET_ALL_PROJECTS_BY_USER, variables }],
     awaitRefetchQueries: true,
@@ -79,59 +81,93 @@ export default function Plaza() {
   });
 
   // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
+
+  // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
+  // ⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️ добавление проекта
+  // берем детей с пришедшего проекта и добавляем в htmlJson
+  useEffect(() => {
+    if (!dataProject) return;
+
+    const proj = dataProject?.findProject;
+    console.log("<==== proj from bd====>", proj);
+    setProjectId(proj.id);
+    setProjectName(proj.name);
+    setHtmlJson((prev) => {
+      if (!prev) return prev;
+      const newHtmlJson = { ...prev };
+      newHtmlJson.children = [...newHtmlJson.children, ...proj.data.children];
+      setpId(null);
+      return newHtmlJson;
+    });
+  }, [dataProject]);
+
+  // 🔻🔻🔻🔻🔻 // Преобразуем в структуру с ключами
+  // 🔻🔻🔻🔻🔻
+  // 🔻🔻🔻🔻🔻
+  useEffect(() => {
+    if (!htmlJson) return;
+    isSyncingRef.current = true;
+
+    const mergeWithExistingKeys = (
+      node: ProjectData | string,
+      existing?: ProjectData | string
+    ): ProjectData | string => {
+      if (typeof node === "string") return node;
+
+      return {
+        ...node,
+        _key:
+          existing && typeof existing !== "string" && existing._key
+            ? existing._key
+            : node._key || crypto.randomUUID(),
+        children: Array.isArray(node.children)
+          ? node.children.map((child, i) =>
+              mergeWithExistingKeys(
+                child,
+                Array.isArray(existing?.children)
+                  ? existing.children[i]
+                  : undefined
+              )
+            )
+          : node.children,
+      };
+    };
+
+    setProject((prevProject) =>
+      Array.isArray(htmlJson)
+        ? htmlJson.map((node, i) =>
+            mergeWithExistingKeys(node, prevProject?.[i])
+          )
+        : mergeWithExistingKeys(htmlJson, prevProject)
+    );
+  }, [htmlJson]);
+
+  useEffect(() => {
+    if (isSyncingRef.current) {
+      isSyncingRef.current = false;
+      return;
+    }
+    const newProject = removeKeys(project);
+    setHtmlJson(newProject);
+  }, [project]);
+
+  // 🔺🔺🔺🔺🔺🔺🔺🔺🔺🔺🔺🔺
+  // 🔺🔺🔺🔺🔺🔺🔺🔺🔺🔺🔺🔺
+  // 🔺🔺🔺🔺🔺🔺🔺🔺🔺🔺🔺🔺
+  // ⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️
+  // ⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️
   useEffect(() => {
     resetAll();
   }, []);
   useEffect(() => {
     if (!user) resetAll();
   }, [user]);
-  useEffect(() => {
-    if (!openInfoKey) return;
-    console.log("<====openInfoKey====>", openInfoKey);
-  }, [openInfoKey]);
-  useEffect(() => {
-    if (!htmlJson) return;
-    console.log("<====htmlJson====>", htmlJson);
-    // Преобразуем в структуру с ключами
-    const withKeys = Array.isArray(htmlJson)
-      ? htmlJson.map(addRuntimeKeys)
-      : addRuntimeKeys(htmlJson);
-
-    setProject(withKeys);
-  }, [htmlJson]);
 
   useEffect(() => {
-    console.log("<⇨⇨⇨⇨ data ⇨⇨⇨⇨>", data?.getAllProjectsByUser);
     if (data?.getAllProjectsByUser) {
       setProjects(data?.getAllProjectsByUser);
     }
   }, [data]);
-
-  useEffect(() => {
-    if (projects) {
-      console.log("<==== projects====>", projects);
-    }
-  }, [projects]);
-
-  useEffect(() => {
-    if (dataProject?.findProject) {
-      const proj = dataProject.findProject;
-      setProjectId(proj.id);
-      const withKeys = addRuntimeKeys(proj.data);
-      setProject(withKeys);
-      setHtmlJson(proj.data);
-    }
-
-    if (errorProject) {
-      setModalMessage(errorProject.message || "Error fetching project");
-    }
-  }, [dataProject, errorProject]);
-
-  useEffect(() => {
-    if (editMode) {
-      console.log("<==== editMode====>", editMode);
-    }
-  }, [editMode]);
 
   // 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹Project
   // 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹Project
@@ -192,7 +228,7 @@ export default function Plaza() {
     setOpenInfoKey(null);
     setHtmlJson(null);
   };
-
+  // ♻️♻️♻️♻️♻️♻️♻️♻️
   const removeKeys = (node: any): any => {
     if (!node) return node;
     if (typeof node === "string") return node;
@@ -204,6 +240,7 @@ export default function Plaza() {
       children: Array.isArray(children) ? children.map(removeKeys) : children,
     };
   };
+  // ♻️♻️♻️♻️♻️♻️♻️♻️
   const updateTempProject = async () => {
     console.log("<==♻️♻️==update projectId====>", projectId);
 
@@ -239,8 +276,8 @@ export default function Plaza() {
     if (typeof node === "string") return node;
 
     return {
-      ...node,
       _key: node._key || crypto.randomUUID(),
+      ...node,
       children: Array.isArray(node.children)
         ? node.children.map(addRuntimeKeys)
         : node.children,
@@ -261,11 +298,12 @@ export default function Plaza() {
         setModalMessage,
         setHtmlJson,
         project,
-        removeKeys,
         resetAll,
       }),
     [editMode, nodeToDrag, nodeToDragEl, openInfoKey]
   );
+  //⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️
+
   //⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️
   return (
     <section className="pt-[100px] pb-[100px]">
@@ -299,13 +337,10 @@ export default function Plaza() {
                   {projects?.map((p) => (
                     <div className="relative" key={p.id}>
                       <button
-                        className={`border absolute top-0 left-0 w-5 h-full flex items-center justify-center bg-red-400 hover:bg-red-600 z-20 transition duration-300 ${
-                          projectId === p.id
-                            ? "opacity-10 !cursor-not-allowed"
-                            : "cursor-pointer"
+                        className={`border absolute top-0 left-0 w-5 h-full flex items-center justify-center bg-red-400 hover:bg-red-600 z-20 transition duration-300 
                         }`}
                         onClick={() => delProject(p?.id)}
-                        disabled={projectId === p.id}
+                        // disabled={projectId === p.id}
                       >
                         <Image
                           src="/svg/cross-com.svg"
@@ -317,23 +352,32 @@ export default function Plaza() {
                       <button
                         className={`flex w-full flex-col gap-2 pl-6 text-start border rounded-md p-2 hover:bg-slate-200 ${
                           projectId === p.id
-                            ? "bg-slate-400 !cursor-not-allowed"
+                            ? "bg-slate-400 "
                             : "cursor-pointer"
                         }`}
                         onClick={async () => {
-                          const res = await findProject({
-                            variables: { id: p.id },
-                          });
-                          if (res.data?.findProject?.data) {
-                            setOpenInfoKey(null);
-                            setProject(res.data.findProject.data);
-                            setHtmlJson(res.data.findProject.data);
-                            setProjectId(p.id);
-                            setProjectName(p.name);
-                          }
+                          // const res = await findProject({
+                          //   variables: { id: p.id },
+                          // });
+                          setpId(p.id);
+                          // const findedProject = res.data?.findProject?.data;
+                          // console.log("<====findedProject====>", findedProject);
+                          // if (findedProject) {
+                          //   setOpenInfoKey(null);
+                          //   setHtmlJson((prev) => {
+                          //     if (!prev) return prev;
+                          //     const newHtmlJson = { ...prev };
+                          //     newHtmlJson.children = [
+                          //       ...newHtmlJson.children,
+                          //       ...findedProject.children,
+                          //     ];
+                          //     return newHtmlJson;
+                          //   });
+                          //   setProjectId(p.id);
+                          //   setProjectName(p.name);
+                          // }
                         }}
                         type="button"
-                        disabled={projectId === p.id}
                       >
                         <h4>{p?.name}</h4>
                       </button>
@@ -346,7 +390,7 @@ export default function Plaza() {
 
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
-          {user && <CreateNewProject project={project} />}
+          {user && <CreateNewProject />}
 
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
@@ -440,12 +484,12 @@ export default function Plaza() {
             <pre>
               <code>{JSON.stringify(project, null, 2)}</code>
             </pre>
-          )} */}
-          {/* {htmlJson && (
+          )} 
+          {htmlJson && (
             <pre>
               <code>{JSON.stringify(htmlJson, null, 2)}</code>
             </pre>
-          )} */}
+          )}*/}
           <motion.div
             id="plaza-container"
             className={`grid transition-all duration-300 py-2 gap-4 mt-2 ${editMode ? "bg-slate-400 rounded" : ""}

@@ -14,12 +14,10 @@ const createRenderNode = ({
   nodeToDrag,
   setNodeToDragEl,
   setNodeToDrag,
-  removeKeys,
   setHtmlJson,
   resetAll,
 }: any) => {
   // ⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️
-
   // ⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️
   // ⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️♻️⚙️
 
@@ -360,30 +358,20 @@ const createRenderNode = ({
       setOpenInfoKey((prev: any) => (prev === node._key ? null : node._key));
 
     const handleDoubleClick = () => {
-      // console.log("<====node====>", node);
-
-      let nextTree: any = null;
-
       setProject((prev) => {
         if (!prev) return prev;
-
         const updated = removeNodeByKey(prev, node._key);
-        nextTree = updated;
         return updated || null;
       });
-
       setOpenInfoKey(null);
-
-      // 👇 гарантируем, что React уже применил обновление
-      setTimeout(() => {
-        if (!nextTree) {
-          resetAll();
-        } else {
-          setHtmlJson(removeKeys(nextTree));
-        }
-      }, 0);
+    };
+    const getStyleProperty = (styleString: string, prop: string) => {
+      if (!styleString) return "";
+      const match = styleString.match(new RegExp(`${prop}\\s*:\\s*([^;]+);?`));
+      return match ? match[1].trim() : "";
     };
 
+    // ---------------- VOID ELEMENT ----------------
     if (isVoid) {
       return (
         <Tag
@@ -398,7 +386,9 @@ const createRenderNode = ({
           style={{
             ...parseInlineStyle(node.style),
             border:
-              openInfoKey === node._key ? "2px solid red" : "1px solid #aaa",
+              openInfoKey === node._key
+                ? "2px solid red"
+                : getStyleProperty(node.style, "border"),
           }}
           onClick={handleNodeClick}
         />
@@ -464,11 +454,17 @@ const createRenderNode = ({
           onDragLeave={editMode ? handleDragLeave : undefined}
           onDrop={editMode ? (e) => handleDrop(e, node, true) : undefined}
           className={`${editMode ? "card" : node.class} render-tag relative cursor-${editMode ? "grab" : "default"}`}
+          id={node.attributes?.id}
+          htmlFor={node.attributes?.for}
+          href={node.attributes?.href}
+          rel={node.attributes?.rel}
           style={(() => {
             const originalStyle = {
               ...parseInlineStyle(node.style),
               border:
-                openInfoKey === node._key ? "2px solid red" : "1px solid #aaa",
+                openInfoKey === node._key
+                  ? "2px solid red"
+                  : getStyleProperty(node.style, "border"),
             };
             const baseStyle = editMode
               ? Object.fromEntries(

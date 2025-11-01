@@ -124,7 +124,7 @@ import { GET_JSON_DOCUMENT } from "@/apollo/queries";
 const TagsNamen1 = [
   { tag: "a", color: "#3b82f6" }, // blue
   { tag: "button", color: "#06b6d4" }, // cyan
-  { tag: "div", color: "#64748b" }, // slate
+  { tag: "div", color: "rgb(226, 232, 240)" }, // slate
   { tag: "h1", color: "#ef4444" }, // red
   { tag: "h2", color: "#f97316" }, // orange
   { tag: "h3", color: "#f59e0b" }, // amber
@@ -138,6 +138,7 @@ const TagsNamen1 = [
   { tag: "span", color: "#8b5cf6" }, // violet
   { tag: "ul", color: "#f97316" }, // orange
   { tag: "li", color: "#eab308" }, // yellow
+  { tag: "imgs", color: "#0ea5e9" },
 ];
 const TagsNamen2 = [
   { tag: "input", color: "#3b82f6" }, // blue
@@ -187,11 +188,11 @@ const AdminComponent = () => {
 
   return (
     <div className="admincomponent">
-      <div className="flex flex-wrap gap-2 bg-slate-200 ro p-2">
+      <div className="flex flex-wrap gap-2 bg-slate-200  p-2">
         {TagsNamen1.map((el, i) => (
           <button
             key={i}
-            className={"btn  px-2!  bordered "}
+            className={"btn  px-2! border-1 border-[#aaa] "}
             style={{ background: el.color }}
             type="button"
             onClick={() => handleLoad(el.tag)}
@@ -200,7 +201,7 @@ const AdminComponent = () => {
           </button>
         ))}
       </div>
-      <div className="flex flex-wrap gap-2 bg-slate-200 ro p-2">
+      <div className="flex flex-wrap gap-2 bg-slate-200  p-2">
         {TagsNamen2.map((el, i) => (
           <button
             key={i}
@@ -213,7 +214,7 @@ const AdminComponent = () => {
           </button>
         ))}
       </div>
-      <div className="flex flex-wrap gap-2 bg-slate-200 ro p-2">
+      <div className="flex flex-wrap gap-2 bg-slate-200  p-2">
         {TagsNamen3.map((el, i) => (
           <button
             key={i}

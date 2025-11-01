@@ -22,21 +22,19 @@ export const resolvers = {
           projects: true,
         },
       }),
-    findProject: (_, { id }) =>
-      prisma.project.findUnique({
+    findProject: (_, { id }) => {
+      console.log("<====id findProject====>", id);
+      const resProject = prisma.project.findUnique({
         where: { id: Number(id) },
         include: { owner: true },
-      }),
-    // getAllProjectsByUser: (_, { userId }) =>
-    //   prisma.project.findMany({
-    //     where: { ownerId: Number(userId) },
-    //   }),
+      });
+      console.log("<====resProject====>", resProject);
+      return resProject;
+    },
+
     getAllProjectsByUser: (_, { userId }) =>
       prisma.project.findMany({ where: { ownerId: Number(userId) } }),
-    // jsonDocumentByName: (_, { name }) =>
-    //   prisma.jsonDocument.findFirst({
-    //     where: { name },
-    //   }),
+
     jsonDocumentByName: async (_, { name }) => {
       const Doc = await prisma.jsonDocument.findUnique({
         where: { name },

@@ -12,8 +12,8 @@ interface CreateNewProjectProps {
   project: PProject;
 }
 
-const CreateNewProject = ({ project }: CreateNewProjectProps) => {
-  const { user, setModalMessage } = useStateContext();
+const CreateNewProject = () => {
+  const { htmlJson, user, setModalMessage } = useStateContext();
   const [newProjectName, setNewProjectName] = useState<string>("");
   const variables = useMemo(() => ({ userId: user?.id }), [user?.id]);
   const [createProject] = useMutation(CREATE_PROJECT, {
@@ -26,7 +26,7 @@ const CreateNewProject = ({ project }: CreateNewProjectProps) => {
       setModalMessage(" All fields are required.");
       return;
     }
-    if (!project) {
+    if (!htmlJson) {
       setModalMessage(" Data fields are required.");
       return;
     }
@@ -35,7 +35,7 @@ const CreateNewProject = ({ project }: CreateNewProjectProps) => {
         variables: {
           ownerId: user.id,
           name: newProjectName,
-          data: project,
+          data: htmlJson,
         },
       });
 
