@@ -16,6 +16,8 @@ import "./figma.scss";
 import Loading from "@/components/ui/Loading/Loading";
 import FProject from "@/types/FProject";
 // -------
+
+// -------
 export default function FigmaPage() {
   const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
@@ -108,68 +110,72 @@ export default function FigmaPage() {
             />
           )}
         </div>
-      </div>
-      {/* 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 */}
-      <div className="figma-projects mt-2">
-        {projects.length === 0 && <p>No projects found. </p>}
-        <ul className="grid grid-cols-[repeat(auto-fit,_minmax(500px,_1fr))] gap-2">
-          {projects.map((proj: FProject) => (
-            <li
-              key={proj.id}
-              className="relative rounded-xl shadow-lg overflow-hidden flex flex-col justify-between"
-              style={{
-                backgroundColor: generateFonVar(proj.fileKey),
-              }}
-            >
-              {/* Верхняя часть: информация и превью */}
-              <div className="p-4 flex flex-col gap-4">
-                {/* Информация */}
-                <div className="flex flex-col gap-2 text-gray-900">
-                  <h3 className="text-2xl font-bold truncate">{proj.name}</h3>
-                  <p className="text-sm text-gray-700">
-                    <span className="font-semibold">ID:</span> {proj.id}
-                  </p>
-                  <p className="text-sm text-gray-700">
-                    <span className="font-semibold">File Key:</span>{" "}
-                    {proj.fileKey}
-                  </p>
-                  <p className="text-sm text-gray-700">
-                    <span className="font-semibold">Node ID:</span>{" "}
-                    {proj.nodeId}
-                  </p>
+
+        {/* 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 */}
+        <div className="figma-projects mt-2">
+          {projects.length === 0 && (
+            <p className="text-red-500">No projects found. </p>
+          )}
+          <ul className="grid grid-cols-[repeat(auto-fit,_minmax(500px,_1fr))] gap-2">
+            {projects.map((proj: FProject) => (
+              <li
+                key={proj.id}
+                className="relative rounded-xl shadow-lg overflow-hidden flex flex-col justify-between"
+                style={{
+                  backgroundColor: generateFonVar(proj.fileKey),
+                }}
+              >
+                {/* Верхняя часть: информация и превью */}
+                <div className="p-4 flex flex-col gap-4">
+                  {/* Информация */}
+                  <div className="flex flex-col gap-2 text-gray-900">
+                    <h3 className="text-2xl font-bold truncate">{proj.name}</h3>
+                    <p className="text-sm text-gray-700">
+                      <span className="font-semibold">ID:</span> {proj.id}
+                    </p>
+                    <p className="text-sm text-gray-700">
+                      <span className="font-semibold">File Key:</span>{" "}
+                      {proj.fileKey}
+                    </p>
+                    <p className="text-sm text-gray-700">
+                      <span className="font-semibold">Node ID:</span>{" "}
+                      {proj.nodeId}
+                    </p>
+                  </div>
+
+                  {/* Превью — большой блок */}
+                  {proj.previewUrl && (
+                    <div className="w-full max-h-[400px] overflow-hidden rounded-md shadow-inner">
+                      <img
+                        src={proj.previewUrl}
+                        alt="Figma Preview"
+                        className="object-contain w-full h-full"
+                      />
+                    </div>
+                  )}
                 </div>
 
-                {/* Превью — большой блок */}
-                {proj.previewUrl && (
-                  <div className="w-full max-h-[400px] overflow-hidden rounded-md shadow-inner">
-                    <img
-                      src={proj.previewUrl}
-                      alt="Figma Preview"
-                      className="object-contain w-full h-full"
-                    />
-                  </div>
-                )}
-              </div>
+                {/* Нижняя часть: кнопки */}
+                <div className="p-4 flex justify-end gap-2 border-t border-gray-200 bg-white/50 backdrop-blur-sm mt-auto">
+                  <Link
+                    href={`/figma/${proj.id}`}
+                    className="btn btn-primary hover:bg-blue-600 transition-colors duration-200"
+                  >
+                    See details
+                  </Link>
 
-              {/* Нижняя часть: кнопки */}
-              <div className="p-4 flex justify-end gap-2 border-t border-gray-200 bg-white/50 backdrop-blur-sm mt-auto">
-                <Link
-                  href={`/figma/${proj.id}`}
-                  className="btn btn-primary hover:bg-blue-600 transition-colors duration-200"
-                >
-                  See details
-                </Link>
-
-                <button
-                  className="btn btn-allert hover:bg-red-600 transition-colors duration-200"
-                  onClick={() => handleRemoved(proj.id)}
-                >
-                  Remove
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+                  <button
+                    className="btn btn-allert hover:bg-red-600 transition-colors duration-200"
+                    onClick={() => handleRemoved(proj.id)}
+                  >
+                    Remove
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+        {/* 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 */}
 
         {/* 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 */}
         <ModalCreateFigmaProject

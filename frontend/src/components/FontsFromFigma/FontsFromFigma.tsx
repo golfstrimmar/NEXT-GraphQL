@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useStateContext } from "@/providers/StateProvider";
 import {
@@ -185,6 +185,50 @@ const FontsFromFigma: React.FC<FontsFromFigmaProps> = ({ project }) => {
   const transformColor = (VariableName: string) => {
     return colors.find((color) => color.variableName === VariableName)?.hex;
   };
+
+  const fontLinkRef = useRef<HTMLLinkElement | null>(null);
+
+  useEffect(() => {
+    if (fontsToDisplay.length === 0) return;
+
+    // Собираем строку импорта
+    const uniqueFonts = Array.from(
+      new Set(fontsToDisplay.map((f) => f.fontFamily))
+    );
+    if (uniqueFonts.length === 0) return;
+
+    const googleFontsHref =
+      "https://fonts.googleapis.com/css2?" +
+      uniqueFonts
+        .map(
+          (name) =>
+            `family=${encodeURIComponent(name)}:ital,wght@0,100..900;1,100..900`
+        )
+        .join("&") +
+      "&display=swap";
+
+    // Удаляем предыдущий <link>
+    if (fontLinkRef.current) {
+      document.head.removeChild(fontLinkRef.current);
+    }
+
+    // Создаём новый <link>
+    const linkTag = document.createElement("link");
+    linkTag.rel = "stylesheet";
+    linkTag.href = googleFontsHref;
+    linkTag.setAttribute("data-dynamic-font-import", "true");
+    document.head.appendChild(linkTag);
+    fontLinkRef.current = linkTag;
+
+    // Очистить при размонтировании
+    return () => {
+      if (fontLinkRef.current) {
+        document.head.removeChild(fontLinkRef.current);
+        fontLinkRef.current = null;
+      }
+    };
+  }, [fontsToDisplay]);
+
   return (
     <div className="fontsfromfigma mt-4">
       <button
@@ -254,6 +298,18 @@ const FontsFromFigma: React.FC<FontsFromFigmaProps> = ({ project }) => {
           className={`${f.sampleText && f.sampleText.length > 0 ? "bg-green-200" : "bg-gray-100"} mt-4 mb-4 p-3 border rounded-md `}
         >
           <div className="mb-2">
+            <button
+              className="cursor-pointer border px-1 rounded"
+              type="button"
+              onClick={() => {
+                if (f.className) {
+                  navigator.clipboard.writeText(f.className);
+                  setModalMessage("Class copied!");
+                }
+              }}
+            >
+              {f.className}
+            </button>
             <p>font-family: "{f.fontFamily}", sans-serif;</p>
             <p>font-weight: {f.fontWeight};</p>
             <p>font-size: {f.fontSize}px;</p>
@@ -264,8 +320,8 @@ const FontsFromFigma: React.FC<FontsFromFigmaProps> = ({ project }) => {
             <p>color: {f.colorVariableName || "unknown"};</p>
           </div>
 
-          <p
-            className="p-2 border rounded bg-slate-200"
+          <button
+            className="p-2 border rounded bg-slate-200 cursor-pointer"
             style={{
               fontFamily: `${f.fontFamily}, sans-serif`,
               fontWeight: f.fontWeight,
@@ -274,9 +330,15 @@ const FontsFromFigma: React.FC<FontsFromFigmaProps> = ({ project }) => {
               letterSpacing: `${f.letterSpacing}px`,
               color: transformColor(f.colorVariableName) || "inherit",
             }}
+            onClick={() => {
+              if (f.sampleText) {
+                navigator.clipboard.writeText(f.sampleText);
+                setModalMessage("Sample Text copied!");
+              }
+            }}
           >
             {f.sampleText || "Sample Text"}
-          </p>
+          </button>
         </div>
       ))}
     </div>

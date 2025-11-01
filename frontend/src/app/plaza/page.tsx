@@ -25,6 +25,8 @@ import createRenderNode from "@/utils/plaza/RenderNode.tsx";
 import "./plaza.scss";
 import { motion, AnimatePresence } from "framer-motion";
 import AdminComponent from "@/components/AdminComponent/AdminComponent";
+import jsonToHtml from "@/utils/plaza/jsonToHtml";
+
 // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
 type ProjectData = {
   tag: string;
@@ -303,6 +305,43 @@ export default function Plaza() {
     [editMode, nodeToDrag, nodeToDragEl, openInfoKey]
   );
   //⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️
+  const createHtml = async () => {
+    if (htmlJson) {
+      const { html } = jsonToHtml(htmlJson);
+      console.log("<==== html ====>", html);
+      try {
+        await navigator.clipboard.writeText(html);
+        setModalMessage("Html copied!");
+      } catch {
+        setModalMessage("Failed to copy");
+      }
+    }
+  };
+  const createSCSS = async () => {
+    if (htmlJson) {
+      const { scss } = jsonToHtml(htmlJson);
+      console.log("<==== scss ====>", scss);
+      try {
+        await navigator.clipboard.writeText(scss);
+        setModalMessage("Scss copied!");
+      } catch {
+        setModalMessage("Failed to copy");
+      }
+    }
+  };
+  const createPug = async () => {
+    if (htmlJson) {
+      const { pug } = jsonToHtml(htmlJson);
+      console.log("<==== pug ====>", pug);
+      try {
+        await navigator.clipboard.writeText(pug);
+        setModalMessage("Pug copied!");
+      } catch {
+        setModalMessage("Failed to copy");
+      }
+    }
+  };
+  //⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️
 
   //⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️
   return (
@@ -356,26 +395,7 @@ export default function Plaza() {
                             : "cursor-pointer"
                         }`}
                         onClick={async () => {
-                          // const res = await findProject({
-                          //   variables: { id: p.id },
-                          // });
                           setpId(p.id);
-                          // const findedProject = res.data?.findProject?.data;
-                          // console.log("<====findedProject====>", findedProject);
-                          // if (findedProject) {
-                          //   setOpenInfoKey(null);
-                          //   setHtmlJson((prev) => {
-                          //     if (!prev) return prev;
-                          //     const newHtmlJson = { ...prev };
-                          //     newHtmlJson.children = [
-                          //       ...newHtmlJson.children,
-                          //       ...findedProject.children,
-                          //     ];
-                          //     return newHtmlJson;
-                          //   });
-                          //   setProjectId(p.id);
-                          //   setProjectName(p.name);
-                          // }
                         }}
                         type="button"
                       >
@@ -387,11 +407,9 @@ export default function Plaza() {
               )}
             </div>
           )}
-
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
           {user && <CreateNewProject />}
-
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
           <hr className="bordered border-slate-200 mt-2 " />
@@ -427,9 +445,54 @@ export default function Plaza() {
                 className="prev"
               />
               <div className="nextafterButton">Drug & Drop</div>
+            </button>{" "}
+            <button
+              className={` hover:bg-slate-200 flex items-center    w-6 h-6 cursor-pointer justify-center  relative  rounded `}
+              type="button"
+              onClick={() => {
+                createHtml();
+              }}
+            >
+              <Image
+                src="/svg/html.svg"
+                alt="icon"
+                width={20}
+                height={20}
+                className="prev"
+              />
             </button>
+            <button
+              className={` hover:bg-slate-200 flex items-center    w-6 h-6 cursor-pointer justify-center  relative  rounded `}
+              type="button"
+              onClick={() => {
+                createSCSS();
+              }}
+            >
+              <Image
+                src="/svg/scss.svg"
+                alt="icon"
+                width={20}
+                height={20}
+                className="prev"
+              />
+            </button>
+            <button
+              className={` hover:bg-slate-200 flex items-center    w-6 h-6 cursor-pointer justify-center  relative  rounded`}
+              type="button"
+              onClick={() => {
+                createPug();
+              }}
+            >
+              <Image
+                src="/svg/pug.svg"
+                alt="icon"
+                width={20}
+                height={20}
+                className="prev"
+              />
+            </button>
+            {/* {<pre>{createHtml()}</pre>} */}
           </div>
-
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
           {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
           <hr className="bordered border-slate-200 mt-6 " />
@@ -484,12 +547,14 @@ export default function Plaza() {
             <pre>
               <code>{JSON.stringify(project, null, 2)}</code>
             </pre>
-          )} 
-          {htmlJson && (
+          )}  */}
+          {/* [{"tag":"div","text":"container","class":"","style": "background: mediumblue; padding: 2px 4px; border: 1px solid #adadad; ","children": []}] */}
+          {/* {htmlJson && (
             <pre>
               <code>{JSON.stringify(htmlJson, null, 2)}</code>
             </pre>
-          )}*/}
+          )}  */}
+
           <motion.div
             id="plaza-container"
             className={`grid transition-all duration-300 py-2 gap-4 mt-2 ${editMode ? "bg-slate-400 rounded" : ""}

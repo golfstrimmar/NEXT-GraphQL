@@ -124,6 +124,8 @@ import { GET_JSON_DOCUMENT } from "@/apollo/queries";
 const TagsNamen1 = [
   { tag: "a", color: "#3b82f6" }, // blue
   { tag: "button", color: "#06b6d4" }, // cyan
+  { tag: "section", color: "rgb(220, 230, 220)" }, // slate
+  { tag: "container", color: "dodgerblue" }, // slate
   { tag: "div", color: "rgb(226, 232, 240)" }, // slate
   { tag: "h1", color: "#ef4444" }, // red
   { tag: "h2", color: "#f97316" }, // orange

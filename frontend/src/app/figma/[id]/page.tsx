@@ -8,6 +8,7 @@ import { useQuery, useMutation } from "@apollo/client";
 import ColorsFromFigma from "@/components/ColorsFromFigma/ColorsFromFigma";
 import ExtractImages from "@/components/ExtractImages/ExtractImages";
 import FigmaViewer from "@/components/FigmaViewer/FigmaViewer";
+import Plaza from "@/app/plaza/page";
 import {
   GET_FIGMA_PROJECT_DATA,
   GET_COLOR_VARIABLES_BY_FILE_KEY,
@@ -33,18 +34,16 @@ const ProjectPage = () => {
     variables: { projectId: id },
     skip: !id,
   });
-
-  //🟢🟢🟢🟢🟢🟢🟢 Состояния
   const [project, setProject] = useState<any>(null);
 
   //🟢🟢🟢🟢🟢🟢🟢 Обновление состояния при получении данных
   useEffect(() => {
-    console.log("<====data====>", data);
+    // console.log("<====data====>", data);
     if (data?.getFigmaProjectData) {
-      console.log(
-        "<===data?.getFigmaProjectData====>",
-        data?.getFigmaProjectData
-      );
+      // console.log(
+      //   "<===data?.getFigmaProjectData====>",
+      //   data?.getFigmaProjectData
+      // );
       setProject(data.getFigmaProjectData);
     }
   }, [data]);
@@ -142,9 +141,11 @@ const ProjectPage = () => {
       )}
       {/*🔹🔹🔹🔹🔹 FigmaViewer 🔹🔹🔹🔹🔹*/}
       <hr className="mt-4 mb-4" />
-      {project && (
+      {/* {project && (
         <FigmaViewer fileData={project?.file} nodeId={project?.nodeId} />
-      )}
+      )} */}
+      {/*🔹🔹🔹🔹🔹 Plaza 🔹🔹🔹🔹🔹*/}
+      <Plaza />
     </div>
   );
 };
