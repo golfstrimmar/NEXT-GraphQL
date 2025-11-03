@@ -9,16 +9,20 @@ import { useStateContext } from "@/providers/StateProvider";
 import extractDesignColors from "@/utils/extractDesignColors";
 import FProject from "@/types/FProject";
 import FontsFromFigma from "@/components/FontsFromFigma/FontsFromFigma";
-import { set } from "lodash";
 interface ColorsFromFigmaProps {
   project: FProject;
 }
 
-const ColorsFromFigma: React.FC<ColorsFromFigmaProps> = ({ project }) => {
+const ColorsFromFigma: React.FC<ColorsFromFigmaProps> = ({
+  project,
+  fontsToDisplay,
+  setfontsToDisplay,
+}) => {
   const { setModalMessage } = useStateContext();
   const [colorVariables, setColorVariables] = useState<any[]>([]);
-  // 🟢🟢🟢🟢🟢🟢🟢🟢  Queries
+  const [colors, setColors] = useState<any[]>([]);
 
+  // 🟢🟢🟢🟢🟢🟢🟢🟢  Queries
   const {
     data: colorVarsData,
     loading: colorVarsLoading,
@@ -27,17 +31,14 @@ const ColorsFromFigma: React.FC<ColorsFromFigmaProps> = ({ project }) => {
     variables: { fileKey: project?.fileKey },
     fetchPolicy: "network-only", // 🔥 всегда берёт свежие данные
   });
-
   // 🟢🟢🟢🟢🟢🟢 Mutatons
   const [addColorVariables] = useMutation(ADD_COLOR_VARIABLES);
-  // 🟢🟢🟢🟢🟢🟢🟢useEffect🟢🟢🟢🟢🟢🟢🟢
-
+  // 🟢🟢🟢🟢🟢🟢🟢useEffect
   useEffect(() => {
     if (project) {
       console.log("<==== project====>", project);
     }
   }, [project]);
-
   //🟢🟢🟢🟢🟢🟢🟢 Извлечение цветов
   const rgbToHex = ({ r, g, b, a = 1 }) => {
     if ([r, g, b].some((v) => v == null || v < 0 || v > 1)) {
@@ -54,25 +55,6 @@ const ColorsFromFigma: React.FC<ColorsFromFigmaProps> = ({ project }) => {
     }
     return hex;
   };
-  // function hexToRgba(hex, alpha = 1) {
-  //   hex = hex.replace(/^#/, "");
-  //   if (hex.length === 3) {
-  //     hex = hex
-  //       .split("")
-  //       .map((x) => x + x)
-  //       .join("");
-  //   }
-  //   if (hex.length === 8) {
-  //     alpha = parseInt(hex.slice(6, 8), 16) / 255;
-  //     hex = hex.slice(0, 6);
-  //   }
-  //   const num = parseInt(hex, 16);
-  //   const r = (num >> 16) & 255;
-  //   const g = (num >> 8) & 255;
-  //   const b = num & 255;
-  //   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  // }
-
   const generateSassVariablesFromVariables = (vars) => {
     if (!Array.isArray(vars)) return "";
 
@@ -118,103 +100,7 @@ const ColorsFromFigma: React.FC<ColorsFromFigmaProps> = ({ project }) => {
     return numA - numB;
   });
 
-  // const FigmaColors = async () => {
-  //   if (
-  //     !project?.id ||
-  //     !project?.file ||
-  //     !project?.nodeId ||
-  //     !project?.fileKey
-  //   ) {
-  //     setModalMessage("Invalid project data");
-  //     return;
-  //   }
-
-  //   try {
-  //     const extractedColors = extractDesignColors(project.file, project.nodeId);
-  //     if (!Array.isArray(extractedColors)) {
-  //       throw new Error("Invalid color data from Figma");
-  //     }
-
-  //     const typeMap = {
-  //       text: "TEXT",
-  //       background: "BACKGROUND",
-  //       fill: "FILL",
-  //       stroke: "STROKE",
-  //       palette: "PALETTE",
-  //     };
-
-  //     const existingColorVars = colorVarsData?.getColorVariablesByFileKey || [];
-  //     console.log("<====существующие на базе====>", existingColorVars);
-  //     console.log(
-  //       "<====новые вынутые с фигмы цвета  без существующих====>",
-  //       extractedColors
-  //     );
-  //     const maxColors = existingColorVars.length;
-  //     const variables = extractedColors.map((c, index) => {
-  //       const hex = c.formats?.hex || rgbToHex(c);
-  //       const type = typeMap[c.type?.toLowerCase()] || "PALETTE";
-  //       const variableName = `$${type.toLowerCase()}-${maxColors + index}`;
-
-  //       return {
-  //         // ...c,
-  //         variableName,
-  //         hex,
-  //         type,
-  //       };
-  //     });
-  //     console.log(
-  //       "<====новые сформированные переменные цветов без существующих ====>",
-  //       variables
-  //     );
-  //     if (existingColorVars.length === 0) {
-  //       setColorVariables(variables);
-  //     } else {
-  //       const newVariables = variables.filter(
-  //         (c) =>
-  //           !existingColorVars.some((v) => v.hex === c.hex && v.type === c.type)
-  //       );
-  //       console.log(
-  //         "<=== оригинальные новые переменные цветов=====>",
-  //         newVariables
-  //       );
-  //       const newSteck = [...existingColorVars, ...newVariables];
-  //       console.log("<====newSteck====>", newSteck);
-  //       setColorVariables([...existingColorVars, ...newVariables]);
-  //     }
-  //   } catch (err) {
-  //     console.error("❌ Error:", err);
-  //     setModalMessage(`Error: ${err.message}`);
-  //   }
-  // };
-
-  // const handleAddColors = async () => {
-  //   try {
-  //     if (colorVariables.length > 0) {
-  //       const varsForDB = colorVariables.map((v) => ({
-  //         variableName: v.variableName,
-  //         hex: v.hex,
-  //         type: v.type ? v.type : "palette",
-  //       }));
-  //       console.log("<====varsForDB цветов====>", varsForDB);
-  //       const { data } = await addColorVariables({
-  //         variables: {
-  //           fileKey: project.fileKey,
-  //           colors: varsForDB,
-  //         },
-  //         refetchQueries: [
-  //           {
-  //             query: GET_COLOR_VARIABLES_BY_FILE_KEY,
-  //             variables: { fileKey: project.fileKey },
-  //           },
-  //         ],
-  //       });
-  //       console.log("<====colors from db====>", data.addColorVariables);
-  //       setModalMessage("New colors successfully saved!");
-  //     }
-  //   } catch (error) {
-  //     console.log("<==== error====>", error);
-  //   }
-  // };
+  //🟢🟢🟢🟢🟢🟢🟢 Извлечение цветов
   const handleExtractAndAddColors = async () => {
     if (!project?.file || !project?.nodeId || !project?.fileKey) {
       setModalMessage("Invalid project data");
@@ -346,7 +232,11 @@ const ColorsFromFigma: React.FC<ColorsFromFigmaProps> = ({ project }) => {
               )}
             </div>
           </div>
-          <FontsFromFigma project={project} />
+          <FontsFromFigma
+            project={project}
+            fontsToDisplay={fontsToDisplay}
+            setfontsToDisplay={setfontsToDisplay}
+          />
         </>
       )}
     </div>

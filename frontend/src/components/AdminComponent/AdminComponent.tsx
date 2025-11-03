@@ -153,18 +153,13 @@ const TagsNamen3 = [
   { tag: "aside", color: "#06b6d4" }, // cyan
   { tag: "br", color: "#737373" }, // gray
   { tag: "hr", color: "#71717a" }, // zinc
-
-  { tag: "fieldset", color: "#f43f5e" }, // rose
+  { tag: "fieldset", color: "#f43f5e" },
   { tag: "form", color: "#0ea5e9" }, // sky
-
   { tag: "header", color: "#6366f1" }, // indigo
-
   { tag: "ol", color: "#f59e0b" }, // amber
   { tag: "option", color: "#a855f7" }, // purple
   { tag: "optgroup", color: "#d946ef" }, // fuchsia
-
   { tag: "select", color: "#8b5cf6" }, // violet
-
   { tag: "source", color: "#38bdf8" }, // sky-light
 ];
 // =====================================

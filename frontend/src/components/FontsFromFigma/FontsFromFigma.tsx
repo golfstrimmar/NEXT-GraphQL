@@ -15,12 +15,15 @@ interface FontsFromFigmaProps {
   project: FProject;
 }
 
-const FontsFromFigma: React.FC<FontsFromFigmaProps> = ({ project }) => {
+const FontsFromFigma: React.FC<FontsFromFigmaProps> = ({
+  project,
+  fontsToDisplay,
+  setfontsToDisplay,
+}) => {
   const { setModalMessage } = useStateContext();
   const [fonts, setFonts] = useState<any[]>([]);
   const [colors, setColors] = useState<any[]>([]);
   const [fontClasses, setFontClasses] = useState<any[]>([]);
-  const [fontsToDisplay, setfontsToDisplay] = useState<any[]>([]);
   //// ✳️✳️✳️✳️✳️✳️✳️✳️✳️✳️✳️✳️ Загружаем цвета и шрифты из базы
   const { data: colorVarsData } = useQuery(GET_COLOR_VARIABLES_BY_FILE_KEY, {
     variables: { fileKey: project?.fileKey },
@@ -45,6 +48,7 @@ const FontsFromFigma: React.FC<FontsFromFigmaProps> = ({ project }) => {
       setFontClasses(fontClassesData.getFontClassesByFileKey);
     }
   }, [fontClassesData]);
+
   // ✳️✳️✳️✳️✳️✳️✳️✳️✳️✳️✳️✳️
   // Формирование новых шрифтов для сервера
   const buildNewFontClassesForServer = (
@@ -150,6 +154,7 @@ const FontsFromFigma: React.FC<FontsFromFigmaProps> = ({ project }) => {
 
   // Построение SCSS для копирования
   const buildFontClasses = (allFonts: any[]) => {
+    console.log("<====allFonts====>", allFonts);
     return allFonts
       .map((f) => {
         return [
@@ -157,8 +162,8 @@ const FontsFromFigma: React.FC<FontsFromFigmaProps> = ({ project }) => {
           `  font-family: '${f.fontFamily}', sans-serif;`,
           `  font-weight: ${f.fontWeight};`,
           `  font-size: ${f.fontSize}px;`,
-          f.lineHeight ? `  line-height: ${f.lineHeight}px;` : "",
-          f.letterSpacing ? `  letter-spacing: ${f.letterSpacing}px;` : "",
+          f.lineHeight ? `  line-height: ${f.lineHeight}px;` : null,
+          f.letterSpacing ? `  letter-spacing: ${f.letterSpacing}px;` : null,
           `  color: ${f.colorVariableName || "inherit"};`,
           `}`,
         ]
@@ -228,7 +233,19 @@ const FontsFromFigma: React.FC<FontsFromFigmaProps> = ({ project }) => {
       }
     };
   }, [fontsToDisplay]);
-
+  const getFontCssString = (f) =>
+    [
+      `font-family: "${f.fontFamily}", sans-serif;`,
+      `font-weight: ${f.fontWeight};`,
+      `font-size: ${f.fontSize}px;`,
+      f.lineHeight ? `line-height: ${f.lineHeight}px;` : "",
+      f.letterSpacing && f.letterSpacing !== 0
+        ? `letter-spacing: ${f.letterSpacing}px;`
+        : "",
+      `color: ${f.colorVariableName || "unknown"};`,
+    ]
+      .filter(Boolean)
+      .join("\n");
   return (
     <div className="fontsfromfigma mt-4">
       <button
@@ -310,14 +327,23 @@ const FontsFromFigma: React.FC<FontsFromFigmaProps> = ({ project }) => {
             >
               {f.className}
             </button>
-            <p>font-family: "{f.fontFamily}", sans-serif;</p>
-            <p>font-weight: {f.fontWeight};</p>
-            <p>font-size: {f.fontSize}px;</p>
-            {f.lineHeight && <p>line-height: {f.lineHeight}px;</p>}
-            {f.letterSpacing !== 0 && (
-              <p>letter-spacing: {f.letterSpacing}px;</p>
-            )}
-            <p>color: {f.colorVariableName || "unknown"};</p>
+
+            <div
+              className="p-2 mt-2 border rounded bg-slate-50 cursor-pointer"
+              onClick={() => {
+                navigator.clipboard.writeText(getFontCssString(f));
+                setModalMessage("CSS copied!");
+              }}
+            >
+              <p>font-family: "{f.fontFamily}", sans-serif;</p>
+              <p>font-weight: {f.fontWeight};</p>
+              <p>font-size: {f.fontSize}px;</p>
+              {f.lineHeight && <p>line-height: {f.lineHeight}px;</p>}
+              {f.letterSpacing && f.letterSpacing !== 0 && (
+                <p>letter-spacing: {f.letterSpacing}px;</p>
+              )}
+              <p>color: {f.colorVariableName || "unknown"};</p>
+            </div>
           </div>
 
           <button
@@ -327,7 +353,9 @@ const FontsFromFigma: React.FC<FontsFromFigmaProps> = ({ project }) => {
               fontWeight: f.fontWeight,
               fontSize: `${f.fontSize}px`,
               lineHeight: f.lineHeight ? `${f.lineHeight}px` : "normal",
-              letterSpacing: `${f.letterSpacing}px`,
+              ...(f.letterSpacing
+                ? { letterSpacing: `${f.letterSpacing}px` }
+                : {}),
               color: transformColor(f.colorVariableName) || "inherit",
             }}
             onClick={() => {

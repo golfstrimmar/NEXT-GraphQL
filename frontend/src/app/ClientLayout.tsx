@@ -59,7 +59,7 @@ export default function ClientLayout({
       <ApolloProv>
         <StateProvider>
           <Navbar />
-          <ColorsButton></ColorsButton>
+          {/* <ColorsButton></ColorsButton> */}
           {children}
         </StateProvider>
       </ApolloProv>

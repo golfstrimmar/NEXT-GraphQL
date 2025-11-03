@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useStateContext } from "@/providers/StateProvider";
 import { useParams, useRouter } from "next/navigation";
@@ -9,6 +9,7 @@ import ColorsFromFigma from "@/components/ColorsFromFigma/ColorsFromFigma";
 import ExtractImages from "@/components/ExtractImages/ExtractImages";
 import FigmaViewer from "@/components/FigmaViewer/FigmaViewer";
 import Plaza from "@/app/plaza/page";
+import PrevProject from "@/components/PrevProject/PrevProject";
 import {
   GET_FIGMA_PROJECT_DATA,
   GET_COLOR_VARIABLES_BY_FILE_KEY,
@@ -35,22 +36,16 @@ const ProjectPage = () => {
     skip: !id,
   });
   const [project, setProject] = useState<any>(null);
-
+  const [fontsToDisplay, setfontsToDisplay] = useState<any[]>([]);
   //🟢🟢🟢🟢🟢🟢🟢 Обновление состояния при получении данных
   useEffect(() => {
-    // console.log("<====data====>", data);
     if (data?.getFigmaProjectData) {
-      // console.log(
-      //   "<===data?.getFigmaProjectData====>",
-      //   data?.getFigmaProjectData
-      // );
       setProject(data.getFigmaProjectData);
     }
   }, [data]);
 
-  //🟢🟢🟢🟢🟢🟢🟢 Логирование для отладки
   useEffect(() => {
-    if (project) console.log("<=====📦 project =====>", project);
+    if (project) console.log("<=====📦 project figma =====>", project);
   }, [project]);
 
   //🟢🟢🟢🟢🟢🟢🟢 Удаление проекта
@@ -79,7 +74,9 @@ const ProjectPage = () => {
       setModalMessage(err.message);
     }
   };
+  //🟢🟢🟢🟢🟢🟢🟢
 
+  //🟢🟢🟢🟢🟢🟢🟢
   return (
     <div className="p-4 mt-[60px] mb-8">
       {loading && <Loading />}
@@ -124,26 +121,27 @@ const ProjectPage = () => {
       <hr className="mt-4 mb-4" />
       <div className="mt-4 grid grid-cols-1 gap-2">
         {/* 🎨🎨🎨🎨🎨🎨colorVariables🎨🎨🎨🎨🎨🎨🎨 */}
-        <ColorsFromFigma project={project} />
+        <ColorsFromFigma
+          project={project}
+          fontsToDisplay={fontsToDisplay}
+          setfontsToDisplay={setfontsToDisplay}
+        />
       </div>
       {/*🔹🔹🔹🔹🔹images & SVG🔹🔹🔹🔹🔹🔹*/}
       <ExtractImages project={project} />
       {/*🔹🔹🔹🔹🔹 Figma preview 🔹🔹🔹🔹🔹*/}
       <hr className="mt-4 mb-4" />
-      {project?.previewUrl && (
-        <div className="">
-          <img
-            src={project?.previewUrl}
-            alt="Figma Preview"
-            className="border rounded-sm shadow-[0_0_10px_0_rgba(0,0,0,0.4)]"
-          />
-        </div>
-      )}
+      {project?.previewUrl && <PrevProject project={project} />}
       {/*🔹🔹🔹🔹🔹 FigmaViewer 🔹🔹🔹🔹🔹*/}
       <hr className="mt-4 mb-4" />
-      {/* {project && (
-        <FigmaViewer fileData={project?.file} nodeId={project?.nodeId} />
-      )} */}
+      {project && (
+        <FigmaViewer
+          project={project}
+          fileData={project?.file}
+          nodeId={project?.nodeId}
+          fontsToDisplay={fontsToDisplay}
+        />
+      )}
       {/*🔹🔹🔹🔹🔹 Plaza 🔹🔹🔹🔹🔹*/}
       <Plaza />
     </div>

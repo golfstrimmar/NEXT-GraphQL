@@ -1,18 +1,8 @@
 "use client";
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  useMemo,
-} from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import "./colorsbutton.scss";
-import { set } from "lodash";
-interface colorsButtonProps {
-  // Определи пропсы, если нужно
-}
 
-const ColorsButton: React.FC<colorsButtonProps> = () => {
+const ColorsButton = () => {
   const [openColors, setOpenColors] = useState<boolean>(false);
   const [colors, setColors] = useState<{ name: string; hex: string }[]>([]);
   useEffect(() => {
