@@ -11,18 +11,18 @@ function PrevProject({ project }) {
       <div className="flex items-center gap-2">
         <button
           className="btn btn-empty px-2"
-          onClick={() => setPreSize((p) => Math.min(p + 0.1, 2))}
-        >
-          +
-        </button>
-        <span>{Math.round(preSize * 100)}%</span>
-        {/* <span>{imgSize.width.toFixed(2)}</span> */}
-        {/* <span>{imgSize.height.toFixed(2)}</span> */}
-        <button
-          className="btn btn-empty px-2"
           onClick={() => setPreSize((p) => Math.max(p - 0.1, 0.1))}
         >
           -
+        </button>
+        <span className="min-w-[50px] text-center">
+          {Math.round(preSize * 100)}%
+        </span>
+        <button
+          className="btn btn-empty px-2"
+          onClick={() => setPreSize((p) => Math.min(p + 0.1, 2))}
+        >
+          +
         </button>
       </div>
       <div

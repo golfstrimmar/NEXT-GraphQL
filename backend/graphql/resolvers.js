@@ -9,6 +9,7 @@ import uploadFigmaSvgsToCloudinary from "../mutations/FigmaSVG.js";
 import removeFigmaImage from "../mutations/removeFigmaImage.js";
 import transformRasterToSvg from "../mutations/transformRasterToSvg.js";
 import removeFigmaProject from "../mutations/removeFigmaProject.js";
+import extractAndSaveColors from "../mutations/extractAndSaveColors.js";
 const ee = new EventEmitter();
 const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key";
 const SALT_ROUNDS = 10;
@@ -212,17 +213,6 @@ export const resolvers = {
         data: { name, data, ownerId: Number(ownerId) },
       });
     },
-    // createProject: async (_, { ownerId, name, data }) => {
-    //   const parsedData = JSON.parse(data); // превращаем обратно в массив/объект
-    //   const project = await prisma.project.create({
-    //     data: {
-    //       name,
-    //       data: parsedData,
-    //       ownerId: Number(ownerId),
-    //     },
-    //   });
-    //   return { id: project.id, name: project.name };
-    // },
     updateProject: async (_, { projectId, data }) => {
       const updated = await prisma.project.update({
         where: { id: Number(projectId) },
@@ -286,20 +276,21 @@ export const resolvers = {
     transformRasterToSvg,
     removeFigmaImage,
     removeFigmaProject,
-    addColorVariables: async (_, { fileKey, colors }) => {
-      await prisma.colorVariable.createMany({
-        data: colors.map((c) => ({
-          variableName: c.variableName,
-          hex: c.hex,
-          type: c.type,
-          fileKey,
-        })),
-        skipDuplicates: true,
-      });
-      return prisma.colorVariable.findMany({
-        where: { fileKey },
-      });
-    },
+    extractAndSaveColors,
+    // addColorVariables: async (_, { fileKey, colors }) => {
+    //   await prisma.colorVariable.createMany({
+    //     data: colors.map((c) => ({
+    //       variableName: c.variableName,
+    //       hex: c.hex,
+    //       type: c.type,
+    //       fileKey,
+    //     })),
+    //     skipDuplicates: true,
+    //   });
+    //   return prisma.colorVariable.findMany({
+    //     where: { fileKey },
+    //   });
+    // },
     addFontClasses: async (_, { fileKey, fontClasses }) => {
       console.log(">==== fontClasses====>", fontClasses);
       await prisma.fontClass.createMany({

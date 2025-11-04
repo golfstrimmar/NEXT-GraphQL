@@ -4,9 +4,8 @@ import Image from "next/image";
 import "./colorsfromfigma.scss";
 import { useQuery, useMutation } from "@apollo/client";
 import { GET_COLOR_VARIABLES_BY_FILE_KEY } from "@/apollo/queries";
-import { ADD_COLOR_VARIABLES } from "@/apollo/mutations";
+import { EXTRACT_AND_SAVE_COLORS } from "@/apollo/mutations";
 import { useStateContext } from "@/providers/StateProvider";
-import extractDesignColors from "@/utils/extractDesignColors";
 import FProject from "@/types/FProject";
 import FontsFromFigma from "@/components/FontsFromFigma/FontsFromFigma";
 interface ColorsFromFigmaProps {
@@ -32,29 +31,19 @@ const ColorsFromFigma: React.FC<ColorsFromFigmaProps> = ({
     fetchPolicy: "network-only", // 🔥 всегда берёт свежие данные
   });
   // 🟢🟢🟢🟢🟢🟢 Mutatons
-  const [addColorVariables] = useMutation(ADD_COLOR_VARIABLES);
+  const [extractAndSaveColors] = useMutation(EXTRACT_AND_SAVE_COLORS);
   // 🟢🟢🟢🟢🟢🟢🟢useEffect
+
   useEffect(() => {
-    if (project) {
-      console.log("<==== project====>", project);
-    }
+    if (project) console.log("<=📦📦📦📦 project figma 📦📦📦📦=>", project);
   }, [project]);
-  //🟢🟢🟢🟢🟢🟢🟢 Извлечение цветов
-  const rgbToHex = ({ r, g, b, a = 1 }) => {
-    if ([r, g, b].some((v) => v == null || v < 0 || v > 1)) {
-      throw new Error("Invalid RGB values: must be between 0 and 1");
+  useEffect(() => {
+    if (colorVariables) {
+      console.log("<==== colorVariables====>", colorVariables);
     }
-    const toHex = (v) =>
-      Math.round(v * 255)
-        .toString(16)
-        .padStart(2, "0")
-        .toUpperCase();
-    const hex = `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-    if (a < 1) {
-      return `${hex}${toHex(a)}`;
-    }
-    return hex;
-  };
+  }, [colorVariables]);
+  //🟢🟢🟢🟢🟢🟢🟢
+
   const generateSassVariablesFromVariables = (vars) => {
     if (!Array.isArray(vars)) return "";
 
@@ -100,79 +89,48 @@ const ColorsFromFigma: React.FC<ColorsFromFigmaProps> = ({
     return numA - numB;
   });
 
-  //🟢🟢🟢🟢🟢🟢🟢 Извлечение цветов
-  const handleExtractAndAddColors = async () => {
+  //🟢🟢🟢🟢🟢🟢🟢
+  const handleExtractAndSaveColors = async () => {
     if (!project?.file || !project?.nodeId || !project?.fileKey) {
       setModalMessage("Invalid project data");
       return;
     }
 
     try {
-      // 1️⃣ Извлекаем цвета с Figma
-      const extractedColors = extractDesignColors(project.file, project.nodeId);
-      if (!Array.isArray(extractedColors)) {
-        throw new Error("Invalid color data from Figma");
-      }
-
-      // 2️⃣ Берём существующие цвета из базы
-      const existingColorVars = colorVarsData?.getColorVariablesByFileKey || [];
-      const maxColors = existingColorVars.length;
-
-      // 3️⃣ Формируем массив переменных с уникальными названиями
-      const typeMap = {
-        text: "TEXT",
-        background: "BACKGROUND",
-        fill: "FILL",
-        stroke: "STROKE",
-        palette: "PALETTE",
-      };
-
-      const variablesForDB = extractedColors
-        .map((c, index) => {
-          const hex = c.formats?.hex || rgbToHex(c);
-          const type = typeMap[c.type?.toLowerCase()] || "PALETTE";
-          const variableName = `$${type.toLowerCase()}-${maxColors + index}`;
-          return { variableName, hex, type };
-        })
-        // 4️⃣ Фильтруем только новые цвета
-        .filter(
-          (v) =>
-            !existingColorVars.some((e) => e.hex === v.hex && e.type === v.type)
-        );
-
-      if (variablesForDB.length === 0) {
-        setModalMessage("No new colors to add.");
-        setColorVariables(colorVarsData.getColorVariablesByFileKey);
-        return;
-      }
-
-      // 5️⃣ Отправляем новые цвета на сервер и сразу рефетчим запрос
-      const { data } = await addColorVariables({
+      const { data } = await extractAndSaveColors({
         variables: {
           fileKey: project.fileKey,
-          colors: variablesForDB,
+          figmaFile: project.file.document, // JSON Figma-файла
+          nodeId: project.nodeId, // id корневого узла, если есть (или String из проекта)
         },
-        refetchQueries: [
-          {
-            query: GET_COLOR_VARIABLES_BY_FILE_KEY,
-            variables: { fileKey: project.fileKey },
-          },
-        ],
       });
-      setColorVariables(data.addColorVariables);
-      console.log("<====New colors added to DB====>", data.addColorVariables);
-      setModalMessage("New colors successfully saved!");
+      console.log(
+        "<====data.extractAndSaveColors====>",
+        data.extractAndSaveColors
+      );
+
+      // Обновляем локальный стейт
+      setColorVariables(data.extractAndSaveColors);
+      setModalMessage("Colors extracted and saved on server!");
+
+      // 🔄 Рефетчим данные с сервера для фронта
+      await refetch();
     } catch (err) {
-      console.error("❌ Error adding colors:", err);
+      console.error("❌ Error:", err);
       setModalMessage(`Error: ${err.message}`);
     }
   };
-
   return (
     <div className=" ">
+      {/* {project && (
+        <pre>
+          {JSON.stringify(project.file.document, null, 2)}
+          <br />
+        </pre>
+      )} */}
       <button
         className="btn btn-primary w-full"
-        onClick={handleExtractAndAddColors}
+        onClick={handleExtractAndSaveColors}
       >
         🎨 Extract & Save Colors and Fonts from Figma
       </button>

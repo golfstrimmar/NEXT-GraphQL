@@ -44,10 +44,6 @@ const ProjectPage = () => {
     }
   }, [data]);
 
-  useEffect(() => {
-    if (project) console.log("<=====📦 project figma =====>", project);
-  }, [project]);
-
   //🟢🟢🟢🟢🟢🟢🟢 Удаление проекта
   const handleRemoved = async (id) => {
     try {
@@ -74,7 +70,6 @@ const ProjectPage = () => {
       setModalMessage(err.message);
     }
   };
-  //🟢🟢🟢🟢🟢🟢🟢
 
   //🟢🟢🟢🟢🟢🟢🟢
   return (

@@ -52,7 +52,7 @@ app.use(
     origin: process.env.FRONTEND_URL || "http://localhost:3002",
     credentials: true,
   }),
-  bodyParser.json(),
+  bodyParser.json({ limit: "20mb" }),
   expressMiddleware(server)
 );
 

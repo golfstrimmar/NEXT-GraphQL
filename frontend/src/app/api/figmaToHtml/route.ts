@@ -1,5 +1,3 @@
-import type { NextRequest } from "next/server";
-
 // Список служебных ключевых слов для фильтра (игнорируются в любом месте строки)
 const IGNORED_KEYWORDS = [
   "frame",
@@ -78,6 +76,7 @@ const IGNORED_KEYWORDS = [
   "label",
   "progress",
   "meter",
+  "outflow",
 ];
 
 // Регулярные выражения для фильтрации служебных паттернов в имени

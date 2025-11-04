@@ -168,14 +168,15 @@ export const typeDefs = gql`
     removeFigmaImage(nodeId: String!, figmaProjectId: Int!): FigmaImage!
 
     transformRasterToSvg(nodeId: String!): FigmaImage!
-    addColorVariables(
-      fileKey: String!
-      colors: [ColorVariableInput!]!
-    ): [ColorVariable!]!
     addFontClasses(
       fileKey: String!
       fontClasses: [FontClassInput!]!
     ): [FontClass!]!
+    extractAndSaveColors(
+      fileKey: String!
+      figmaFile: JSON!
+      nodeId: String!
+    ): [ColorVariable!]!
   }
 
   type Subscription {

@@ -176,13 +176,17 @@ export const TRANSFORM_RASTER_TO_SVG = gql`
   }
 `;
 
-// Добавить цветовые переменные
-export const ADD_COLOR_VARIABLES = gql`
-  mutation addColorVariables(
+export const EXTRACT_AND_SAVE_COLORS = gql`
+  mutation extractAndSaveColors(
     $fileKey: String!
-    $colors: [ColorVariableInput!]!
+    $figmaFile: JSON!
+    $nodeId: String!
   ) {
-    addColorVariables(fileKey: $fileKey, colors: $colors) {
+    extractAndSaveColors(
+      fileKey: $fileKey
+      figmaFile: $figmaFile
+      nodeId: $nodeId
+    ) {
       id
       variableName
       hex

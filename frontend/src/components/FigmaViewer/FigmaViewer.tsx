@@ -110,7 +110,22 @@ const FigmaViewer: React.FC<FigmaViewerProps> = ({
 
   return (
     <section>
-      {Texts && Texts.map((text, index) => <p key={index}>{text}</p>)}
+      <div className="flex flex-col gap-2">
+        {Texts &&
+          Texts.map((text, index) => (
+            <button
+              type="button"
+              className="btn btn-empty max-w-[max-content] px-2"
+              key={index}
+              onClick={() => {
+                navigator.clipboard.writeText(text);
+                setModalMessage("Text copied!");
+              }}
+            >
+              {text}
+            </button>
+          ))}
+      </div>
       {Fonts.map((f, index) => (
         <div
           key={index}
