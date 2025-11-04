@@ -27,28 +27,32 @@ function PrevProject({ project }) {
       </div>
       <div
         style={{
-          overflow: preSize > 1 ? "scroll" : "auto",
+          overflowX: "auto",
+          overflowY: "auto",
+          maxWidth: "100%",
+          maxHeight: "100vh",
         }}
-        className="border rounded-sm shadow-[0_0_10px_0_rgba(0,0,0,0.4)] mt-2  max-w-[100vw - 40px]"
+        className="border rounded-sm shadow-[0_0_10px_0_rgba(0,0,0,0.4)] mt-2"
       >
-        <img
-          ref={imgRef}
-          src={project?.previewUrl}
-          alt="Figma Preview"
-          className=" transition-all duration-300 ease-in-out "
-          style={{
-            objectFit: "contain",
-            width: imgSize.width * preSize,
-            height: imgSize.height * preSize,
-            scale: preSize > 1 ? preSize : 1,
-          }}
-          onLoad={(e) => {
-            setImgSize({
-              width: imgRef.current.naturalWidth,
-              height: imgRef.current.naturalHeight,
-            });
-          }}
-        />
+        <div style={{ minWidth: imgSize.width * preSize }}>
+          <img
+            ref={imgRef}
+            src={project?.previewUrl}
+            alt="Figma Preview"
+            className="transition-all duration-300 ease-in-out block"
+            style={{
+              width: imgSize.width * preSize,
+              height: imgSize.height * preSize,
+              objectFit: "cover",
+            }}
+            onLoad={() => {
+              setImgSize({
+                width: imgRef.current.naturalWidth,
+                height: imgRef.current.naturalHeight,
+              });
+            }}
+          />
+        </div>
       </div>
     </div>
   );
