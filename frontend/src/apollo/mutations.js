@@ -190,16 +190,42 @@ export const EXTRACT_AND_SAVE_COLORS = gql`
       id
       variableName
       hex
+      rgba
       type
       fileKey
     }
   }
 `;
 
-// Добавить классы шрифтов
-export const ADD_FONT_CLASSES = gql`
-  mutation addFontClasses($fileKey: String!, $fontClasses: [FontClassInput!]!) {
-    addFontClasses(fileKey: $fileKey, fontClasses: $fontClasses) {
+// // Добавить классы шрифтов
+// export const ADD_FONT_CLASSES = gql`
+//   mutation addFontClasses($fileKey: String!, $fontClasses: [FontClassInput!]!) {
+//     addFontClasses(fileKey: $fileKey, fontClasses: $fontClasses) {
+//       id
+//       className
+//       fontFamily
+//       fontWeight
+//       fontSize
+//       lineHeight
+//       letterSpacing
+//       sampleText
+//       fileKey
+//       colorVariableName
+//     }
+//   }
+// `;
+
+export const EXTRACT_AND_SAVE_FONTS = gql`
+  mutation extractAndSaveFonts(
+    $fileKey: String!
+    $figmaFile: JSON!
+    $nodeId: String!
+  ) {
+    extractAndSaveFonts(
+      fileKey: $fileKey
+      figmaFile: $figmaFile
+      nodeId: $nodeId
+    ) {
       id
       className
       fontFamily

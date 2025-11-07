@@ -31,6 +31,8 @@ const ColorsFromFigma: React.FC<ColorsFromFigmaProps> = ({
     fetchPolicy: "network-only", // 🔥 всегда берёт свежие данные
   });
   // 🟢🟢🟢🟢🟢🟢 Mutatons
+  // 🟢🟢🟢🟢🟢🟢 Mutatons
+  // 🟢🟢🟢🟢🟢🟢 Mutatons
   const [extractAndSaveColors] = useMutation(EXTRACT_AND_SAVE_COLORS);
   // 🟢🟢🟢🟢🟢🟢🟢useEffect
 
@@ -64,30 +66,16 @@ const ColorsFromFigma: React.FC<ColorsFromFigmaProps> = ({
       return numA - numB;
     });
 
-    return sorted
+    const sassVars = sorted
       .map((c) => {
         if (!c.variableName || !c.hex) return "";
         return `${c.variableName}: ${c.hex};`;
       })
       .filter(Boolean)
       .join("\n");
+    console.log("<==🟢🟢🟢🟢🟢==> sassVars <==🟢🟢🟢🟢🟢==>", sassVars);
+    return sassVars;
   };
-  const sortedColorVariables = [...colorVariables].sort((a, b) => {
-    const getGroup = (v) => {
-      if (v.variableName.includes("background")) return 0; // сначала background
-      if (v.variableName.includes("text")) return 1; // потом text
-      return 2; // остальные
-    };
-
-    const groupA = getGroup(a);
-    const groupB = getGroup(b);
-    if (groupA !== groupB) return groupA - groupB;
-
-    // внутри группы — по номеру (если есть)
-    const numA = parseInt(a.variableName.match(/\d+/)?.[0] || 0, 10);
-    const numB = parseInt(b.variableName.match(/\d+/)?.[0] || 0, 10);
-    return numA - numB;
-  });
 
   //🟢🟢🟢🟢🟢🟢🟢
   const handleExtractAndSaveColors = async () => {
@@ -104,10 +92,6 @@ const ColorsFromFigma: React.FC<ColorsFromFigmaProps> = ({
           nodeId: project.nodeId, // id корневого узла, если есть (или String из проекта)
         },
       });
-      console.log(
-        "<====data.extractAndSaveColors====>",
-        data.extractAndSaveColors
-      );
 
       // Обновляем локальный стейт
       setColorVariables(data.extractAndSaveColors);
@@ -120,6 +104,36 @@ const ColorsFromFigma: React.FC<ColorsFromFigmaProps> = ({
       setModalMessage(`Error: ${err.message}`);
     }
   };
+
+  // const hexToRgba = (hex) => {
+  //   let hexString = hex.replace(/^#/, "");
+
+  //   // HEX с альфа: #RRGGBBAA или #RGB
+  //   if (hexString.length === 3) {
+  //     // #RGB → #RRGGBB
+  //     hexString = hexString
+  //       .split("")
+  //       .map((x) => x + x)
+  //       .join("");
+  //   }
+
+  //   let r = 0,
+  //     g = 0,
+  //     b = 0,
+  //     a = 1;
+
+  //   if (hexString.length === 6) {
+  //     r = parseInt(hexString.slice(0, 2), 16);
+  //     g = parseInt(hexString.slice(2, 4), 16);
+  //     b = parseInt(hexString.slice(4, 6), 16);
+  //   } else if (hexString.length === 8) {
+  //     r = parseInt(hexString.slice(0, 2), 16);
+  //     g = parseInt(hexString.slice(2, 4), 16);
+  //     b = parseInt(hexString.slice(4, 6), 16);
+  //     a = parseInt(hexString.slice(6, 8), 16) / 255;
+  //   }
+  //   return { r, g, b, a };
+  // };
   return (
     <div className=" ">
       {/* {project && (
@@ -145,9 +159,7 @@ const ColorsFromFigma: React.FC<ColorsFromFigmaProps> = ({
                     onClick={async () => {
                       try {
                         await navigator.clipboard.writeText(
-                          generateSassVariablesFromVariables(
-                            sortedColorVariables
-                          )
+                          generateSassVariablesFromVariables(colorVariables)
                         );
                         setModalMessage("Color variables copied to clipboard!");
                       } catch (err) {
@@ -167,9 +179,9 @@ const ColorsFromFigma: React.FC<ColorsFromFigmaProps> = ({
                   </button>
                 </>
               )}
-              {sortedColorVariables.length > 0 && (
+              {colorVariables.length > 0 && (
                 <div className="p-1 flex flex-col gap-2">
-                  {sortedColorVariables.map((color) => (
+                  {colorVariables.map((color) => (
                     <div key={color.id} className="inline-flex gap-4">
                       <div
                         style={{
@@ -180,8 +192,8 @@ const ColorsFromFigma: React.FC<ColorsFromFigmaProps> = ({
                           border: "1px solid #ccc",
                         }}
                       />
-                      {/* <span className="text-white">{hexToRgba(color.hex)}</span>
-                      <span>Var SCSS:</span> */}
+                      <span className="text-white">{color.rgba}</span>
+
                       <span>{color.variableName}:</span>
                       <span>{color.hex};</span>
                     </div>

@@ -161,14 +161,14 @@ const ExtractImages: React.FC<ExtractImagesProps> = ({ project }) => {
         {images.length > 0 && (
           <div className="mt-2">
             <h5 className="">Uploaded Images ({images.length})</h5>
-            <div className="flex flex-col gap-2">
-              <button onClick={downloadImages} className="btn-primary btn">
-                💾 Download Images
-              </button>
+            <button onClick={downloadImages} className="btn-primary btn">
+              💾 Download Images
+            </button>
+            <div className="grid grid-cols-2 gap-2 mt-2">
               {images.map((img, index) => (
                 <div
                   key={index}
-                  className="border rounded shadow-sm p-1 bg-[rgb(145_145_145)]"
+                  className="border rounded flex flex-col gap-2 shadow-sm p-1 bg-[rgb(145_145_145)] "
                 >
                   <button
                     onClick={() => handleTransform(img.nodeId)}
@@ -179,16 +179,24 @@ const ExtractImages: React.FC<ExtractImagesProps> = ({ project }) => {
                       : "🔄 Convert Raster to SVG"}
                   </button>
                   <button
-                    className="btn btn-allert ml-2"
+                    className="btn btn-allert"
                     onClick={() => deleteImg(img)}
                   >
                     🗑️ Delete
                   </button>
-                  <img
-                    src={img.filePath}
-                    alt={`Image ${index + 1}`}
-                    className="w-full h-auto object-cover mt-2"
-                  />
+                  <div
+                    style={{
+                      width: "50%",
+                      height: "50%",
+                      display: "inline-block",
+                    }}
+                  >
+                    <img
+                      src={img.filePath}
+                      alt={`Image ${index + 1}`}
+                      className="object-cover mt-2 block"
+                    />
+                  </div>
                 </div>
               ))}
             </div>
@@ -201,49 +209,40 @@ const ExtractImages: React.FC<ExtractImagesProps> = ({ project }) => {
         <button className="btn btn-primary w-full" onClick={handlerSvg}>
           {uploadingSvgs ? "🌤️ Loading svg..." : "☁️ SVG"}
         </button>
+        <button
+          className="btn btn-allert mt-2"
+          onClick={() => {
+            setSvgImages([]);
+          }}
+        >
+          Clear SVG to display
+        </button>
+        <h5 className="">Uploaded SVG ({svgImages.length})</h5>
         {svgImages.length > 0 && (
-          <>
-            <button
-              className="btn btn-allert mt-2"
-              onClick={() => {
-                setSvgImages([]);
-              }}
-            >
-              Clear SVG to display
-            </button>
-
-            <div className="mt-2">
-              <h5 className="">Uploaded SVG ({svgImages.length})</h5>
-              <div className="flex flex-col gap-2">
-                {svgImages.map((img, index) => (
-                  <div
-                    key={index}
-                    className="border rounded shadow-sm p-1 bg-[rgb(145_145_145)]"
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            {svgImages.map((img, index) => (
+              <div
+                key={index}
+                className="border rounded shadow-sm p-1 bg-[rgb(145_145_145)]"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => downloadOneSvgImage(img)}
                   >
-                    <div className="flex items-center gap-2">
-                      <button
-                        className="btn btn-primary"
-                        onClick={() => downloadOneSvgImage(img)}
-                      >
-                        💾 Download
-                      </button>
-                      <button
-                        className="btn btn-allert"
-                        onClick={() => deleteImg(img)}
-                      >
-                        🗑️ Delete
-                      </button>
-                    </div>
-                    <img
-                      src={img.filePath}
-                      type="image/svg+xml"
-                      className="w-full h-40 mt-2"
-                    />
-                  </div>
-                ))}
+                    💾 Download
+                  </button>
+                  <button
+                    className="btn btn-allert"
+                    onClick={() => deleteImg(img)}
+                  >
+                    🗑️ Delete
+                  </button>
+                </div>
+                <img src={img.filePath} type="image/svg+xml" />
               </div>
-            </div>
-          </>
+            ))}
+          </div>
         )}
       </div>
     </div>

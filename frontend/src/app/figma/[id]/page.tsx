@@ -115,18 +115,13 @@ const ProjectPage = () => {
       {/* <pre> {JSON.stringify(project?.file, null, 2)}</pre> */}
       <hr className="mt-4 mb-4" />
       <div className="mt-4 grid grid-cols-1 gap-2">
-        {/* 🎨🎨🎨🎨🎨🎨colorVariables🎨🎨🎨🎨🎨🎨🎨 */}
+        {/* 🔹🔹🔹🔹🔹colorVariables🔹🔹🔹🔹🔹 */}
         <ColorsFromFigma
           project={project}
           fontsToDisplay={fontsToDisplay}
           setfontsToDisplay={setfontsToDisplay}
         />
       </div>
-      {/*🔹🔹🔹🔹🔹images & SVG🔹🔹🔹🔹🔹🔹*/}
-      <ExtractImages project={project} />
-      {/*🔹🔹🔹🔹🔹 Figma preview 🔹🔹🔹🔹🔹*/}
-      <hr className="mt-4 mb-4" />
-      {project?.previewUrl && <PrevProject project={project} />}
       {/*🔹🔹🔹🔹🔹 FigmaViewer 🔹🔹🔹🔹🔹*/}
       <hr className="mt-4 mb-4" />
       {project && (
@@ -137,6 +132,13 @@ const ProjectPage = () => {
           fontsToDisplay={fontsToDisplay}
         />
       )}
+      {/*🔹🔹🔹🔹🔹images & SVG🔹🔹🔹🔹🔹🔹*/}
+      <hr className="mt-4 mb-4" />
+      <ExtractImages project={project} />
+      {/*🔹🔹🔹🔹🔹 Figma preview 🔹🔹🔹🔹🔹*/}
+      <hr className="mt-4 mb-4" />
+      {project?.previewUrl && <PrevProject project={project} />}
+
       {/*🔹🔹🔹🔹🔹 Plaza 🔹🔹🔹🔹🔹*/}
       <Plaza />
     </div>

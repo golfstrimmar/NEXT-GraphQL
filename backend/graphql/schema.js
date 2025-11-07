@@ -81,6 +81,7 @@ export const typeDefs = gql`
     id: ID!
     variableName: String!
     hex: String!
+    rgba: String!
     type: ColorType!
     fileKey: String!
     fontClasses: [FontClass!] # связь с FontClass
@@ -168,15 +169,20 @@ export const typeDefs = gql`
     removeFigmaImage(nodeId: String!, figmaProjectId: Int!): FigmaImage!
 
     transformRasterToSvg(nodeId: String!): FigmaImage!
-    addFontClasses(
-      fileKey: String!
-      fontClasses: [FontClassInput!]!
-    ): [FontClass!]!
+    # addFontClasses(
+    #   fileKey: String!
+    #   fontClasses: [FontClassInput!]!
+    # ): [FontClass!]!
     extractAndSaveColors(
       fileKey: String!
       figmaFile: JSON!
       nodeId: String!
     ): [ColorVariable!]!
+    extractAndSaveFonts(
+      fileKey: String!
+      figmaFile: JSON!
+      nodeId: String!
+    ): [FontClass!]!
   }
 
   type Subscription {

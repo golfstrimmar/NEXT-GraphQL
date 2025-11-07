@@ -10,6 +10,7 @@ import removeFigmaImage from "../mutations/removeFigmaImage.js";
 import transformRasterToSvg from "../mutations/transformRasterToSvg.js";
 import removeFigmaProject from "../mutations/removeFigmaProject.js";
 import extractAndSaveColors from "../mutations/extractAndSaveColors.js";
+import extractAndSaveFonts from "../mutations/extractAndSaveFonts.js";
 const ee = new EventEmitter();
 const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key";
 const SALT_ROUNDS = 10;
@@ -277,39 +278,7 @@ export const resolvers = {
     removeFigmaImage,
     removeFigmaProject,
     extractAndSaveColors,
-    // addColorVariables: async (_, { fileKey, colors }) => {
-    //   await prisma.colorVariable.createMany({
-    //     data: colors.map((c) => ({
-    //       variableName: c.variableName,
-    //       hex: c.hex,
-    //       type: c.type,
-    //       fileKey,
-    //     })),
-    //     skipDuplicates: true,
-    //   });
-    //   return prisma.colorVariable.findMany({
-    //     where: { fileKey },
-    //   });
-    // },
-    addFontClasses: async (_, { fileKey, fontClasses }) => {
-      console.log(">==== fontClasses====>", fontClasses);
-      await prisma.fontClass.createMany({
-        data: fontClasses.map((f) => ({
-          className: f.className,
-          fontFamily: f.fontFamily,
-          fontWeight: f.fontWeight,
-          fontSize: f.fontSize,
-          lineHeight: f.lineHeight,
-          letterSpacing: f.letterSpacing,
-          sampleText: f.sampleText,
-          fileKey,
-          colorVariableName: f.colorVariableName,
-        })),
-        skipDuplicates: true,
-      });
-
-      return prisma.fontClass.findMany({ where: { fileKey } });
-    },
+    extractAndSaveFonts,
   },
   User: {
     projects: (parent) =>

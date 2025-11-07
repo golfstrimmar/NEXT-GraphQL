@@ -91,31 +91,31 @@ const FigmaViewer: React.FC<FigmaViewerProps> = ({
         console.error(err);
       });
   }, [fileData, nodeId]);
-  const transformColor = (VariableName: string) => {
-    return colors.find((color) => color.variableName === VariableName)?.hex;
-  };
-  const getFontCssString = (f) =>
-    [
-      `font-family: "${f.fontFamily}", sans-serif;`,
-      `font-weight: ${f.fontWeight};`,
-      `font-size: ${f.fontSize}px;`,
-      f.lineHeight ? `line-height: ${f.lineHeight}px;` : "",
-      f.letterSpacing && f.letterSpacing !== 0
-        ? `letter-spacing: ${f.letterSpacing}px;`
-        : "",
-      `color: ${f.colorVariableName || "unknown"};`,
-    ]
-      .filter(Boolean)
-      .join("\n");
+  // const transformColor = (VariableName: string) => {
+  //   return colors.find((color) => color.variableName === VariableName)?.hex;
+  // };
+  // const getFontCssString = (f) =>
+  //   [
+  //     `font-family: "${f.fontFamily}", sans-serif;`,
+  //     `font-weight: ${f.fontWeight};`,
+  //     `font-size: ${f.fontSize}px;`,
+  //     f.lineHeight ? `line-height: ${f.lineHeight}px;` : "",
+  //     f.letterSpacing && f.letterSpacing !== 0
+  //       ? `letter-spacing: ${f.letterSpacing}px;`
+  //       : "",
+  //     `color: ${f.colorVariableName || "unknown"};`,
+  //   ]
+  //     .filter(Boolean)
+  //     .join("\n");
 
   return (
     <section>
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col items-center gap-1">
         {Texts &&
           Texts.map((text, index) => (
             <button
               type="button"
-              className="btn btn-empty max-w-[max-content] px-2"
+              className="btn btn-empty max-w-[max-content] px-1"
               key={index}
               onClick={() => {
                 navigator.clipboard.writeText(text);
@@ -126,7 +126,7 @@ const FigmaViewer: React.FC<FigmaViewerProps> = ({
             </button>
           ))}
       </div>
-      {Fonts.map((f, index) => (
+      {/* {Fonts.map((f, index) => (
         <div
           key={index}
           className={`${f.sampleText && f.sampleText.length > 0 ? "bg-green-200" : "bg-gray-100"} mt-4 mb-4 p-3 border rounded-md `}
@@ -184,7 +184,7 @@ const FigmaViewer: React.FC<FigmaViewerProps> = ({
             {f.sampleText || "Sample Text"}
           </button>
         </div>
-      ))}
+      ))} */}
       {/* <pre className="p-2 bg-slate-100 border-slate-700 border-1 rounded-md shadow-[0_0_10px_0_rgba(0,0,0,0.4)] ">
         {JSON.stringify(htmlJson, null, 2)}
       </pre> */}

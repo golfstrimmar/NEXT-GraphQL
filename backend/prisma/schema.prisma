@@ -76,6 +76,7 @@ model ColorVariable {
   id           Int       @id @default(autoincrement())
   variableName String
   hex          String
+  rgba         String
   type         ColorType
   fileKey      String
   createdAt    DateTime  @default(now())
