@@ -586,10 +586,10 @@ export default function Plaza() {
           )}  */}
         {/* [{"tag":"div","text":"container","class":"","style": "background: mediumblue; padding: 2px 4px; border: 1px solid #adadad; ","children": []}] */}
         {/* {htmlJson && (
-            <pre>
-              <code>{JSON.stringify(htmlJson, null, 2)}</code>
-            </pre>
-          )} */}
+          <pre>
+            <code>{JSON.stringify(htmlJson, null, 2)}</code>
+          </pre>
+        )} */}
 
         <motion.div
           id="plaza-container"

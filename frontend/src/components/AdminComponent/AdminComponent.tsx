@@ -62,7 +62,8 @@ const TagsNamen5 = [
 // =====================================
 
 const AdminComponent = () => {
-  const { htmlJson, setHtmlJson, setModalMessage } = useStateContext();
+  const { htmlJson, setHtmlJson, setModalMessage, updateHtmlJson } =
+    useStateContext();
   const [nodeToFetch, setNodeToFetch] = useState<string>("");
   const [loadKey, setLoadKey] = useState(0);
   const { data: jsonData, refetch: refetchJson } = useQuery(GET_JSON_DOCUMENT, {
@@ -75,9 +76,12 @@ const AdminComponent = () => {
     const { data } = await refetchJson({ name });
     const content = data?.jsonDocumentByName?.content;
     if (!content) return;
-    setHtmlJson((prev) => ({
+    updateHtmlJson((prev) => ({
       ...prev,
-      children: [...prev?.children, ...content],
+      children: [
+        ...(prev?.children ?? []),
+        ...(Array.isArray(content) ? content : [content]),
+      ],
     }));
   };
   // =============================

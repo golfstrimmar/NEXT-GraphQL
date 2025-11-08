@@ -490,8 +490,7 @@ const createRenderNode = ({
           })()}
           onClick={handleNodeClick}
         >
-          {/* {node.tag} */}
-          {node.text}
+          {node.class === "baza" ? "baza" : editMode ? node.tag : node.text}
           {children}
         </Tag>
       );

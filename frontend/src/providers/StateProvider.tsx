@@ -78,14 +78,16 @@ export function StateProvider({ children }: { children: ReactNode }) {
   const [redoStack, setRedoStack] = useState<HtmlNode[][]>([]);
 
   // ===================================
-  const updateHtmlJson = (nextHtmlJson: HtmlNode[]) => {
-    if (nextHtmlJson === null || nextHtmlJson.length === 0) {
-      setUndoStack([]);
-      setRedoStack([]);
-    }
+  const updateHtmlJson = (
+    nextHtmlJson: HtmlNode[] | ((prev: HtmlNode[]) => HtmlNode[])
+  ) => {
     setUndoStack((prev) => [...prev, JSON.parse(JSON.stringify(htmlJson))]);
-    setRedoStack([]); // новая ветка истории — redo сбрасывается
-    setHtmlJson(nextHtmlJson);
+    setRedoStack([]);
+    if (typeof nextHtmlJson === "function") {
+      setHtmlJson((prev) => nextHtmlJson(JSON.parse(JSON.stringify(prev))));
+    } else {
+      setHtmlJson(JSON.parse(JSON.stringify(nextHtmlJson)));
+    }
   };
 
   const undo = () => {
@@ -179,8 +181,8 @@ export function StateProvider({ children }: { children: ReactNode }) {
       (htmlJson === null || htmlJson === undefined || htmlJson.length === 0) &&
       jsonData
     ) {
-      setUndoStack([]);
-      setRedoStack([]);
+      // setUndoStack([]);
+      // setRedoStack([]);
       const initialJson = jsonData?.jsonDocumentByName?.content[0];
 
       if (initialJson) {
@@ -189,10 +191,10 @@ export function StateProvider({ children }: { children: ReactNode }) {
 
         // сохраняем в localStorage и в состояние
         localStorage.setItem("htmlJson", JSON.stringify(clone));
-        setHtmlJson(clone); // <-- гарантирует новое значение (новая ссылка)
+        updateHtmlJson(clone); // <-- гарантирует новое значение (новая ссылка)
       } else {
         // если вдруг jsonData пустое — обнуляем
-        setHtmlJson([]);
+        updateHtmlJson([]);
         localStorage.setItem("htmlJson", "[]");
       }
     } else {
