@@ -490,6 +490,7 @@ const createRenderNode = ({
           })()}
           onClick={handleNodeClick}
         >
+          {/* {node.tag} */}
           {node.text}
           {children}
         </Tag>

@@ -111,7 +111,7 @@ export default function FigmaPage() {
           )}
         </div>
 
-        {/* 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹 */}
+        {/* 🔹🔹🔹🔹🔹🔹🔹🔹projects🔹🔹🔹🔹🔹🔹🔹🔹 */}
         <div className="figma-projects mt-2">
           {projects.length === 0 && (
             <p className="text-red-500">No projects found. </p>

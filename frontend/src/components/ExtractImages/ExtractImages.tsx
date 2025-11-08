@@ -20,7 +20,9 @@ const ExtractImages: React.FC<ExtractImagesProps> = ({ project }) => {
   const [svgImages, setSvgImages] = useState<any[]>([]);
   const [tempId, setTempId] = useState<string>("");
   const [imgMess, setImgMess] = useState<string>("");
-  // 🟢🟢🟢🟢🟢🟢 Mutatons
+  const [imagesToShow, setImagesToShow] = useState<boolean>(false);
+  const [svgToShow, setSvgToShow] = useState<boolean>(false);
+  // ======== Mutatons
   const [
     uploadFigmaImagesToCloudinary,
     { loading: uploading, error: uploadError },
@@ -34,7 +36,7 @@ const ExtractImages: React.FC<ExtractImagesProps> = ({ project }) => {
   );
 
   const [removeFigmaImage] = useMutation(REMOVE_FIGMA_IMAGE);
-  //🟢🟢🟢🟢🟢🟢🟢 Логирование
+  //=========== Логирование
   useEffect(() => {
     if (images.length > 0) console.log("<==== images====>", images);
   }, [images]);
@@ -42,7 +44,7 @@ const ExtractImages: React.FC<ExtractImagesProps> = ({ project }) => {
     if (svgImages.length > 0) console.log("<==== svgImages====>", svgImages);
   }, [svgImages]);
 
-  // 🟢🟢🟢🟢🟢🟢🟢Обработка изображений
+  // ============ Обработка изображений
   const handlerImages = async () => {
     if (!project?.id) return;
 
@@ -115,7 +117,7 @@ const ExtractImages: React.FC<ExtractImagesProps> = ({ project }) => {
     }
   };
 
-  //🟢🟢🟢🟢🟢🟢🟢 Обработка SVG
+  //============ Обработка SVG
   const handlerSvg = async () => {
     try {
       const { data } = await uploadFigmaSvgsToCloudinary({
@@ -144,21 +146,28 @@ const ExtractImages: React.FC<ExtractImagesProps> = ({ project }) => {
     <div className="mt-4 grid grid-cols-2 gap-2">
       {/*🔹🔹🔹🔹🔹images🔹🔹🔹🔹🔹🔹*/}
       <div className="">
-        <button className="btn btn-primary w-full" onClick={handlerImages}>
-          {uploading ? "🌤️ Loading images..." : "☁️ Images"}
-        </button>
-        {imgMess && <p className="mt-2 text-center text-red-500">{imgMess}</p>}
-        {images.length > 0 && (
+        {!images.length > 0 && (
           <button
-            className="btn btn-allert mt-2"
+            className="btn btn-primary w-full"
             onClick={() => {
-              setImages([]);
+              handlerImages();
             }}
           >
-            Clear Images to display
+            {uploading ? "🌤️ Loading images..." : "☁️ Upload Images"}
           </button>
         )}
         {images.length > 0 && (
+          <button
+            className="btn btn-primary w-full"
+            onClick={() => {
+              setImagesToShow(!imagesToShow);
+            }}
+          >
+            {imagesToShow ? "☁️ Hide Images" : "☁️ Show Images"}
+          </button>
+        )}
+        {imgMess && <p className="mt-2 text-center text-red-500">{imgMess}</p>}
+        {images.length > 0 && imagesToShow && (
           <div className="mt-2">
             <h5 className="">Uploaded Images ({images.length})</h5>
             <button onClick={downloadImages} className="btn-primary btn">
@@ -206,43 +215,54 @@ const ExtractImages: React.FC<ExtractImagesProps> = ({ project }) => {
 
       {/*🔹🔹🔹🔹🔹🔹 SVG 🔹🔹🔹🔹🔹*/}
       <div className="">
-        <button className="btn btn-primary w-full" onClick={handlerSvg}>
-          {uploadingSvgs ? "🌤️ Loading svg..." : "☁️ SVG"}
-        </button>
-        <button
-          className="btn btn-allert mt-2"
-          onClick={() => {
-            setSvgImages([]);
-          }}
-        >
-          Clear SVG to display
-        </button>
-        <h5 className="">Uploaded SVG ({svgImages.length})</h5>
+        {!svgImages.length > 0 && (
+          <button
+            className="btn btn-primary w-full"
+            onClick={() => {
+              handlerSvg();
+            }}
+          >
+            {uploading ? "🌤️ Loading Svg..." : "☁️ Upload Svg"}
+          </button>
+        )}
         {svgImages.length > 0 && (
-          <div className="grid grid-cols-2 gap-2 mt-2">
-            {svgImages.map((img, index) => (
-              <div
-                key={index}
-                className="border rounded shadow-sm p-1 bg-[rgb(145_145_145)]"
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <button
-                    className="btn btn-primary"
-                    onClick={() => downloadOneSvgImage(img)}
-                  >
-                    💾 Download
-                  </button>
-                  <button
-                    className="btn btn-allert"
-                    onClick={() => deleteImg(img)}
-                  >
-                    🗑️ Delete
-                  </button>
+          <button
+            className="btn btn-primary w-full"
+            onClick={() => {
+              setSvgToShow(!svgToShow);
+            }}
+          >
+            {svgToShow ? "☁️ Hide Svg" : "☁️ Show Svg"}
+          </button>
+        )}
+        {svgImages.length > 0 && svgToShow && (
+          <>
+            <h5 className="">Uploaded SVG ({svgImages.length})</h5>
+            <div className="grid grid-cols-2 gap-2 mt-2">
+              {svgImages.map((img, index) => (
+                <div
+                  key={index}
+                  className="border rounded shadow-sm p-1 bg-[rgb(145_145_145)]"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => downloadOneSvgImage(img)}
+                    >
+                      💾 Download
+                    </button>
+                    <button
+                      className="btn btn-allert"
+                      onClick={() => deleteImg(img)}
+                    >
+                      🗑️ Delete
+                    </button>
+                  </div>
+                  <img src={img.filePath} type="image/svg+xml" />
                 </div>
-                <img src={img.filePath} type="image/svg+xml" />
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>

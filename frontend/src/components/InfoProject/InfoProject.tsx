@@ -112,6 +112,24 @@ const InfoProject: React.FC<InfoProjectProps> = ({
           <h5 className="inline-block">{node?.tag}</h5>
         </div>
         <p className="bg-white !font-bold  inline-block z-30 py-1 rounded mt-2 -mb-3 w-[max-content]">
+          Tag:
+        </p>
+        <textarea
+          ref={(el) => {
+            if (!el) return;
+            textareaRef.current = el;
+            adjustHeight(el);
+          }}
+          value={node?.tag || ""}
+          onChange={(e) => {
+            const updatedProject = updateNodeByKey(project, node._key, {
+              tag: e.target.value,
+            });
+            setProject(updatedProject as ProjectData);
+          }}
+          className="textarea-styles"
+        />
+        <p className="bg-white !font-bold  inline-block z-30 py-1 rounded mt-2 -mb-3 w-[max-content]">
           Text:
         </p>
         <textarea

@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useStateContext } from "@/providers/StateProvider";
 import { useQuery } from "@apollo/client";
 import { GET_COLOR_VARIABLES_BY_FILE_KEY } from "@/apollo/queries";
+import Button from "../ui/Button/Button";
 interface FigmaViewerProps {
   fileData: any;
   nodeId: string;
@@ -107,11 +108,35 @@ const FigmaViewer: React.FC<FigmaViewerProps> = ({
   //   ]
   //     .filter(Boolean)
   //     .join("\n");
-
+  const createElementFor = () => {
+    const content = Texts.map((text) => {
+      return {
+        tag: "p",
+        text: text,
+        class: "",
+        style:
+          "background: #e2e8f0; padding: 2px 4px; border: 1px solid #adadad; ",
+        children: [],
+      };
+    });
+    setHtmlJson((prev) => ({
+      ...prev,
+      children: [...prev?.children, ...content],
+    }));
+  };
   return (
     <section>
-      <div className="flex flex-col items-center gap-1">
-        {Texts &&
+      <div className="flex flex-col items-center gap-1 ">
+        <button
+          type="button"
+          className="btn btn-primary  px-1 w-full"
+          onClick={() => {
+            createElementFor();
+          }}
+        >
+          Create Text Elements for this Figma Project
+        </button>
+        {/* {Texts &&
           Texts.map((text, index) => (
             <button
               type="button"
@@ -124,7 +149,7 @@ const FigmaViewer: React.FC<FigmaViewerProps> = ({
             >
               {text}
             </button>
-          ))}
+          ))} */}
       </div>
       {/* {Fonts.map((f, index) => (
         <div

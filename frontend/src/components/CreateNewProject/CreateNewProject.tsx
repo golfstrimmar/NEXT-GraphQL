@@ -48,7 +48,7 @@ const CreateNewProject = () => {
   return (
     <div className="createnewproject">
       <hr className="bordered-2 border-slate-200 mt-2 mb-2" />
-      <h5>Create a new project</h5>
+      <h5>Create a new Ulon project</h5>
       <div className="relative">
         <Input
           typeInput="text"
@@ -56,13 +56,13 @@ const CreateNewProject = () => {
           value={newProjectName}
           onChange={(e) => setNewProjectName(e.target.value)}
         />
-        <div className="absolute z-20 top-[50%] right-0 -translate-y-[50%]!">
+        <div className="absolute z-20 top-[50%] right-1 -translate-y-[50%]!">
           <button
             type="button"
             className="btn btn-primary h-full"
             onClick={createNewProject}
           >
-            Create
+            Create Ulon Project
           </button>
         </div>
       </div>

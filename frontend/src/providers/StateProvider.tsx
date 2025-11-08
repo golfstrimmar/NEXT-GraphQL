@@ -48,6 +48,11 @@ interface StateContextType {
   isModalOpen: boolean;
   setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   showModal: (message: string, duration?: number) => void;
+  updateHtmlJson: (next: HtmlNode[]) => void;
+  undo: () => void;
+  redo: () => void;
+  undoStack: HtmlNode[][];
+  redoStack: HtmlNode[][];
 }
 
 const StateContext = createContext<StateContextType | null>(null);
@@ -69,6 +74,38 @@ export function StateProvider({ children }: { children: ReactNode }) {
     variables: { name: "initialTags" },
     fetchPolicy: "network-only",
   });
+  const [undoStack, setUndoStack] = useState<HtmlNode[][]>([]);
+  const [redoStack, setRedoStack] = useState<HtmlNode[][]>([]);
+
+  // ===================================
+  const updateHtmlJson = (nextHtmlJson: HtmlNode[]) => {
+    if (nextHtmlJson === null || nextHtmlJson.length === 0) {
+      setUndoStack([]);
+      setRedoStack([]);
+    }
+    setUndoStack((prev) => [...prev, JSON.parse(JSON.stringify(htmlJson))]);
+    setRedoStack([]); // новая ветка истории — redo сбрасывается
+    setHtmlJson(nextHtmlJson);
+  };
+
+  const undo = () => {
+    console.log("<====undoStack====>", undoStack);
+
+    if (undoStack.length === 0) return;
+    const prev = undoStack[undoStack.length - 1];
+    setUndoStack((stack) => stack.slice(0, -1));
+    setRedoStack((stack) => [...stack, JSON.parse(JSON.stringify(htmlJson))]);
+    setHtmlJson(prev);
+  };
+
+  const redo = () => {
+    console.log("<====redoStack====>", redoStack);
+    if (redoStack.length === 0) return;
+    const next = redoStack[redoStack.length - 1];
+    setRedoStack((stack) => stack.slice(0, -1));
+    setUndoStack((stack) => [...stack, JSON.parse(JSON.stringify(htmlJson))]);
+    setHtmlJson(next);
+  };
 
   // ==================== INIT USER ====================
   useEffect(() => {
@@ -142,6 +179,8 @@ export function StateProvider({ children }: { children: ReactNode }) {
       (htmlJson === null || htmlJson === undefined || htmlJson.length === 0) &&
       jsonData
     ) {
+      setUndoStack([]);
+      setRedoStack([]);
       const initialJson = jsonData?.jsonDocumentByName?.content[0];
 
       if (initialJson) {
@@ -178,6 +217,11 @@ export function StateProvider({ children }: { children: ReactNode }) {
         isModalOpen,
         setIsModalOpen,
         showModal,
+        updateHtmlJson,
+        undo,
+        redo,
+        undoStack,
+        redoStack,
       }}
     >
       {isModalOpen && (

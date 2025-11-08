@@ -11,14 +11,16 @@ https://ulon-graphql.vercel.app
         />
 INSERT INTO "JsonDocument" ("name", "content")
 VALUES (
-  'initialTags',
-  '[
-    {
-      "tag": "div",
-      "text": "default div",
-      "class": "default-div",
-      "style": "background-color: #e2e8f0;",
-      "children": []
-    }
-  ]'::jsonb
+'initialTags',
+'[
+{
+"tag": "div",
+"text": "default div",
+"class": "default-div",
+"style": "background-color: #e2e8f0;",
+"children": []
+}
+]'::jsonb
 );
+
+grid grid-cols-[repeat(auto-fit,_minmax(150px,_1fr))] gap-2

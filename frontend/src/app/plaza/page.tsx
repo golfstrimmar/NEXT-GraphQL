@@ -7,6 +7,7 @@ import React, {
   useCallback,
   useRef,
 } from "react";
+import { usePathname } from "next/navigation";
 import { useStateContext } from "@/providers/StateProvider";
 import { useMutation, useQuery, useLazyQuery } from "@apollo/client";
 import Image from "next/image";
@@ -42,7 +43,17 @@ type OpenInfo = {
 // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
 // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
 export default function Plaza() {
-  const { htmlJson, setHtmlJson, user, setModalMessage } = useStateContext();
+  const {
+    htmlJson,
+    user,
+    setModalMessage,
+    updateHtmlJson,
+    undo,
+    redo,
+    undoStack,
+    redoStack,
+  } = useStateContext();
+  const pathname = usePathname();
   const [projects, setProjects] = useState<PProject[]>([]);
   const [project, setProject] = useState<PProject>(null);
   const [projectId, setProjectId] = useState<string>("");
@@ -54,7 +65,7 @@ export default function Plaza() {
   const [nodeToDrag, setNodeToDrag] = useState<any>(null);
   const isSyncingRef = useRef(false);
   // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
-
+  const isFigma = pathname === "/figma";
   const variables = React.useMemo(() => ({ userId: user?.id }), [user?.id]);
   const { data, loading, error } = useQuery(GET_ALL_PROJECTS_BY_USER, {
     variables,
@@ -94,7 +105,7 @@ export default function Plaza() {
     console.log("<==== proj from bd====>", proj);
     setProjectId(proj.id);
     setProjectName(proj.name);
-    setHtmlJson((prev) => {
+    updateHtmlJson((prev) => {
       if (!prev) return prev;
       const newHtmlJson = { ...prev };
       newHtmlJson.children = [...newHtmlJson.children, ...proj.data.children];
@@ -150,7 +161,7 @@ export default function Plaza() {
       return;
     }
     const newProject = removeKeys(project);
-    setHtmlJson(newProject);
+    updateHtmlJson(newProject);
   }, [project]);
 
   // 🔺🔺🔺🔺🔺🔺🔺🔺🔺🔺🔺🔺
@@ -228,7 +239,7 @@ export default function Plaza() {
     setProjectId(undefined);
     setProjectName("");
     setOpenInfoKey(null);
-    setHtmlJson(null);
+    updateHtmlJson([]);
   };
   // ♻️♻️♻️♻️♻️♻️♻️♻️
   const removeKeys = (node: any): any => {
@@ -298,7 +309,7 @@ export default function Plaza() {
         nodeToDragEl,
         nodeToDrag,
         setModalMessage,
-        setHtmlJson,
+        updateHtmlJson,
         project,
         resetAll,
       }),
@@ -345,253 +356,277 @@ export default function Plaza() {
 
   //⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️
   return (
-    <section className="pt-[100px] pb-[100px]">
-      <div className="container">
+    <section className={`pb-[100px] isFigma?pt-[100px]:pt-0`}>
+      <div className=" mt-6 mb-6 relative w-full h-1 ">
+        <hr className="bordered border-slate-900 mt-6 mb-6" />
+        <div className="bg-white text-slate-900 p-1 rounded-2xl  absolute top-[50%] left-[50%] translate-[-50%] ">
+          Ulon projects
+        </div>
+      </div>
+      {user && (
+        <h3 className="inline-block">
+          <span className="font-normal text-[16px]">
+            All Ulon projects of: &nbsp;
+          </span>
+          {user?.name}
+        </h3>
+      )}
+      <div className="flex flex-col">
         {user && (
-          <h3 className="inline-block">
-            <span className="font-normal text-[16px]">
-              All projects of: &nbsp;
-            </span>{" "}
-            {user?.name}
-          </h3>
+          <div className="flex flex-col">
+            {projects?.length === 0 && (
+              <p className="text-red-300">No projects yet.</p>
+            )}
+
+            {/* ------------список прототипов проектов--------------- */}
+            {loading ? (
+              <Loading />
+            ) : (
+              <div className="flex gap-2">
+                {projects?.map((p) => (
+                  <div className="relative" key={p.id}>
+                    <button
+                      className={`border absolute top-0 left-0 w-5 h-full flex items-center justify-center bg-red-400 hover:bg-red-600 z-20 transition duration-300 
+                        }`}
+                      onClick={() => delProject(p?.id)}
+                      // disabled={projectId === p.id}
+                    >
+                      <Image
+                        src="/svg/cross-com.svg"
+                        alt="icon"
+                        width={10}
+                        height={10}
+                      />
+                    </button>
+                    <button
+                      className={` flex  flex-col gap-2 pl-6 pr-2 text-start border rounded-md  hover:bg-slate-200 ${
+                        projectId === p.id ? "bg-slate-400 " : "cursor-pointer"
+                      }`}
+                      onClick={async () => {
+                        setpId(p.id);
+                      }}
+                      type="button"
+                    >
+                      <h5 className="w-[max-content] !lh-1">{p?.name}</h5>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
-        {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
-        {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
+        {/* ------флома создания проекта-------- */}
+        {user && <CreateNewProject />}
+        {/* ------готовые тэги-------- */}
         <hr className="bordered border-slate-200 mt-6 mb-6" />
         <AdminComponent />
-        <hr className="bordered border-slate-200 mt-6 mb-6" />
-        {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
-        {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
+        {/* ------кнопки управления-------- */}
+        <hr className="bordered border-slate-200 mt-2 " />
+        <div className="flex items-center   gap-1">
+          <button
+            className=" cursor-pointer relative hover:bg-slate-200 flex items-center justify-center  w-6 h-6 rounded"
+            type="button"
+            onClick={() => {
+              resetAll();
+            }}
+          >
+            <Image
+              src="/svg/clear.svg"
+              alt="icon"
+              width={20}
+              height={20}
+              className="prev"
+            />
+            {/* <div className="nextafterButton" style={{}}>
+                Clear the demo
+              </div> */}
+          </button>
+          <button
+            className={` hover:bg-slate-200 flex items-center    w-6 h-6 cursor-pointer justify-center  relative  rounded ${editMode ? "bg-slate-400" : ""}`}
+            type="button"
+            onClick={() => setEditMode((prev) => !prev)}
+          >
+            <Image
+              src="/svg/drag.svg"
+              alt="icon"
+              width={15}
+              height={15}
+              className="prev"
+            />
+            {/* <div className="nextafterButton">Drug & Drop</div> */}
+          </button>
+          <button
+            className={` hover:bg-slate-200 flex items-center    w-6 h-6 cursor-pointer justify-center  relative  rounded`}
+            type="button"
+            onClick={undo}
+          >
+            <Image
+              src="/svg/chevron-left.svg"
+              alt="icon"
+              width={10}
+              height={10}
+              className="prev"
+            />
+          </button>
+          <button
+            className={` hover:bg-slate-200 flex items-center    w-6 h-6 cursor-pointer justify-center  relative  rounded`}
+            type="button"
+            onClick={redo}
+          >
+            <Image
+              src="/svg/chevron-right.svg"
+              alt="icon"
+              width={10}
+              height={10}
+              className="prev"
+            />
+          </button>
+          <button
+            className={` hover:bg-slate-200 flex items-center    w-6 h-6 cursor-pointer justify-center  relative  rounded `}
+            type="button"
+            onClick={() => {
+              createHtml();
+            }}
+          >
+            <Image
+              src="/svg/html.svg"
+              alt="icon"
+              width={20}
+              height={20}
+              className="prev"
+            />
+          </button>
+          <button
+            className={` hover:bg-slate-200 flex items-center    w-6 h-6 cursor-pointer justify-center  relative  rounded `}
+            type="button"
+            onClick={() => {
+              createSCSS();
+            }}
+          >
+            <Image
+              src="/svg/scss.svg"
+              alt="icon"
+              width={20}
+              height={20}
+              className="prev"
+            />
+          </button>
+          <button
+            className={` hover:bg-slate-200 flex items-center    w-6 h-6 cursor-pointer justify-center  relative  rounded`}
+            type="button"
+            onClick={() => {
+              createPug();
+            }}
+          >
+            <Image
+              src="/svg/pug.svg"
+              alt="icon"
+              width={20}
+              height={20}
+              className="prev"
+            />
+          </button>
+          {/* {<pre>{createHtml()}</pre>} */}
+        </div>
+        {/* ------------- */}
+        <hr className="bordered border-slate-200  " />
+        <div className="">
+          {projectName && (
+            <h3>
+              <span className="font-normal text-[16px] mr-2">
+                Ulon Project:{" "}
+              </span>
+              {projectName}
+            </h3>
+          )}
 
-        <div className="flex flex-col">
-          {user && (
-            <div className="flex flex-col">
-              {projects?.length === 0 && (
-                <p className="text-red-300">No projects yet.</p>
-              )}
-              {loading ? (
-                <Loading />
-              ) : (
-                <div className="flex flex-col gap-2">
-                  {projects?.map((p) => (
-                    <div className="relative" key={p.id}>
-                      <button
-                        className={`border absolute top-0 left-0 w-5 h-full flex items-center justify-center bg-red-400 hover:bg-red-600 z-20 transition duration-300 
-                        }`}
-                        onClick={() => delProject(p?.id)}
-                        // disabled={projectId === p.id}
-                      >
-                        <Image
-                          src="/svg/cross-com.svg"
-                          alt="icon"
-                          width={10}
-                          height={10}
-                        />
-                      </button>
-                      <button
-                        className={`flex w-full flex-col gap-2 pl-6 text-start border rounded-md p-2 hover:bg-slate-200 ${
-                          projectId === p.id
-                            ? "bg-slate-400 "
-                            : "cursor-pointer"
-                        }`}
-                        onClick={async () => {
-                          setpId(p.id);
-                        }}
-                        type="button"
-                      >
-                        <h4>{p?.name}</h4>
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
+          {projectId && projectId !== "" && (
+            <div className="flex items-center gap-1">
+              <button
+                className="cursor-pointer relative hover:bg-slate-200 flex items-center justify-center  w-6 h-6 rounded"
+                type="button"
+                onClick={() => {
+                  updateTempProject();
+                }}
+              >
+                <Image
+                  src="/svg/update.svg"
+                  alt="icon"
+                  width={15}
+                  height={15}
+                  className="prev"
+                />
+                <div className="nextafterButton">Update project</div>
+              </button>
+
+              <button
+                className="cursor-pointer relative hover:bg-slate-200 flex items-center justify-center  w-6 h-6 rounded"
+                type="button"
+                onClick={() => delProject(projectId)}
+              >
+                <Image
+                  src="/svg/cross.svg"
+                  alt="icon"
+                  width={15}
+                  height={15}
+                  className="prev"
+                />
+                <div className="nextafterButton">Remove project</div>
+              </button>
             </div>
           )}
-          {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
-          {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
-          {user && <CreateNewProject />}
-          {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
-          {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
-          <hr className="bordered border-slate-200 mt-2 " />
-          <div className="flex items-center mt-2  gap-1">
-            <button
-              className=" cursor-pointer relative hover:bg-slate-200 flex items-center justify-center  w-6 h-6 rounded"
-              type="button"
-              onClick={() => {
-                resetAll();
-              }}
-            >
-              <Image
-                src="/svg/clear.svg"
-                alt="icon"
-                width={20}
-                height={20}
-                className="prev"
-              />
-              <div className="nextafterButton" style={{}}>
-                Clear the demo
-              </div>
-            </button>
-            <button
-              className={` hover:bg-slate-200 flex items-center    w-6 h-6 cursor-pointer justify-center  relative  rounded ${editMode ? "bg-slate-400" : ""}`}
-              type="button"
-              onClick={() => setEditMode((prev) => !prev)}
-            >
-              <Image
-                src="/svg/drag.svg"
-                alt="icon"
-                width={15}
-                height={15}
-                className="prev"
-              />
-              <div className="nextafterButton">Drug & Drop</div>
-            </button>{" "}
-            <button
-              className={` hover:bg-slate-200 flex items-center    w-6 h-6 cursor-pointer justify-center  relative  rounded `}
-              type="button"
-              onClick={() => {
-                createHtml();
-              }}
-            >
-              <Image
-                src="/svg/html.svg"
-                alt="icon"
-                width={20}
-                height={20}
-                className="prev"
-              />
-            </button>
-            <button
-              className={` hover:bg-slate-200 flex items-center    w-6 h-6 cursor-pointer justify-center  relative  rounded `}
-              type="button"
-              onClick={() => {
-                createSCSS();
-              }}
-            >
-              <Image
-                src="/svg/scss.svg"
-                alt="icon"
-                width={20}
-                height={20}
-                className="prev"
-              />
-            </button>
-            <button
-              className={` hover:bg-slate-200 flex items-center    w-6 h-6 cursor-pointer justify-center  relative  rounded`}
-              type="button"
-              onClick={() => {
-                createPug();
-              }}
-            >
-              <Image
-                src="/svg/pug.svg"
-                alt="icon"
-                width={20}
-                height={20}
-                className="prev"
-              />
-            </button>
-            {/* {<pre>{createHtml()}</pre>} */}
-          </div>
-          {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
-          {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
-          <hr className="bordered border-slate-200 mt-6 " />
-          <div className="">
-            {projectName && (
-              <h3>
-                <span className="font-normal text-[16px]">Project: </span>{" "}
-                {projectName}
-              </h3>
-            )}
-
-            {projectId && projectId !== "" && (
-              <div className="flex items-center gap-1">
-                <button
-                  className="cursor-pointer relative hover:bg-slate-200 flex items-center justify-center  w-6 h-6 rounded"
-                  type="button"
-                  onClick={() => {
-                    updateTempProject();
-                  }}
-                >
-                  <Image
-                    src="/svg/update.svg"
-                    alt="icon"
-                    width={15}
-                    height={15}
-                    className="prev"
-                  />
-                  <div className="nextafterButton">Update project</div>
-                </button>
-
-                <button
-                  className="cursor-pointer relative hover:bg-slate-200 flex items-center justify-center  w-6 h-6 rounded"
-                  type="button"
-                  onClick={() => delProject(projectId)}
-                >
-                  <Image
-                    src="/svg/cross.svg"
-                    alt="icon"
-                    width={15}
-                    height={15}
-                    className="prev"
-                  />
-                  <div className="nextafterButton">Remove project</div>
-                </button>
-              </div>
-            )}
-          </div>
-          {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
-          {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
-          <hr className="bordered border-slate-200 " />
-          {/* {project && (
+        </div>
+        {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
+        {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
+        <hr className="bordered border-slate-200 " />
+        {/* {project && (
             <pre>
               <code>{JSON.stringify(project, null, 2)}</code>
             </pre>
           )}  */}
-          {/* [{"tag":"div","text":"container","class":"","style": "background: mediumblue; padding: 2px 4px; border: 1px solid #adadad; ","children": []}] */}
-          {/* {htmlJson && (
+        {/* [{"tag":"div","text":"container","class":"","style": "background: mediumblue; padding: 2px 4px; border: 1px solid #adadad; ","children": []}] */}
+        {/* {htmlJson && (
             <pre>
               <code>{JSON.stringify(htmlJson, null, 2)}</code>
             </pre>
-          )}  */}
+          )} */}
 
-          <motion.div
-            id="plaza-container"
-            className={`grid transition-all duration-300 py-2 gap-4 mt-2 ${editMode ? "bg-slate-400 rounded" : ""}
+        <motion.div
+          id="plaza-container"
+          className={`grid transition-all duration-300 py-2 gap-4 mt-2 ${editMode ? "bg-slate-400 rounded" : ""}
              overflow-hidden
            `}
+        >
+          <AnimatePresence mode="wait">
+            {openInfoKey != null && project && (
+              <motion.div
+                key="info-project"
+                initial={{ y: -50, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -50, opacity: 0 }}
+                transition={{ duration: 0.3, ease: [0.25, 0.8, 0.5, 1] }}
+              >
+                <InfoProject
+                  setProject={setProject}
+                  updateHtmlJson={updateHtmlJson}
+                  project={project}
+                  setOpenInfoKey={setOpenInfoKey}
+                  openInfoKey={openInfoKey}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+          {/* ------------ рендеринг проекта ------------- */}
+          <div
+            id="plaza-render-area"
+            className="flex flex-col gap-2 pt-2 -mt-2 relative"
           >
-            <AnimatePresence mode="wait">
-              {openInfoKey != null && project && (
-                <motion.div
-                  key="info-project"
-                  initial={{ y: -50, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: -50, opacity: 0 }}
-                  transition={{ duration: 0.3, ease: [0.25, 0.8, 0.5, 1] }}
-                >
-                  <InfoProject
-                    setProject={setProject}
-                    setHtmlJson={setHtmlJson}
-                    project={project}
-                    setOpenInfoKey={setOpenInfoKey}
-                    openInfoKey={openInfoKey}
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <div
-              id="plaza-render-area"
-              className="flex flex-col gap-2 pt-2 -mt-2 relative"
-            >
-              {project &&
-                (Array.isArray(project)
-                  ? project.map(renderNode)
-                  : renderNode(project))}
-            </div>
-          </motion.div>
-        </div>
+            {project &&
+              (Array.isArray(project)
+                ? project.map(renderNode)
+                : renderNode(project))}
+          </div>
+        </motion.div>
       </div>
     </section>
   );

@@ -37,14 +37,16 @@ const ProjectPage = () => {
   });
   const [project, setProject] = useState<any>(null);
   const [fontsToDisplay, setfontsToDisplay] = useState<any[]>([]);
-  //🟢🟢🟢🟢🟢🟢🟢 Обновление состояния при получении данных
+  const [showPreview, setShowPreview] = useState<boolean>(false);
+
+  //==== Обновление состояния при получении данных
   useEffect(() => {
     if (data?.getFigmaProjectData) {
       setProject(data.getFigmaProjectData);
     }
   }, [data]);
 
-  //🟢🟢🟢🟢🟢🟢🟢 Удаление проекта
+  //==== Удаление проекта
   const handleRemoved = async (id) => {
     try {
       await removeFigmaProject({
@@ -71,7 +73,7 @@ const ProjectPage = () => {
     }
   };
 
-  //🟢🟢🟢🟢🟢🟢🟢
+  //=====
   return (
     <div className="p-4 mt-[60px] mb-8">
       {loading && <Loading />}
@@ -122,6 +124,23 @@ const ProjectPage = () => {
           setfontsToDisplay={setfontsToDisplay}
         />
       </div>
+
+      {/*🔹🔹🔹🔹🔹images & SVG🔹🔹🔹🔹🔹🔹*/}
+      <hr className="mt-4 mb-4" />
+      <ExtractImages project={project} />
+
+      {/*🔹🔹🔹🔹🔹 Figma preview 🔹🔹🔹🔹🔹*/}
+      <hr className="mt-4 mb-4" />
+      <button
+        type="button"
+        className="btn btn-primary z-30 w-full mb-2 flex items-center justify-center gap-2"
+        onClick={() => setShowPreview(!showPreview)}
+      >
+        <Image src="/svg/eye.svg" alt="preview" width={20} height={20} />
+        {showPreview ? "Hide Preview" : "Show Preview"}
+      </button>
+      {showPreview && project?.previewUrl && <PrevProject project={project} />}
+
       {/*🔹🔹🔹🔹🔹 FigmaViewer 🔹🔹🔹🔹🔹*/}
       <hr className="mt-4 mb-4" />
       {project && (
@@ -132,12 +151,6 @@ const ProjectPage = () => {
           fontsToDisplay={fontsToDisplay}
         />
       )}
-      {/*🔹🔹🔹🔹🔹images & SVG🔹🔹🔹🔹🔹🔹*/}
-      <hr className="mt-4 mb-4" />
-      <ExtractImages project={project} />
-      {/*🔹🔹🔹🔹🔹 Figma preview 🔹🔹🔹🔹🔹*/}
-      <hr className="mt-4 mb-4" />
-      {project?.previewUrl && <PrevProject project={project} />}
 
       {/*🔹🔹🔹🔹🔹 Plaza 🔹🔹🔹🔹🔹*/}
       <Plaza />
