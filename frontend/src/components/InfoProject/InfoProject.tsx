@@ -7,9 +7,11 @@ import React, {
   useMemo,
 } from "react";
 import "./infoproject.scss";
+import { useStateContext } from "@/providers/StateProvider";
 import removeNodeByKey from "@/utils/plaza/removeNodeByKey";
 import findNodeByKey from "@/utils/plaza/findNodeByKey";
 import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
 type ProjectData = {
   tag: string;
   text: string;
@@ -35,7 +37,9 @@ const InfoProject: React.FC<InfoProjectProps> = ({
   openInfoKey,
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-
+  const textareaRefText = useRef<HTMLTextAreaElement | null>(null);
+  const { texts, setTexts } = useStateContext();
+  const [modalTextsOpen, setModalTextsOpen] = useState<boolean>(false);
   // ================================
 
   const updateNodeByKey = (
@@ -107,18 +111,63 @@ const InfoProject: React.FC<InfoProjectProps> = ({
   const infoProject = (node: ProjectData) => {
     return (
       <div className=" flex flex-col relative rounded border-2 border-[red] p-1 ">
-        <div className="flex w-[max-content] px-1  items-center ">
-          <p className="!font-bold text-[16px]">Tag: &nbsp;</p>
-          <h5 className="inline-block">{node?.tag}</h5>
-        </div>
+        <AnimatePresence mode="wait">
+          {texts && modalTextsOpen && (
+            <motion.div
+              key="info-project"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ duration: 0.3, ease: [0.25, 0.8, 0.5, 1] }}
+              className="flex flex-col justify-center items-center  gap-1  fixed top-0 left-0 w-[100vw] h-[100vh] z-5000  bg-slate-900"
+            >
+              <button
+                className="absolute top-2 right-6"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setModalTextsOpen(false);
+                }}
+              >
+                <Image
+                  src="/svg/cross.svg"
+                  alt="close"
+                  width={20}
+                  height={20}
+                />
+              </button>
+              {texts.map((text, index) => (
+                <button
+                  key={index}
+                  // onDoubleClick={() => {
+                  //   setTexts(texts.filter((t) => t !== text));
+                  // }}
+                  className="btn btn-empty px-2 bg-slate-50"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const updatedProject = updateNodeByKey(project, node._key, {
+                      text: text,
+                    });
+                    setProject(updatedProject as ProjectData);
+                    // setTexts(texts.filter((t) => t !== text));
+                    setModalTextsOpen(false);
+                  }}
+                >
+                  {text}
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
         <p className="bg-white !font-bold  inline-block z-30 py-1 rounded mt-2 -mb-3 w-[max-content]">
           Tag:
         </p>
-        <textarea
+        <input
           ref={(el) => {
             if (!el) return;
-            textareaRef.current = el;
-            adjustHeight(el);
+            // textareaRef.current = el;
+            // adjustHeight(el);
           }}
           value={node?.tag || ""}
           onChange={(e) => {
@@ -132,10 +181,16 @@ const InfoProject: React.FC<InfoProjectProps> = ({
         <p className="bg-white !font-bold  inline-block z-30 py-1 rounded mt-2 -mb-3 w-[max-content]">
           Text:
         </p>
+        <button
+          className="btn btn-empty w-[max-content] mt-4 mb-1 px-2"
+          onClick={() => setModalTextsOpen(true)}
+        >
+          Show all texts
+        </button>
         <textarea
           ref={(el) => {
             if (!el) return;
-            textareaRef.current = el;
+            textareaRefText.current = el;
             adjustHeight(el);
           }}
           value={node?.text || ""}
@@ -150,11 +205,11 @@ const InfoProject: React.FC<InfoProjectProps> = ({
         <p className="bg-white !font-bold inline-block z-30 py-1 rounded  -mb-3 w-[max-content]">
           Class:
         </p>
-        <textarea
+        <input
           ref={(el) => {
             if (!el) return;
-            textareaRef.current = el;
-            adjustHeight(el);
+            // textareaRef.current = el;
+            // adjustHeight(el);
           }}
           value={node?.class || ""}
           onChange={(e) => {
@@ -280,7 +335,7 @@ const InfoProject: React.FC<InfoProjectProps> = ({
         )}
         <button
           onClick={() => setOpenInfoKey(null)}
-          className="absolute left-[50%] -bottom-3 border rounded bg-slate-200 p-1 hover:bg-slate-300 transition-all duration-200 rotate-90"
+          className="absolute left-[50%] -top-3 border rounded bg-slate-200 p-1 hover:bg-slate-300 transition-all duration-200 rotate-90"
         >
           <Image
             src="/svg/chevron-left.svg"

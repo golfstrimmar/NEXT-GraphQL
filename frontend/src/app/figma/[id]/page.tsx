@@ -128,7 +128,16 @@ const ProjectPage = () => {
       {/*🔹🔹🔹🔹🔹images & SVG🔹🔹🔹🔹🔹🔹*/}
       <hr className="mt-4 mb-4" />
       <ExtractImages project={project} />
-
+      {/*🔹🔹🔹🔹🔹 FigmaViewer 🔹🔹🔹🔹🔹*/}
+      <hr className="mt-4 mb-4" />
+      {project && (
+        <FigmaViewer
+          project={project}
+          fileData={project?.file}
+          nodeId={project?.nodeId}
+          // fontsToDisplay={fontsToDisplay}
+        />
+      )}
       {/*🔹🔹🔹🔹🔹 Figma preview 🔹🔹🔹🔹🔹*/}
       <hr className="mt-4 mb-4" />
       <button
@@ -140,18 +149,6 @@ const ProjectPage = () => {
         {showPreview ? "Hide Preview" : "Show Preview"}
       </button>
       {showPreview && project?.previewUrl && <PrevProject project={project} />}
-
-      {/*🔹🔹🔹🔹🔹 FigmaViewer 🔹🔹🔹🔹🔹*/}
-      <hr className="mt-4 mb-4" />
-      {project && (
-        <FigmaViewer
-          project={project}
-          fileData={project?.file}
-          nodeId={project?.nodeId}
-          fontsToDisplay={fontsToDisplay}
-        />
-      )}
-
       {/*🔹🔹🔹🔹🔹 Plaza 🔹🔹🔹🔹🔹*/}
       <Plaza />
     </div>

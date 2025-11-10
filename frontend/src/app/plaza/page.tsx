@@ -356,69 +356,17 @@ export default function Plaza() {
 
   //⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️⚙️
   return (
-    <section className={`pb-[100px] isFigma?pt-[100px]:pt-0`}>
-      <div className=" mt-6 mb-6 relative w-full h-1 ">
+    <section className={` isFigma?pt-[100px]:pt-0`}>
+      {/* <div className=" mt-6 mb-6 relative w-full h-1 ">
         <hr className="bordered border-slate-900 mt-6 mb-6" />
         <div className="bg-white text-slate-900 p-1 rounded-2xl  absolute top-[50%] left-[50%] translate-[-50%] ">
           Ulon projects
         </div>
-      </div>
-      {user && (
-        <h3 className="inline-block">
-          <span className="font-normal text-[16px]">
-            All Ulon projects of: &nbsp;
-          </span>
-          {user?.name}
-        </h3>
-      )}
-      <div className="flex flex-col">
-        {user && (
-          <div className="flex flex-col">
-            {projects?.length === 0 && (
-              <p className="text-red-300">No projects yet.</p>
-            )}
+      </div> */}
 
-            {/* ------------список прототипов проектов--------------- */}
-            {loading ? (
-              <Loading />
-            ) : (
-              <div className="flex gap-2">
-                {projects?.map((p) => (
-                  <div className="relative" key={p.id}>
-                    <button
-                      className={`border absolute top-0 left-0 w-5 h-full flex items-center justify-center bg-red-400 hover:bg-red-600 z-20 transition duration-300 
-                        }`}
-                      onClick={() => delProject(p?.id)}
-                      // disabled={projectId === p.id}
-                    >
-                      <Image
-                        src="/svg/cross-com.svg"
-                        alt="icon"
-                        width={10}
-                        height={10}
-                      />
-                    </button>
-                    <button
-                      className={` flex  flex-col gap-2 pl-6 pr-2 text-start border rounded-md  hover:bg-slate-200 ${
-                        projectId === p.id ? "bg-slate-400 " : "cursor-pointer"
-                      }`}
-                      onClick={async () => {
-                        setpId(p.id);
-                      }}
-                      type="button"
-                    >
-                      <h5 className="w-[max-content] !lh-1">{p?.name}</h5>
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-        {/* ------флома создания проекта-------- */}
-        {user && <CreateNewProject />}
+      <div className="flex flex-col">
         {/* ------готовые тэги-------- */}
-        <hr className="bordered border-slate-200 mt-6 mb-6" />
+        <hr className="bordered border-slate-200  mb-6" />
         <AdminComponent />
         {/* ------кнопки управления-------- */}
         <hr className="bordered border-slate-200 mt-2 " />
@@ -528,6 +476,43 @@ export default function Plaza() {
           </button>
           {/* {<pre>{createHtml()}</pre>} */}
         </div>
+        {/* 🚀🚀🚀🚀🚀🚀🚀🚀 рендеринг проекта🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
+        <div
+          id="plaza-render-area"
+          className="flex flex-col gap-2 mb-2 relative"
+        >
+          {project &&
+            (Array.isArray(project)
+              ? project.map(renderNode)
+              : renderNode(project))}
+        </div>
+        {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
+        <motion.div
+          id="plaza-container"
+          className={`grid transition-all duration-300 py-2 gap-4 mt-2 ${editMode ? "bg-slate-400 rounded" : ""}
+             overflow-hidden
+           `}
+        >
+          <AnimatePresence mode="wait">
+            {openInfoKey != null && project && (
+              <motion.div
+                key="info-project"
+                initial={{ y: -50, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -50, opacity: 0 }}
+                transition={{ duration: 0.3, ease: [0.25, 0.8, 0.5, 1] }}
+              >
+                <InfoProject
+                  setProject={setProject}
+                  updateHtmlJson={updateHtmlJson}
+                  project={project}
+                  setOpenInfoKey={setOpenInfoKey}
+                  openInfoKey={openInfoKey}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
         {/* ------------- */}
         <hr className="bordered border-slate-200  " />
         <div className="">
@@ -576,8 +561,64 @@ export default function Plaza() {
             </div>
           )}
         </div>
+        {/* -------------------- */}
+        {user && (
+          <h3 className="inline-block mt-4">
+            <span className="font-normal text-[16px]">
+              All Ulon projects of: &nbsp;
+            </span>
+            {user?.name}
+          </h3>
+        )}
+        {/* ------------- */}
+        {user && (
+          <div className="flex flex-col">
+            {projects?.length === 0 && (
+              <p className="text-red-300">No projects yet.</p>
+            )}
+
+            {/* ------------список прототипов проектов--------------- */}
+            {loading ? (
+              <Loading />
+            ) : (
+              <div className="flex gap-2">
+                {projects?.map((p) => (
+                  <div className="relative" key={p.id}>
+                    <button
+                      className={`border absolute top-0 left-0 w-5 h-full flex items-center justify-center bg-red-400 hover:bg-red-600 z-20 transition duration-300 
+                        }`}
+                      onClick={() => delProject(p?.id)}
+                      // disabled={projectId === p.id}
+                    >
+                      <Image
+                        src="/svg/cross-com.svg"
+                        alt="icon"
+                        width={10}
+                        height={10}
+                      />
+                    </button>
+                    <button
+                      className={` flex  flex-col gap-2 pl-6 pr-2 text-start border rounded-md  hover:bg-slate-200 ${
+                        projectId === p.id ? "bg-slate-400 " : "cursor-pointer"
+                      }`}
+                      onClick={async () => {
+                        setpId(p.id);
+                      }}
+                      type="button"
+                    >
+                      <h5 className="w-[max-content] !lh-1">{p?.name}</h5>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        {/* ------флома создания проекта-------- */}
+        {user && <CreateNewProject />}
+
         {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
-        {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
+
         <hr className="bordered border-slate-200 " />
         {/* {project && (
             <pre>
@@ -590,43 +631,6 @@ export default function Plaza() {
             <code>{JSON.stringify(htmlJson, null, 2)}</code>
           </pre>
         )} */}
-
-        <motion.div
-          id="plaza-container"
-          className={`grid transition-all duration-300 py-2 gap-4 mt-2 ${editMode ? "bg-slate-400 rounded" : ""}
-             overflow-hidden
-           `}
-        >
-          <AnimatePresence mode="wait">
-            {openInfoKey != null && project && (
-              <motion.div
-                key="info-project"
-                initial={{ y: -50, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -50, opacity: 0 }}
-                transition={{ duration: 0.3, ease: [0.25, 0.8, 0.5, 1] }}
-              >
-                <InfoProject
-                  setProject={setProject}
-                  updateHtmlJson={updateHtmlJson}
-                  project={project}
-                  setOpenInfoKey={setOpenInfoKey}
-                  openInfoKey={openInfoKey}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-          {/* ------------ рендеринг проекта ------------- */}
-          <div
-            id="plaza-render-area"
-            className="flex flex-col gap-2 pt-2 -mt-2 relative"
-          >
-            {project &&
-              (Array.isArray(project)
-                ? project.map(renderNode)
-                : renderNode(project))}
-          </div>
-        </motion.div>
       </div>
     </section>
   );

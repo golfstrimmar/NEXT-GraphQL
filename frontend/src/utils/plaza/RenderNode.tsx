@@ -477,7 +477,7 @@ const createRenderNode = ({
             if (!editMode) return baseStyle;
 
             const editorStyle: React.CSSProperties = {
-              padding: "0 18px",
+              padding: "10px 18px",
               cursor: "grab",
               position: "relative",
               transition: "opacity 0.2s ease, border 0.2s ease",
@@ -490,7 +490,7 @@ const createRenderNode = ({
           })()}
           onClick={handleNodeClick}
         >
-          {node.class === "baza" ? "baza" : editMode ? node.tag : node.text}
+          {node.class === "baza" ? "baza" : editMode ? node.text : node.text}
           {children}
         </Tag>
       );

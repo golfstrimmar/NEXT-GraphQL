@@ -53,6 +53,8 @@ interface StateContextType {
   redo: () => void;
   undoStack: HtmlNode[][];
   redoStack: HtmlNode[][];
+  texts: string[];
+  setTexts: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 const StateContext = createContext<StateContextType | null>(null);
@@ -64,7 +66,7 @@ export function StateProvider({ children }: { children: ReactNode }) {
   const [nodeToAdd, setNodeToAdd] = useState<nodeToAdd | null>(null);
   const [modalMessage, setModalMessage] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-
+  const [texts, setTexts] = useState<string[]>([]);
   const { data: usersData, subscribeToMore: subscribeToUsers } = useQuery(
     GET_USERS,
     { fetchPolicy: "cache-and-network" }
@@ -224,6 +226,8 @@ export function StateProvider({ children }: { children: ReactNode }) {
         redo,
         undoStack,
         redoStack,
+        texts,
+        setTexts,
       }}
     >
       {isModalOpen && (
