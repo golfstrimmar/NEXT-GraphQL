@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useStateContext } from "@/providers/StateProvider";
 import {
   GET_COLOR_VARIABLES_BY_FILE_KEY,
-  GET_FONT_CLASSES_BY_FILE_KEY,
+  // GET_FONT_CLASSES_BY_FILE_KEY,
   // новая server mutation
 } from "@/apollo/queries";
 import { useQuery, useMutation } from "@apollo/client";
@@ -22,21 +22,20 @@ const FontsFromFigma: React.FC<FontsFromFigmaProps> = ({
   fontsToDisplay,
   setfontsToDisplay,
 }) => {
-  const { setModalMessage } = useStateContext();
-
+  const { setModalMessage, texts, setTexts } = useStateContext();
   // 🔸 Получаем готовые переменные цветов и шрифтовые классы из БД
   const { data: colorVarsData } = useQuery(GET_COLOR_VARIABLES_BY_FILE_KEY, {
     variables: { fileKey: project?.fileKey },
     fetchPolicy: "network-only",
   });
 
-  const { data: fontClassesData, refetch: refetchFontClasses } = useQuery(
-    GET_FONT_CLASSES_BY_FILE_KEY,
-    {
-      variables: { fileKey: project?.fileKey },
-      fetchPolicy: "network-only",
-    }
-  );
+  // const { data: fontClassesData, refetch: refetchFontClasses } = useQuery(
+  //   GET_FONT_CLASSES_BY_FILE_KEY,
+  //   {
+  //     variables: { fileKey: project?.fileKey },
+  //     fetchPolicy: "network-only",
+  //   }
+  // );
 
   // 🔸 Мутация для запуска серверного экстракта и сейва шрифтов
   const [extractAndSaveFonts, { loading }] = useMutation(
@@ -44,10 +43,14 @@ const FontsFromFigma: React.FC<FontsFromFigmaProps> = ({
     {
       // mutation: extractAndSaveFonts(fileKey, figmaFile, nodeId)
       onCompleted: (data) => {
-        // Обновляем отображаемые классы после удачного сохранения
+        console.log("<===🔸🔸🔸🔸=====>", data.extractAndSaveFonts);
         setfontsToDisplay(data.extractAndSaveFonts);
-        setModalMessage("Fonts successfully extracted and saved (server)!");
-        refetchFontClasses();
+        setTexts(data.extractAndSaveFonts);
+        // Обновляем отображаемые классы после удачного сохранения
+        // setfontsToDisplay(data.extractAndSaveFonts.styles);
+        // setTexts(data.extractAndSaveFonts.textToStyle);
+        // setModalMessage("Fonts successfully extracted and saved (server)!");
+        // refetchFontClasses();
       },
       onError: (err) => {
         setModalMessage(`Error: ${err.message}`);
@@ -60,11 +63,11 @@ const FontsFromFigma: React.FC<FontsFromFigmaProps> = ({
   }, []);
 
   // 🔸 Автоматическая подгрузка классов для текущего проекта
-  useEffect(() => {
-    if (fontClassesData?.getFontClassesByFileKey) {
-      setfontsToDisplay(fontClassesData.getFontClassesByFileKey);
-    }
-  }, [fontClassesData, setfontsToDisplay]);
+  // useEffect(() => {
+  //   if (fontClassesData?.getFontClassesByFileKey) {
+  //     setfontsToDisplay(fontClassesData.getFontClassesByFileKey);
+  //   }
+  // }, [fontClassesData, setfontsToDisplay]);
 
   // 🔸 Импорт Google Fonts + копирование SCSS-классов
   const buildGoogleFontsImport = () => {
@@ -84,7 +87,7 @@ const FontsFromFigma: React.FC<FontsFromFigmaProps> = ({
     allFonts
       .map((f) => {
         return [
-          `.${f.className} {`,
+          `@mixin ${f.className} {`,
           `  font-family: '${f.fontFamily}', sans-serif;`,
           `  font-weight: ${f.fontWeight};`,
           `  font-size: ${f.fontSize}px;`,
@@ -99,52 +102,52 @@ const FontsFromFigma: React.FC<FontsFromFigmaProps> = ({
       .join("\n\n");
 
   // 🔸 Динамический импорт Google Fonts link
-  const fontLinkRef = useRef<HTMLLinkElement | null>(null);
-  useEffect(() => {
-    if (fontsToDisplay.length === 0) return;
-    const uniqueFonts = Array.from(
-      new Set(fontsToDisplay.map((f) => f.fontFamily))
-    );
-    if (uniqueFonts.length === 0) return;
-    const googleFontsHref =
-      "https://fonts.googleapis.com/css2?" +
-      uniqueFonts
-        .map(
-          (name) =>
-            `family=${encodeURIComponent(name)}:ital,wght@0,100..900;1,100..900`
-        )
-        .join("&") +
-      "&display=swap";
-    if (fontLinkRef.current) {
-      document.head.removeChild(fontLinkRef.current);
-    }
-    const linkTag = document.createElement("link");
-    linkTag.rel = "stylesheet";
-    linkTag.href = googleFontsHref;
-    linkTag.setAttribute("data-dynamic-font-import", "true");
-    document.head.appendChild(linkTag);
-    fontLinkRef.current = linkTag;
-    return () => {
-      if (fontLinkRef.current) {
-        document.head.removeChild(fontLinkRef.current);
-        fontLinkRef.current = null;
-      }
-    };
-  }, [fontsToDisplay]);
+  // const fontLinkRef = useRef<HTMLLinkElement | null>(null);
+  // useEffect(() => {
+  //   if (fontsToDisplay.length === 0) return;
+  //   const uniqueFonts = Array.from(
+  //     new Set(fontsToDisplay.map((f) => f.fontFamily))
+  //   );
+  //   if (uniqueFonts.length === 0) return;
+  //   const googleFontsHref =
+  //     "https://fonts.googleapis.com/css2?" +
+  //     uniqueFonts
+  //       .map(
+  //         (name) =>
+  //           `family=${encodeURIComponent(name)}:ital,wght@0,100..900;1,100..900`
+  //       )
+  //       .join("&") +
+  //     "&display=swap";
+  //   if (fontLinkRef.current) {
+  //     document.head.removeChild(fontLinkRef.current);
+  //   }
+  //   const linkTag = document.createElement("link");
+  //   linkTag.rel = "stylesheet";
+  //   linkTag.href = googleFontsHref;
+  //   linkTag.setAttribute("data-dynamic-font-import", "true");
+  //   document.head.appendChild(linkTag);
+  //   fontLinkRef.current = linkTag;
+  //   return () => {
+  //     if (fontLinkRef.current) {
+  //       document.head.removeChild(fontLinkRef.current);
+  //       fontLinkRef.current = null;
+  //     }
+  //   };
+  // }, [fontsToDisplay]);
 
-  const getFontCssString = (f: any) =>
-    [
-      `font-family: "${f.fontFamily}", sans-serif;`,
-      `font-weight: ${f.fontWeight};`,
-      `font-size: ${f.fontSize}px;`,
-      f.lineHeight ? `line-height: ${f.lineHeight}px;` : "",
-      f.letterSpacing && f.letterSpacing !== 0
-        ? `letter-spacing: ${f.letterSpacing}px;`
-        : "",
-      `color: ${f.colorVariableName || "unknown"};`,
-    ]
-      .filter(Boolean)
-      .join("\n");
+  // const getFontCssString = (f: any) =>
+  //   [
+  //     `font-family: "${f.fontFamily}", sans-serif;`,
+  //     `font-weight: ${f.fontWeight};`,
+  //     `font-size: ${f.fontSize}px;`,
+  //     f.lineHeight ? `line-height: ${f.lineHeight}px;` : "",
+  //     f.letterSpacing && f.letterSpacing !== 0
+  //       ? `letter-spacing: ${f.letterSpacing}px;`
+  //       : "",
+  //     `color: ${f.colorVariableName || "unknown"};`,
+  //   ]
+  //     .filter(Boolean)
+  //     .join("\n");
 
   // 🔸 Клик-триггер: запрос на сервер для экстракта и сейва
   const handleExtractAndAddFonts = async () => {
@@ -176,18 +179,18 @@ const FontsFromFigma: React.FC<FontsFromFigmaProps> = ({
       >
         🔃 Extract & Save Fonts from Figma (Server)
       </button> */}
-      {fontsToDisplay.length > 0 && (
+      {/* {fontsToDisplay.length > 0 && (
         <div className="mt-4 bg-gray-900 text-green-400 p-2 rounded">
           <button
             className="p-2 bg-gray-500 rounded font-mono flex items-center mb-2"
-            onClick={async () => {
-              try {
-                await navigator.clipboard.writeText(buildGoogleFontsImport());
-                setModalMessage("Google Fonts import copied!");
-              } catch {
-                setModalMessage("Failed to copy");
-              }
-            }}
+            // onClick={async () => {
+            //   try {
+            //     await navigator.clipboard.writeText(buildGoogleFontsImport());
+            //     setModalMessage("Google Fonts import copied!");
+            //   } catch {
+            //     setModalMessage("Failed to copy");
+            //   }
+            // }}
           >
             <Image
               src="/assets/svg/copy-svgrepo-com.svg"
@@ -198,11 +201,11 @@ const FontsFromFigma: React.FC<FontsFromFigmaProps> = ({
             />
             Copy Google Fonts Import
           </button>
-          <pre>{buildGoogleFontsImport()}</pre>
+          <pre>{buildGoogleFontsImport()}</pre> 
         </div>
-      )}
+      )} */}
 
-      {fontsToDisplay.length > 0 && (
+      {/* {fontsToDisplay.length > 0 && (
         <div className="mt-4 bg-gray-900 text-green-400 p-2 rounded">
           <button
             className="p-2 bg-gray-500 rounded font-mono flex items-center mb-2"
@@ -211,7 +214,7 @@ const FontsFromFigma: React.FC<FontsFromFigmaProps> = ({
                 await navigator.clipboard.writeText(
                   buildFontClasses(fontsToDisplay)
                 );
-                setModalMessage("SCSS Font Classes copied!");
+                setModalMessage("SCSS Fonts mixins copied!");
               } catch {
                 setModalMessage("Failed to copy");
               }
@@ -224,29 +227,64 @@ const FontsFromFigma: React.FC<FontsFromFigmaProps> = ({
               height={20}
               className="mr-2"
             />
-            Copy SCSS Font Classes
+            Copy SCSS Fonts mixins
           </button>
           <pre>{buildFontClasses(fontsToDisplay)}</pre>
+        </div>
+      )} */}
+      {fontsToDisplay.length > 0 && (
+        <div className="mt-4 bg-gray-900 text-green-400 p-2 rounded">
+          <button
+            className="p-2 bg-gray-500 rounded font-mono flex items-center mb-2"
+            type="button"
+            onClick={() => {}}
+          >
+            <Image
+              src="/assets/svg/copy-svgrepo-com.svg"
+              alt="Copy"
+              width={20}
+              height={20}
+              className="mr-2"
+            />
+            Copy SCSS Fonts mixins
+          </button>
+          {fontsToDisplay.map((f, index) => (
+            <div key={index}>
+              <p>{f.scss};</p>
+            </div>
+          ))}
         </div>
       )}
 
       {fontsToDisplay.map((f, index) => (
         <div
           key={index}
-          className={`${
-            f.sampleText && f.sampleText.length > 0
-              ? "bg-green-200"
-              : "bg-gray-100"
-          } mt-4 mb-4 p-3 border rounded-md `}
+          className="mt-4 mb-4 p-3 border rounded "
+          // className={`${
+          //   f.sampleText && f.sampleText.length > 0
+          //     ? "bg-green-200"
+          //     : "bg-gray-100"
+          // } mt-4 mb-4 p-3 border rounded-md `}
         >
-          <div className="mb-2 grid grid-cols-[20%_max-content_1fr] gap-1 items-start">
+          <p>@include {f.name};</p>
+          {/* <p>{f.scss}</p> */}
+          {f.texts.length > 0 && (
+            <div>
+              {f.texts.map((t, index) => (
+                <p key={index}>{t}</p>
+              ))}
+            </div>
+          )}
+          {/* <div className="mb-2 grid grid-cols-[20%_max-content_1fr] gap-1 items-start">
             <button
               className="cursor-pointer border px-1 rounded bg-slate-50 relative"
               type="button"
               onClick={() => {
                 if (f.className) {
-                  navigator.clipboard.writeText(f.className);
-                  setModalMessage("Class copied!");
+                  navigator.clipboard.writeText(
+                    "@include " + f.className + ";"
+                  );
+                  setModalMessage("Mixin copied!");
                 }
               }}
             >
@@ -312,7 +350,7 @@ const FontsFromFigma: React.FC<FontsFromFigmaProps> = ({
               />
               {f.sampleText || "Sample Text"}
             </button>
-          </div>
+          </div> */}
         </div>
       ))}
     </div>

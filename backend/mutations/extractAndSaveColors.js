@@ -83,7 +83,7 @@ const extractAndSaveColors = async (_, { fileKey, figmaFile, nodeId }) => {
     const numB = parseInt(b.variableName.match(/\d+/)?.[0] || 0, 10);
     return numA - numB;
   });
-  console.log("<=✅✅✅✅✅=> Colors <=✅✅✅✅✅=>", sortedColorVariables);
+  console.log("<=✅✅✅✅✅=> Colors <=✅✅✅✅✅=>");
   return sortedColorVariables;
 };
 

@@ -17,12 +17,12 @@ const ModalMessage = dynamic(
 );
 
 type HtmlNode = {
-  type: string;
-  attributes?: {
-    class?: string;
-    children?: HtmlNode[] | HtmlNode | string;
-    [key: string]: any;
-  };
+  tag: string;
+  class?: string;
+  children?: HtmlNode[] | HtmlNode | string;
+  text?: string;
+  style?: string;
+  attributes?: Record<string, string>;
 };
 
 type nodeToAdd = { type: number };
@@ -204,6 +204,29 @@ export function StateProvider({ children }: { children: ReactNode }) {
       localStorage.setItem("htmlJson", JSON.stringify(htmlJson));
     }
   }, [htmlJson, jsonData]);
+  // ====================
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!texts?.length) return;
+    console.log("<====texts====>", texts);
+    const allTexts: string[] = texts.flatMap((item) => item.texts || []);
+    if (!allTexts.length) return;
+    console.log("<====allTexts====>", allTexts);
+    const newNodes: HtmlNode[] = allTexts.map((text) => ({
+      tag: "div",
+      text: text,
+      class: "",
+      style:
+        "background: rgb(226, 232, 240); padding: 2px 4px; border: 1px solid #adadad;",
+      children: [],
+    }));
+
+    setHtmlJson((prev) => {
+      const next = { ...prev };
+      next.children = [...next.children, ...newNodes];
+      return next;
+    });
+  }, [texts]);
 
   return (
     <StateContext.Provider

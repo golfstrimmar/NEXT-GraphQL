@@ -226,16 +226,9 @@ export const EXTRACT_AND_SAVE_FONTS = gql`
       figmaFile: $figmaFile
       nodeId: $nodeId
     ) {
-      id
-      className
-      fontFamily
-      fontWeight
-      fontSize
-      lineHeight
-      letterSpacing
-      sampleText
-      fileKey
-      colorVariableName
+      name
+      scss
+      texts
     }
   }
 `;

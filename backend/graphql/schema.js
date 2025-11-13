@@ -21,21 +21,11 @@ export const typeDefs = gql`
     hex: String!
     type: ColorType!
   }
-
-  input FontClassInput {
-    className: String!
-    fontFamily: String!
-    fontWeight: Int!
-    fontSize: Float!
-    lineHeight: Float
-    letterSpacing: Float
-    colorVariableName: String
-    sampleText: String
-  }
   input JsonDocumentInput {
     name: String!
     content: JSON!
   }
+
   type ProjectSummary {
     id: ID!
     name: String!
@@ -84,21 +74,6 @@ export const typeDefs = gql`
     rgba: String!
     type: ColorType!
     fileKey: String!
-    fontClasses: [FontClass!] # связь с FontClass
-  }
-
-  type FontClass {
-    id: ID!
-    className: String!
-    fontFamily: String!
-    fontWeight: Int!
-    fontSize: Float!
-    lineHeight: Float
-    letterSpacing: Float
-    sampleText: String!
-    fileKey: String!
-    colorVariableName: String
-    color: ColorVariable # подтягивается через resolver
   }
 
   type FigmaProject {
@@ -134,6 +109,12 @@ export const typeDefs = gql`
     name: String!
   }
 
+  type FontMixin {
+    name: String!
+    scss: String!
+    texts: [String!]!
+  }
+
   type Query {
     users: [User!]!
     findProject(id: ID!): Project
@@ -143,7 +124,6 @@ export const typeDefs = gql`
     figmaProjectsByUser(userId: ID!): [FigmaProject!]!
     getFigmaProjectData(projectId: ID!): FigmaProjectData!
     getColorVariablesByFileKey(fileKey: String!): [ColorVariable!]!
-    getFontClassesByFileKey(fileKey: String!): [FontClass!]!
   }
 
   type Mutation {
@@ -154,7 +134,6 @@ export const typeDefs = gql`
     createProject(ownerId: ID!, name: String!, data: JSON!): Project!
     updateProject(projectId: ID!, data: JSON!): Project!
     removeProject(projectId: ID!): ID
-
     createFigmaProject(
       ownerId: ID!
       name: String!
@@ -165,14 +144,8 @@ export const typeDefs = gql`
     removeFigmaProject(figmaProjectId: ID!): ID
     uploadFigmaImagesToCloudinary(projectId: ID!): [FigmaImage!]!
     uploadFigmaSvgsToCloudinary(projectId: ID!): [FigmaImage!]!
-
     removeFigmaImage(nodeId: String!, figmaProjectId: Int!): FigmaImage!
-
     transformRasterToSvg(nodeId: String!): FigmaImage!
-    # addFontClasses(
-    #   fileKey: String!
-    #   fontClasses: [FontClassInput!]!
-    # ): [FontClass!]!
     extractAndSaveColors(
       fileKey: String!
       figmaFile: JSON!
@@ -182,7 +155,7 @@ export const typeDefs = gql`
       fileKey: String!
       figmaFile: JSON!
       nodeId: String!
-    ): [FontClass!]!
+    ): [FontMixin!]!
   }
 
   type Subscription {

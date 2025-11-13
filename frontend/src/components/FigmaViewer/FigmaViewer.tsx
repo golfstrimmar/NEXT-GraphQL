@@ -51,32 +51,32 @@ const FigmaViewer: React.FC<FigmaViewerProps> = ({
 
   const Refesh = () => {
     console.log("<========>", project);
-    if (!fileData) return;
+    // if (!fileData) return;
 
-    const targetNode = findNodeById(fileData.document, nodeId);
-    if (!targetNode) {
-      setTexts([]);
-      return;
-    }
+    // const targetNode = findNodeById(fileData.document, nodeId);
+    // if (!targetNode) {
+    //   setTexts([]);
+    //   return;
+    // }
 
-    fetch("/api/figmaToHtml", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ figmaData: targetNode }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.texts && Array.isArray(data.texts)) {
-          console.log("<==SERVER RESPONSE==>", data.texts);
-          setTexts(data.texts);
-          setModalMessage("Texts copied!");
-        } else {
-          console.log("<==SERVER RESPONSE==>", data);
-        }
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+    // fetch("/api/figmaToHtml", {
+    //   method: "POST",
+    //   headers: { "Content-Type": "application/json" },
+    //   body: JSON.stringify({ figmaData: targetNode }),
+    // })
+    //   .then((res) => res.json())
+    //   .then((data) => {
+    //     if (data.texts && Array.isArray(data.texts)) {
+    //       console.log("<==RESPONSE texts==>", data.texts);
+    //       setTexts(data.texts);
+    //       setModalMessage("Texts copied!");
+    //     } else {
+    //       console.log("<==SERVER RESPONSE==>", data);
+    //     }
+    //   })
+    //   .catch((err) => {
+    //     console.error(err);
+    //   });
   };
 
   useEffect(() => {

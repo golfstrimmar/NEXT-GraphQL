@@ -1,5 +1,6 @@
 import { gql } from "graphql-tag";
 
+// Получить всех пользователей с их проектами и Figma-проектами
 export const GET_USERS = gql`
   query GetUsers {
     users {
@@ -21,6 +22,7 @@ export const GET_USERS = gql`
   }
 `;
 
+// Получить JSON-документ по имени
 export const GET_JSON_DOCUMENT = gql`
   query GetJsonDocument($name: String!) {
     jsonDocumentByName(name: $name) {
@@ -32,6 +34,7 @@ export const GET_JSON_DOCUMENT = gql`
   }
 `;
 
+// Найти проект по ID
 export const FIND_PROJECT = gql`
   query findProject($id: ID!) {
     findProject(id: $id) {
@@ -42,6 +45,7 @@ export const FIND_PROJECT = gql`
   }
 `;
 
+// Получить все проекты пользователя
 export const GET_ALL_PROJECTS_BY_USER = gql`
   query GET_ALL_PROJECTS_BY_USER($userId: ID!) {
     getAllProjectsByUser(userId: $userId) {
@@ -51,7 +55,8 @@ export const GET_ALL_PROJECTS_BY_USER = gql`
     }
   }
 `;
-// Получить один Figma-проект
+
+// Получить Figma-проект по ID
 export const GET_FIGMA_PROJECT = gql`
   query getFigmaProject($id: ID!) {
     figmaProject(id: $id) {
@@ -75,6 +80,8 @@ export const GET_FIGMA_PROJECT = gql`
     }
   }
 `;
+
+// Получить все Figma-проекты пользователя
 export const GET_FIGMA_PROJECTS_BY_USER = gql`
   query GetFigmaProjectsByUser($userId: ID!) {
     figmaProjectsByUser(userId: $userId) {
@@ -88,6 +95,7 @@ export const GET_FIGMA_PROJECTS_BY_USER = gql`
   }
 `;
 
+// Получить расширенные данные для Figma-проекта + файл и изображения
 export const GET_FIGMA_PROJECT_DATA = gql`
   query GetFigmaProjectData($projectId: ID!) {
     getFigmaProjectData(projectId: $projectId) {
@@ -113,6 +121,7 @@ export const GET_FIGMA_PROJECT_DATA = gql`
   }
 `;
 
+// Получить colorVariables по fileKey
 export const GET_COLOR_VARIABLES_BY_FILE_KEY = gql`
   query GetColorVariablesByFileKey($fileKey: String!) {
     getColorVariablesByFileKey(fileKey: $fileKey) {
@@ -121,23 +130,6 @@ export const GET_COLOR_VARIABLES_BY_FILE_KEY = gql`
       hex
       type
       fileKey
-    }
-  }
-`;
-
-export const GET_FONT_CLASSES_BY_FILE_KEY = gql`
-  query GetFontClassesByFileKey($fileKey: String!) {
-    getFontClassesByFileKey(fileKey: $fileKey) {
-      id
-      className
-      fontFamily
-      fontWeight
-      fontSize
-      lineHeight
-      letterSpacing
-      sampleText
-      fileKey
-      colorVariableName
     }
   }
 `;

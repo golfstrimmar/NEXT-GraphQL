@@ -39,7 +39,7 @@ const InfoProject: React.FC<InfoProjectProps> = ({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const textareaRefText = useRef<HTMLTextAreaElement | null>(null);
   const { texts, setTexts } = useStateContext();
-  const [modalTextsOpen, setModalTextsOpen] = useState<boolean>(false);
+  // const [modalTextsOpen, setModalTextsOpen] = useState<boolean>(false);
   // ================================
 
   const updateNodeByKey = (
@@ -111,7 +111,7 @@ const InfoProject: React.FC<InfoProjectProps> = ({
   const infoProject = (node: ProjectData) => {
     return (
       <div className=" flex flex-col relative rounded border-2 border-[red] p-1 ">
-        <AnimatePresence mode="wait">
+        {/* <AnimatePresence mode="wait">
           {texts && modalTextsOpen && (
             <motion.div
               key="info-project"
@@ -159,7 +159,7 @@ const InfoProject: React.FC<InfoProjectProps> = ({
               ))}
             </motion.div>
           )}
-        </AnimatePresence>
+        </AnimatePresence> */}
         <p className="bg-white !font-bold  inline-block z-30 py-1 rounded mt-2 -mb-3 w-[max-content]">
           Tag:
         </p>
@@ -181,12 +181,12 @@ const InfoProject: React.FC<InfoProjectProps> = ({
         <p className="bg-white !font-bold  inline-block z-30 py-1 rounded mt-2 -mb-3 w-[max-content]">
           Text:
         </p>
-        <button
+        {/* <button
           className="btn btn-empty w-[max-content] mt-4 mb-1 px-2"
           onClick={() => setModalTextsOpen(true)}
         >
           Show all texts
-        </button>
+        </button> */}
         <textarea
           ref={(el) => {
             if (!el) return;

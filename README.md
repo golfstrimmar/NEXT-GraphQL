@@ -24,3 +24,7 @@ VALUES (
 );
 
 grid grid-cols-[repeat(auto-fit,_minmax(150px,_1fr))] gap-2
+
+figd_osaQFoH1HrPVCb0hUEWg6ELnd9v-xll-v7ziX-IX
+
+https://www.figma.com/design/wd09PaQQG0CuUfeHxSCccC/dreambit--Copy-?node-id=986-2792&t=80rdzshrGNWKQiXB-4

@@ -20,78 +20,49 @@ export const resolvers = {
   Query: {
     users: () =>
       prisma.user.findMany({
-        include: {
-          projects: true,
-        },
+        include: { projects: true },
       }),
-    findProject: (_, { id }) => {
-      console.log("<====id findProject====>", id);
-      const resProject = prisma.project.findUnique({
+    findProject: (_, { id }) =>
+      prisma.project.findUnique({
         where: { id: Number(id) },
         include: { owner: true },
-      });
-      console.log("<====resProject====>", resProject);
-      return resProject;
-    },
-
+      }),
     getAllProjectsByUser: (_, { userId }) =>
       prisma.project.findMany({ where: { ownerId: Number(userId) } }),
-
     jsonDocumentByName: async (_, { name }) => {
-      const Doc = await prisma.jsonDocument.findUnique({
-        where: { name },
-      });
-      console.log("<=🚀🚀🚀🚀jsonDocument🚀🚀🚀=>", Doc);
+      const Doc = await prisma.jsonDocument.findUnique({ where: { name } });
       return Doc || null;
     },
     getFigmaProjectData: async (_, { projectId }) => {
-      // const allProjects = await prisma.figmaProject.findMany();
       const project = await prisma.figmaProject.findUnique({
         where: { id: Number(projectId) },
-        include: {
-          owner: true,
-          figmaImages: true,
-        },
+        include: { owner: true, figmaImages: true },
       });
-
       if (!project) throw new Error("Project not found");
-
       let fileData = null;
-
       try {
         const headers = { "X-Figma-Token": project.token };
         const fileRes = await fetch(
           `https://api.figma.com/v1/files/${project.fileKey}`,
           { headers }
         );
-
         if (!fileRes.ok) {
           throw new Error(`Failed to fetch Figma file: ${fileRes.statusText}`);
         }
-
         fileData = await fileRes.json();
       } catch (err) {
         console.error("❌ Failed to fetch Figma file data", project.id, err);
       }
-
-      return {
-        ...project,
-        file: fileData,
-      };
+      return { ...project, file: fileData };
     },
     figmaProjectsByUser: async (_, { userId }) => {
-      const projects = await prisma.figmaProject.findMany({
+      return prisma.figmaProject.findMany({
         where: { ownerId: Number(userId) },
         include: { owner: true },
       });
-      return projects;
     },
-    getColorVariablesByFileKey: async (_, { fileKey }) => {
-      return prisma.colorVariable.findMany({ where: { fileKey } });
-    },
-    getFontClassesByFileKey: async (_, { fileKey }) => {
-      return prisma.fontClass.findMany({ where: { fileKey } });
-    },
+    getColorVariablesByFileKey: async (_, { fileKey }) =>
+      prisma.colorVariable.findMany({ where: { fileKey } }),
   },
   Mutation: {
     createUser: async (_, { name, email, password }) => {
@@ -101,7 +72,6 @@ export const resolvers = {
           data: { name, email, password: hashedPassword },
           include: { projects: true },
         });
-
         ee.emit("USER_CREATED", newUser);
         return newUser;
       } catch (err) {
@@ -116,10 +86,7 @@ export const resolvers = {
         where: { email },
         include: { projects: true },
       });
-      if (!user) {
-        throw new Error("User not found");
-      }
-
+      if (!user) throw new Error("User not found");
       if (!user.password) {
         const error = new Error(
           "This account was registered via Google. User must set a password."
@@ -127,63 +94,45 @@ export const resolvers = {
         error.code = "ACCOUNT_NEEDS_PASSWORD";
         throw error;
       }
-
       const isValid = await bcrypt.compare(password, user.password);
       if (!isValid) throw new Error("Invalid password");
-
       const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
         expiresIn: "7d",
       });
-
       const formattedUser = {
         ...user,
         createdAt: new Date(user.createdAt).getTime().toString(),
       };
-
       return { token, user: formattedUser };
     },
     setPassword: async (_, { email, password }) => {
-      if (!email || !password) {
+      if (!email || !password)
         throw new Error("Email and password are required.");
-      }
-
       const user = await prisma.user.findUnique({ where: { email } });
-      if (!user) {
-        throw new Error("User not found.");
-      }
-
-      if (user.password) {
+      if (!user) throw new Error("User not found.");
+      if (user.password)
         throw new Error("User already has a password. Use login instead.");
-      }
-
       const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-
       const updatedUser = await prisma.user.update({
         where: { email },
         data: { password: hashedPassword },
       });
-
       const { password: _password, ...safeUser } = updatedUser;
       return safeUser;
     },
     loginWithGoogle: async (_, { idToken }) => {
       const client = new OAuth2Client();
-
       const ticket = await client.verifyIdToken({
         idToken,
         audience: process.env.GOOGLE_CLIENT_ID,
       });
-
       const payload = ticket.getPayload();
       if (!payload) throw new Error("Invalid Google token");
-
       const { sub: googleId, email, name, picture } = payload;
-
       let user = await prisma.user.findUnique({
         where: { email },
         include: { projects: true },
       });
-
       if (!user) {
         user = await prisma.user.create({
           data: {
@@ -195,32 +144,26 @@ export const resolvers = {
           },
           include: { projects: true },
         });
-
         ee.emit("USER_CREATED", user);
       }
-
       const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
         expiresIn: "7d",
       });
-
       const formattedUser = {
         ...user,
         createdAt: new Date(user.createdAt).getTime().toString(),
       };
       return { token, user: formattedUser };
     },
-    createProject: async (_, { ownerId, name, data }) => {
-      return await prisma.project.create({
+    createProject: async (_, { ownerId, name, data }) =>
+      prisma.project.create({
         data: { name, data, ownerId: Number(ownerId) },
-      });
-    },
-    updateProject: async (_, { projectId, data }) => {
-      const updated = await prisma.project.update({
+      }),
+    updateProject: async (_, { projectId, data }) =>
+      prisma.project.update({
         where: { id: Number(projectId) },
         data: { data },
-      });
-      return updated;
-    },
+      }),
     removeProject: async (_, { projectId }) => {
       const project = await prisma.project.delete({
         where: { id: Number(projectId) },
@@ -232,18 +175,13 @@ export const resolvers = {
       { ownerId, name, fileKey, nodeId, token }
     ) => {
       try {
-        const headers = {
-          "X-Figma-Token": token,
-        };
-
+        const headers = { "X-Figma-Token": token };
         const response = await fetch(
           `https://api.figma.com/v1/images/${fileKey}?ids=${nodeId}&scale=1`,
           { headers }
         );
-
         const data = await response.json();
         const previewUrl = data?.images?.[nodeId] || null;
-
         const project = await prisma.figmaProject.create({
           data: {
             name,
@@ -251,12 +189,9 @@ export const resolvers = {
             nodeId,
             token,
             previewUrl,
-            owner: {
-              connect: { id: Number(ownerId) },
-            },
+            owner: { connect: { id: Number(ownerId) } },
           },
         });
-
         return {
           id: project.id,
           name: project.name,
@@ -271,14 +206,13 @@ export const resolvers = {
         throw error;
       }
     },
-
     uploadFigmaImagesToCloudinary,
     uploadFigmaSvgsToCloudinary,
     transformRasterToSvg,
     removeFigmaImage,
     removeFigmaProject,
     extractAndSaveColors,
-    extractAndSaveFonts,
+    extractAndSaveFonts, // Новый формат: возвращает [FontMixin!]!
   },
   User: {
     projects: (parent) =>
@@ -302,24 +236,12 @@ export const resolvers = {
     figmaImages: (parent) =>
       prisma.figmaImage.findMany({ where: { figmaProjectId: parent.id } }),
   },
-  FontClass: {
-    color: async (parent, _, { prisma }) => {
-      if (!parent.colorVariableName) return null;
-      return prisma.colorVariable.findFirst({
-        where: {
-          fileKey: parent.fileKey,
-          variableName: parent.colorVariableName,
-        },
-      });
-    },
-  },
   Subscription: {
     userCreated: {
       subscribe: async function* () {
         const queue = [];
         const handler = (payload) => queue.push(payload);
         ee.on("USER_CREATED", handler);
-
         try {
           while (true) {
             if (queue.length === 0) {

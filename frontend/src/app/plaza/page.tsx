@@ -52,6 +52,8 @@ export default function Plaza() {
     redo,
     undoStack,
     redoStack,
+    texts,
+    setTexts,
   } = useStateContext();
   const pathname = usePathname();
   const [projects, setProjects] = useState<PProject[]>([]);
