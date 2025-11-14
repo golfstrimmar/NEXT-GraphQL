@@ -133,3 +133,15 @@ export const GET_COLOR_VARIABLES_BY_FILE_KEY = gql`
     }
   }
 `;
+export const GET_FONTS_BY_FILE_KEY = gql`
+  query GetFontsByFileKey($fileKey: String!) {
+    getFontsByFileKey(fileKey: $fileKey) {
+      id
+      fileKey
+      name
+      scss
+      texts
+      createdAt
+    }
+  }
+`;

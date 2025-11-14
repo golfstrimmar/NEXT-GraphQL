@@ -1,3 +1,12 @@
+.modalmessage {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  border-radius: 4px;
+}
+
 .modalmessage-inner {
   background-color: rgb(90, 145, 247);
   width: 50vw;

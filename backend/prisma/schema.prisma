@@ -56,21 +56,15 @@ model FigmaProject {
   @@unique([ownerId, name])
 }
 
-model FontClass {
-  id            Int       @id @default(autoincrement())
-  className     String
-  fontFamily    String
-  fontWeight    Int
-  fontSize      Float
-  lineHeight    Float?
-  letterSpacing Float?
-  fileKey       String
-  sampleText    String
-  colorVariableName String?  // <-- хранит имя переменной цвета
-  createdAt     DateTime  @default(now())
-  @@unique([fileKey, className])
-  @@index([fileKey])
+model Font {
+  id        Int      @id @default(autoincrement())
+  fileKey   String
+  name      String
+  scss      String
+  texts     String[] // Postgres array (или JSON, если на SQLite)
+  createdAt DateTime @default(now())
 }
+
 
 model ColorVariable {
   id           Int       @id @default(autoincrement())

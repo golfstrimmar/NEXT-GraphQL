@@ -477,7 +477,8 @@ const createRenderNode = ({
             if (!editMode) return baseStyle;
 
             const editorStyle: React.CSSProperties = {
-              padding: "10px 18px",
+              padding: "0 18px",
+              fontSize: "12px",
               cursor: "grab",
               position: "relative",
               transition: "opacity 0.2s ease, border 0.2s ease",

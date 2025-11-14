@@ -1,9 +1,10 @@
 "use client";
 import React, { useEffect, useState, useRef } from "react";
 import { useStateContext } from "@/providers/StateProvider";
-import { useQuery } from "@apollo/client";
 import { GET_COLOR_VARIABLES_BY_FILE_KEY } from "@/apollo/queries";
 import Button from "../ui/Button/Button";
+import { useQuery, useMutation } from "@apollo/client";
+import { EXTRACT_AND_SAVE_FONTS } from "@/apollo/mutations";
 interface FigmaViewerProps {
   fileData: any;
   nodeId: string;
@@ -24,6 +25,19 @@ const FigmaViewer: React.FC<FigmaViewerProps> = ({
     variables: { fileKey: project?.fileKey },
     fetchPolicy: "network-only",
   });
+  // 🔺🔺🔺🔺🔺🔺🔺🔺🔺🔺🔺🔺🔺
+  const [extractAndSaveFonts, { loading }] = useMutation(
+    EXTRACT_AND_SAVE_FONTS,
+    {
+      // mutation: extractAndSaveFonts(fileKey, figmaFile, nodeId)
+      onCompleted: (data) => {
+        setTexts(data.extractAndSaveFonts);
+      },
+      onError: (err) => {
+        setModalMessage(`Error: ${err.message}`);
+      },
+    }
+  );
   // 🔺🔺🔺🔺🔺🔺🔺🔺🔺🔺🔺🔺🔺
   useEffect(() => {
     if (colorVarsData?.getColorVariablesByFileKey) {
@@ -50,15 +64,21 @@ const FigmaViewer: React.FC<FigmaViewerProps> = ({
   };
 
   const Refesh = () => {
-    console.log("<========>", project);
+    // console.log("<====texts====>", texts);
+    // setTexts([]);
+    // extractAndSaveFonts({
+    //   variables: {
+    //     fileKey: project?.fileKey,
+    //     figmaFile: fileData,
+    //     nodeId: nodeId,
+    //   },
+    // });
     // if (!fileData) return;
-
     // const targetNode = findNodeById(fileData.document, nodeId);
     // if (!targetNode) {
     //   setTexts([]);
     //   return;
     // }
-
     // fetch("/api/figmaToHtml", {
     //   method: "POST",
     //   headers: { "Content-Type": "application/json" },
@@ -79,19 +99,19 @@ const FigmaViewer: React.FC<FigmaViewerProps> = ({
     //   });
   };
 
-  useEffect(() => {
-    console.log("<====fileData, nodeId====>", fileData, nodeId);
-    if (!fileData) return;
-    Refesh();
-  }, [fileData, nodeId]);
+  // useEffect(() => {
+  //   console.log("<====fileData, nodeId====>", fileData, nodeId);
+  //   if (!fileData) return;
+  //   Refesh();
+  // }, [fileData, nodeId]);
 
   return (
     <button
       type="button"
       className="btn btn-primary  px-1 w-full"
-      onClick={() => {
-        Refesh();
-      }}
+      // onClick={() => {
+      //   Refesh();
+      // }}
     >
       Refresh Text Elements for this Figma Project
     </button>

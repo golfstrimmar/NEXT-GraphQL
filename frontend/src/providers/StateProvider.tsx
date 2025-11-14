@@ -149,8 +149,10 @@ export function StateProvider({ children }: { children: ReactNode }) {
     setIsModalOpen(true);
     setTimeout(() => {
       setIsModalOpen(false);
-      setModalMessage("");
     }, duration);
+    setTimeout(() => {
+      setModalMessage("");
+    }, 3000);
   };
   useEffect(() => {
     if (modalMessage) showModal(modalMessage);
@@ -205,28 +207,28 @@ export function StateProvider({ children }: { children: ReactNode }) {
     }
   }, [htmlJson, jsonData]);
   // ====================
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (!texts?.length) return;
-    console.log("<====texts====>", texts);
-    const allTexts: string[] = texts.flatMap((item) => item.texts || []);
-    if (!allTexts.length) return;
-    console.log("<====allTexts====>", allTexts);
-    const newNodes: HtmlNode[] = allTexts.map((text) => ({
-      tag: "div",
-      text: text,
-      class: "",
-      style:
-        "background: rgb(226, 232, 240); padding: 2px 4px; border: 1px solid #adadad;",
-      children: [],
-    }));
+  // useEffect(() => {
+  //   if (typeof window === "undefined") return;
+  //   if (!texts?.length) return;
+  //   console.log("<====texts====>", texts);
+  //   const allTexts: string[] = texts.flatMap((item) => item.texts || []);
+  //   if (!allTexts.length) return;
+  //   console.log("<====allTexts====>", allTexts);
+  //   const newNodes: HtmlNode[] = allTexts.map((text) => ({
+  //     tag: "div",
+  //     text: text,
+  //     class: "",
+  //     style:
+  //       "background: rgb(226, 232, 240); padding: 2px 4px; border: 1px solid #adadad;",
+  //     children: [],
+  //   }));
 
-    setHtmlJson((prev) => {
-      const next = { ...prev };
-      next.children = [...next.children, ...newNodes];
-      return next;
-    });
-  }, [texts]);
+  //   setHtmlJson((prev) => {
+  //     const next = { ...prev };
+  //     next.children = [...next.children, ...newNodes];
+  //     return next;
+  //   });
+  // }, [texts]);
 
   return (
     <StateContext.Provider

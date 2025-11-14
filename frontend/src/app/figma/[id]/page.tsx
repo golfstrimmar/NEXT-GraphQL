@@ -7,7 +7,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation } from "@apollo/client";
 import ColorsFromFigma from "@/components/ColorsFromFigma/ColorsFromFigma";
 import ExtractImages from "@/components/ExtractImages/ExtractImages";
-import FigmaViewer from "@/components/FigmaViewer/FigmaViewer";
+// import FigmaViewer from "@/components/FigmaViewer/FigmaViewer";
 import Plaza from "@/app/plaza/page";
 import PrevProject from "@/components/PrevProject/PrevProject";
 import {
@@ -17,13 +17,13 @@ import {
 } from "@/apollo/queries";
 import { REMOVE_FIGMA_PROJECT } from "@/apollo/mutations";
 import Loading from "@/components/ui/Loading/Loading";
-import dynamic from "next/dynamic";
-const FigmaViewer = dynamic(
-  () => import("@/components/FigmaViewer/FigmaViewer"),
-  {
-    ssr: false,
-  }
-);
+// import dynamic from "next/dynamic";
+// const FigmaViewer = dynamic(
+//   () => import("@/components/FigmaViewer/FigmaViewer"),
+//   {
+//     ssr: false,
+//   }
+// );
 const ProjectPage = () => {
   const params = useParams();
   const id = params?.id;
@@ -38,7 +38,7 @@ const ProjectPage = () => {
   const [project, setProject] = useState<any>(null);
   const [fontsToDisplay, setfontsToDisplay] = useState<any[]>([]);
   const [showPreview, setShowPreview] = useState<boolean>(false);
-
+  const ButtonPreview = useRef<HTMLDivElement>(null);
   //==== Обновление состояния при получении данных
   useEffect(() => {
     if (data?.getFigmaProjectData) {
@@ -130,20 +130,26 @@ const ProjectPage = () => {
       <ExtractImages project={project} />
       {/*🔹🔹🔹🔹🔹 FigmaViewer 🔹🔹🔹🔹🔹*/}
       <hr className="mt-4 mb-4" />
-      {project && (
+      {/* {project && (
         <FigmaViewer
           project={project}
           fileData={project?.file}
           nodeId={project?.nodeId}
           // fontsToDisplay={fontsToDisplay}
         />
-      )}
+      )} */}
       {/*🔹🔹🔹🔹🔹 Figma preview 🔹🔹🔹🔹🔹*/}
       <hr className="mt-4 mb-4" />
       <button
         type="button"
         className="btn btn-primary z-30 w-full mb-2 flex items-center justify-center gap-2"
-        onClick={() => setShowPreview(!showPreview)}
+        onClick={() => {
+          setShowPreview(!showPreview);
+          !showPreview
+            ? ButtonPreview.current.classList.add("_isActive")
+            : ButtonPreview.current.classList.remove("_isActive");
+        }}
+        ref={ButtonPreview}
       >
         <Image src="/svg/eye.svg" alt="preview" width={20} height={20} />
         {showPreview ? "Hide Preview" : "Show Preview"}

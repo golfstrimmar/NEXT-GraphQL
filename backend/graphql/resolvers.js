@@ -63,6 +63,8 @@ export const resolvers = {
     },
     getColorVariablesByFileKey: async (_, { fileKey }) =>
       prisma.colorVariable.findMany({ where: { fileKey } }),
+    getFontsByFileKey: async (_, { fileKey }) =>
+      prisma.font.findMany({ where: { fileKey } }),
   },
   Mutation: {
     createUser: async (_, { name, email, password }) => {
@@ -212,7 +214,8 @@ export const resolvers = {
     removeFigmaImage,
     removeFigmaProject,
     extractAndSaveColors,
-    extractAndSaveFonts, // Новый формат: возвращает [FontMixin!]!
+    extractAndSaveFonts, 
+    
   },
   User: {
     projects: (parent) =>

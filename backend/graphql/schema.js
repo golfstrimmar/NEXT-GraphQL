@@ -109,10 +109,13 @@ export const typeDefs = gql`
     name: String!
   }
 
-  type FontMixin {
+  type Font {
+    id: ID!
+    fileKey: String!
     name: String!
     scss: String!
     texts: [String!]!
+    createdAt: String!
   }
 
   type Query {
@@ -124,6 +127,7 @@ export const typeDefs = gql`
     figmaProjectsByUser(userId: ID!): [FigmaProject!]!
     getFigmaProjectData(projectId: ID!): FigmaProjectData!
     getColorVariablesByFileKey(fileKey: String!): [ColorVariable!]!
+    getFontsByFileKey(fileKey: String!): [Font!]
   }
 
   type Mutation {
@@ -155,7 +159,7 @@ export const typeDefs = gql`
       fileKey: String!
       figmaFile: JSON!
       nodeId: String!
-    ): [FontMixin!]!
+    ): [Font!]!
   }
 
   type Subscription {

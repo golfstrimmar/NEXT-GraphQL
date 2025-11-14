@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./extractimages.scss";
 import { useQuery, useMutation } from "@apollo/client";
 import {
@@ -22,6 +22,9 @@ const ExtractImages: React.FC<ExtractImagesProps> = ({ project }) => {
   const [imgMess, setImgMess] = useState<string>("");
   const [imagesToShow, setImagesToShow] = useState<boolean>(false);
   const [svgToShow, setSvgToShow] = useState<boolean>(false);
+  const ButtonImg = useRef<HTMLDivElement>(null);
+  const ButtonSvg = useRef<HTMLDivElement>(null);
+  const ButtonSvgToShow = useRef<HTMLDivElement>(null);
   // ======== Mutatons
   const [
     uploadFigmaImagesToCloudinary,
@@ -151,7 +154,9 @@ const ExtractImages: React.FC<ExtractImagesProps> = ({ project }) => {
             className="btn btn-primary w-full"
             onClick={() => {
               handlerImages();
+              ButtonImg.current.classList.add("_isActive");
             }}
+            ref={ButtonImg}
           >
             {uploading ? "🌤️ Loading images..." : "☁️ Upload Images"}
           </button>
@@ -220,7 +225,9 @@ const ExtractImages: React.FC<ExtractImagesProps> = ({ project }) => {
             className="btn btn-primary w-full"
             onClick={() => {
               handlerSvg();
+              ButtonSvg.current.classList.add("_isActive");
             }}
+            ref={ButtonSvg}
           >
             {uploading ? "🌤️ Loading Svg..." : "☁️ Upload Svg"}
           </button>
@@ -230,7 +237,11 @@ const ExtractImages: React.FC<ExtractImagesProps> = ({ project }) => {
             className="btn btn-primary w-full"
             onClick={() => {
               setSvgToShow(!svgToShow);
+              !svgToShow
+                ? ButtonSvgToShow.current.classList.add("_isActive")
+                : ButtonSvgToShow.current.classList.remove("_isActive");
             }}
+            ref={ButtonSvgToShow}
           >
             {svgToShow ? "☁️ Hide Svg" : "☁️ Show Svg"}
           </button>

@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useStateContext } from "@/providers/StateProvider";
 import {
   GET_COLOR_VARIABLES_BY_FILE_KEY,
+  GET_FONTS_BY_FILE_KEY,
   // GET_FONT_CLASSES_BY_FILE_KEY,
   // новая server mutation
 } from "@/apollo/queries";
@@ -22,53 +23,73 @@ const FontsFromFigma: React.FC<FontsFromFigmaProps> = ({
   fontsToDisplay,
   setfontsToDisplay,
 }) => {
-  const { setModalMessage, texts, setTexts } = useStateContext();
+  const { setModalMessage, texts, setTexts, setHtmlJson } = useStateContext();
+  const ButtonFonts = useRef<HTMLDivElement>(null);
   // 🔸 Получаем готовые переменные цветов и шрифтовые классы из БД
   const { data: colorVarsData } = useQuery(GET_COLOR_VARIABLES_BY_FILE_KEY, {
     variables: { fileKey: project?.fileKey },
     fetchPolicy: "network-only",
   });
 
-  // const { data: fontClassesData, refetch: refetchFontClasses } = useQuery(
-  //   GET_FONT_CLASSES_BY_FILE_KEY,
-  //   {
-  //     variables: { fileKey: project?.fileKey },
-  //     fetchPolicy: "network-only",
-  //   }
-  // );
+  const { data: fontVarsData, refetch: refetchFonts } = useQuery(
+    GET_FONTS_BY_FILE_KEY,
+    {
+      variables: { fileKey: project?.fileKey },
+      fetchPolicy: "network-only",
+    }
+  );
 
   // 🔸 Мутация для запуска серверного экстракта и сейва шрифтов
   const [extractAndSaveFonts, { loading }] = useMutation(
     EXTRACT_AND_SAVE_FONTS,
     {
-      // mutation: extractAndSaveFonts(fileKey, figmaFile, nodeId)
-      onCompleted: (data) => {
-        console.log("<===🔸🔸🔸🔸=====>", data.extractAndSaveFonts);
-        setfontsToDisplay(data.extractAndSaveFonts);
-        setTexts(data.extractAndSaveFonts);
-        // Обновляем отображаемые классы после удачного сохранения
-        // setfontsToDisplay(data.extractAndSaveFonts.styles);
-        // setTexts(data.extractAndSaveFonts.textToStyle);
-        // setModalMessage("Fonts successfully extracted and saved (server)!");
-        // refetchFontClasses();
+      onCompleted: () => {
+        refetchFonts(); // после мутации просто рефетчим query
+        setModalMessage("Fonts extracted and saved on server!");
       },
-      onError: (err) => {
-        setModalMessage(`Error: ${err.message}`);
-      },
+      onError: (err) => setModalMessage(`Error: ${err.message}`),
     }
   );
-  // 🔸 Автоматический зеапуск формирования шрифтовых классов на серверер
+
   useEffect(() => {
-    handleExtractAndAddFonts();
-  }, []);
+    if (!fontVarsData?.getFontsByFileKey) return;
+    console.log("<====fontVarsData====>", fontVarsData.getFontsByFileKey);
+    const fonts = fontVarsData.getFontsByFileKey;
+    if (fontsToDisplay.length) return;
+    setfontsToDisplay(fonts);
 
-  // 🔸 Автоматическая подгрузка классов для текущего проекта
-  // useEffect(() => {
-  //   if (fontClassesData?.getFontClassesByFileKey) {
-  //     setfontsToDisplay(fontClassesData.getFontClassesByFileKey);
-  //   }
-  // }, [fontClassesData, setfontsToDisplay]);
+    // Формируем новые HTML-узлы из текстов шрифтов
+    const allTexts: string[] = fonts.flatMap((f) => f.texts || []);
+    if (!allTexts.length) return;
 
+    const newNodes: HtmlNode[] = allTexts.map((text) => ({
+      tag: "div",
+      text,
+      class: "",
+      style:
+        "background: rgb(226, 232, 240); padding: 0 4px; border: 1px solid #adadad;",
+      children: [],
+    }));
+
+    setHtmlJson((prev) => ({
+      ...prev,
+      children: [...prev.children, ...newNodes],
+    }));
+  }, [fontVarsData]);
+  const handleExtractAndAddFonts = async () => {
+    if (!project?.file || !project?.nodeId || !project?.fileKey) {
+      setModalMessage("Invalid project data");
+      return;
+    }
+
+    await extractAndSaveFonts({
+      variables: {
+        fileKey: project.fileKey,
+        figmaFile: project.file,
+        nodeId: project.nodeId,
+      },
+    });
+  };
   // 🔸 Импорт Google Fonts + копирование SCSS-классов
   const buildGoogleFontsImport = () => {
     const uniqueFonts = Array.from(
@@ -150,19 +171,6 @@ const FontsFromFigma: React.FC<FontsFromFigmaProps> = ({
   //     .join("\n");
 
   // 🔸 Клик-триггер: запрос на сервер для экстракта и сейва
-  const handleExtractAndAddFonts = async () => {
-    if (!project?.file || !project?.nodeId || !project?.fileKey) {
-      setModalMessage("Invalid project data");
-      return;
-    }
-    await extractAndSaveFonts({
-      variables: {
-        fileKey: project.fileKey,
-        figmaFile: project.file,
-        nodeId: project.nodeId,
-      },
-    });
-  };
 
   const colors: any[] = colorVarsData?.getColorVariablesByFileKey || [];
 
@@ -172,13 +180,20 @@ const FontsFromFigma: React.FC<FontsFromFigmaProps> = ({
   // --- UI ---
   return (
     <div className="fontsfromfigma mt-4">
-      {/* <button
+      <button
         onClick={handleExtractAndAddFonts}
         className="btn btn-primary w-full"
         disabled={loading}
+        ref={ButtonFonts}
+        onClick={() => {
+          handleExtractAndAddFonts();
+          fontsToDisplay.length > 0
+            ? ButtonFonts.current.classList.add("_isActive")
+            : ButtonFonts.current.classList.remove("_isActive");
+        }}
       >
-        🔃 Extract & Save Fonts from Figma (Server)
-      </button> */}
+        🔃 Fonts from Figma (Server)
+      </button>
       {/* {fontsToDisplay.length > 0 && (
         <div className="mt-4 bg-gray-900 text-green-400 p-2 rounded">
           <button

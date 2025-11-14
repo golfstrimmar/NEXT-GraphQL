@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import "./colorsfromfigma.scss";
 import { useQuery, useMutation } from "@apollo/client";
@@ -20,7 +20,7 @@ const ColorsFromFigma: React.FC<ColorsFromFigmaProps> = ({
   const { setModalMessage } = useStateContext();
   const [colorVariables, setColorVariables] = useState<any[]>([]);
   const [colors, setColors] = useState<any[]>([]);
-
+  const ButtonColorsFontsTexts = useRef<HTMLDivElement>(null);
   // 🟢🟢🟢🟢🟢🟢🟢🟢  Queries
   const {
     data: colorVarsData,
@@ -36,9 +36,9 @@ const ColorsFromFigma: React.FC<ColorsFromFigmaProps> = ({
   const [extractAndSaveColors] = useMutation(EXTRACT_AND_SAVE_COLORS);
   // 🟢🟢🟢🟢🟢🟢🟢useEffect
 
-  useEffect(() => {
-    if (project) console.log("<=📦📦📦📦 project figma 📦📦📦📦=>", project);
-  }, [project]);
+  // useEffect(() => {
+  //   if (project) console.log("<=📦📦📦📦 project figma 📦📦📦📦=>", project);
+  // }, [project]);
   useEffect(() => {
     if (colorVariables) {
       console.log("<==== colorVariables====>", colorVariables);
@@ -144,9 +144,13 @@ const ColorsFromFigma: React.FC<ColorsFromFigmaProps> = ({
       )} */}
       <button
         className="btn btn-primary w-full"
-        onClick={handleExtractAndSaveColors}
+        onClick={(e) => {
+          handleExtractAndSaveColors();
+          ButtonColorsFontsTexts.current?.classList.add("_isActive");
+        }}
+        ref={ButtonColorsFontsTexts}
       >
-        🎨 Extract & Save Colors and Fonts from Figma
+        🔃 Colors from Figma
       </button>
       {colorVariables.length > 0 && (
         <>

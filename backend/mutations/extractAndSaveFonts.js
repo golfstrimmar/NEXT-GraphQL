@@ -58,6 +58,17 @@ const extractAndSaveFonts = async (_, { fileKey, figmaFile, nodeId }) => {
       mixins[mixinKeyToIdx.get(key)].texts.push(text);
     }
   }
+  console.log("<====mixins====>", mixins);
+  for (const mix of mixins) {
+    await prisma.font.create({
+      data: {
+        fileKey,
+        name: mix.name,
+        scss: mix.scss,
+        texts: mix.texts,
+      },
+    });
+  }
 
   return mixins;
 };

@@ -10,13 +10,13 @@ import React, {
 import { usePathname } from "next/navigation";
 import { useStateContext } from "@/providers/StateProvider";
 import { useMutation, useQuery, useLazyQuery } from "@apollo/client";
-import Image from "next/image";
 import { UPDATE_PROJECT, REMOVE_PROJECT } from "@/apollo/mutations";
 import {
   GET_JSON_DOCUMENT,
   GET_ALL_PROJECTS_BY_USER,
   FIND_PROJECT,
 } from "@/apollo/queries";
+
 import Loading from "@/components/ui/Loading/Loading";
 import PProject from "@/types/PProject";
 import PProjectDataElement from "@/types/PProject";
@@ -27,7 +27,7 @@ import "./plaza.scss";
 import { motion, AnimatePresence } from "framer-motion";
 import AdminComponent from "@/components/AdminComponent/AdminComponent";
 import jsonToHtml from "@/utils/plaza/jsonToHtml";
-
+import Image from "next/image";
 // ⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨⇨
 type ProjectData = {
   tag: string;
@@ -189,7 +189,7 @@ export default function Plaza() {
   // 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹Project
   useLayoutEffect(() => {
     if (!project) return;
-    console.log("<====🔹🔹🔹🔹🔹project🔹🔹🔹🔹🔹====>", project);
+    // console.log("<====🔹🔹🔹🔹🔹project🔹🔹🔹🔹🔹====>", project);
     if (project && editMode) {
       requestAnimationFrame(() => shiftNeighbors());
     }
