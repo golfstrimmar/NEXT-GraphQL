@@ -106,7 +106,7 @@ export default function FigmaPage() {
                   setModalOpen(true);
                 }
               }}
-              buttonText="Create project Figma"
+              buttonText="Create project Figma/Pixso"
             />
           )}
         </div>

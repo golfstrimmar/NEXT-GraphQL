@@ -2,6 +2,35 @@ import { gql } from "graphql-tag";
 
 export const typeDefs = gql`
   scalar JSON
+  scalar Upload
+  enum ImageType {
+    VECTOR
+    RASTER
+    OTHER
+  }
+  type ImageUniversal {
+    filename: String!
+    ext: String!
+    mime: String!
+    base64: String!
+  }
+  type VectorNode {
+    id: String!
+    name: String!
+    type: String!
+  }
+  type UploadedResult {
+    filename: String!
+    size: Int!
+    images: [ImageUniversal!]!
+    imagesCount: Int!
+    vectorNodes: [VectorNode!]!
+  }
+
+  type TracedSVG {
+    filename: String!
+    svg: String!
+  }
 
   enum ColorType {
     PALETTE
@@ -9,11 +38,6 @@ export const typeDefs = gql`
     BACKGROUND
     FILL
     STROKE
-  }
-
-  enum ImageType {
-    RASTER
-    VECTOR
   }
 
   input ColorVariableInput {
@@ -48,6 +72,12 @@ export const typeDefs = gql`
     content: JSON!
     createdAt: String!
   }
+  type FigmaProjectExtended {
+    project: FigmaProject!
+    colors: [String!]!
+    fonts: JSON
+    textNodes: [String!]!
+  }
 
   type Project {
     id: ID!
@@ -55,6 +85,15 @@ export const typeDefs = gql`
     data: JSON!
     createdAt: String!
     owner: User!
+  }
+
+  type ColorVariable {
+    id: ID!
+    variableName: String!
+    hex: String!
+    rgba: String!
+    type: ColorType!
+    fileKey: String!
   }
 
   type FigmaImage {
@@ -67,24 +106,15 @@ export const typeDefs = gql`
     fileKey: String!
   }
 
-  type ColorVariable {
-    id: ID!
-    variableName: String!
-    hex: String!
-    rgba: String!
-    type: ColorType!
-    fileKey: String!
-  }
-
   type FigmaProject {
     id: ID!
     name: String!
     fileKey: String!
     nodeId: String!
-    token: String!
     owner: User!
     previewUrl: String
     figmaImages: [FigmaImage!]!
+    fileCache: JSON
   }
 
   type FigmaProjectData {
@@ -92,7 +122,6 @@ export const typeDefs = gql`
     name: String!
     fileKey: String!
     nodeId: String!
-    token: String!
     file: JSON!
     previewUrl: String
     owner: User!
@@ -144,6 +173,7 @@ export const typeDefs = gql`
       fileKey: String!
       nodeId: String!
       token: String!
+      type: String!
     ): FigmaProject!
     removeFigmaProject(figmaProjectId: ID!): ID
     uploadFigmaImagesToCloudinary(projectId: ID!): [FigmaImage!]!
@@ -160,6 +190,14 @@ export const typeDefs = gql`
       figmaFile: JSON!
       nodeId: String!
     ): [Font!]!
+    uploadDesignFile(file: Upload!): UploadedResult!
+    traceImageFromFig(imageName: String!, archiveBuffer: Upload!): TracedSVG!
+
+    uploadFigmaJsonProject(
+      ownerId: ID!
+      name: String!
+      jsonContent: JSON!
+    ): FigmaProjectExtended!
   }
 
   type Subscription {

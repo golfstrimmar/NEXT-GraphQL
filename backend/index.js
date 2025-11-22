@@ -10,7 +10,7 @@ import { useServer } from "graphql-ws/use/ws";
 import fetch from "node-fetch";
 import { typeDefs } from "./graphql/schema.js";
 import { resolvers } from "./graphql/resolvers.js";
-
+import { graphqlUploadExpress } from "graphql-upload";
 // Создаём схему
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
@@ -52,6 +52,7 @@ app.use(
     origin: process.env.FRONTEND_URL || "http://localhost:3002",
     credentials: true,
   }),
+  graphqlUploadExpress({ maxFileSize: 100000000, maxFiles: 100 }),
   bodyParser.json({ limit: "20mb" }),
   expressMiddleware(server)
 );

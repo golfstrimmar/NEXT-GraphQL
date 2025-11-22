@@ -4,6 +4,9 @@ import jwt from "jsonwebtoken";
 import prisma from "../prisma/client.js";
 import { OAuth2Client } from "google-auth-library";
 import { GraphQLJSON } from "graphql-type-json";
+// ----queries
+import getFigmaProjectData from "../queries/getFigmaProjectData.js";
+// ----mutations
 import uploadFigmaImagesToCloudinary from "../mutations/FigmaImages.js";
 import uploadFigmaSvgsToCloudinary from "../mutations/FigmaSVG.js";
 import removeFigmaImage from "../mutations/removeFigmaImage.js";
@@ -11,12 +14,17 @@ import transformRasterToSvg from "../mutations/transformRasterToSvg.js";
 import removeFigmaProject from "../mutations/removeFigmaProject.js";
 import extractAndSaveColors from "../mutations/extractAndSaveColors.js";
 import extractAndSaveFonts from "../mutations/extractAndSaveFonts.js";
+import uploadFigmaJsonProject from "../mutations/uploadFigmaJsonProject.js";
+// ----
+import { GraphQLUpload } from "graphql-upload";
+// ----
+
 const ee = new EventEmitter();
 const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key";
 const SALT_ROUNDS = 10;
-
 export const resolvers = {
   JSON: GraphQLJSON,
+  Upload: GraphQLUpload,
   Query: {
     users: () =>
       prisma.user.findMany({
@@ -33,28 +41,7 @@ export const resolvers = {
       const Doc = await prisma.jsonDocument.findUnique({ where: { name } });
       return Doc || null;
     },
-    getFigmaProjectData: async (_, { projectId }) => {
-      const project = await prisma.figmaProject.findUnique({
-        where: { id: Number(projectId) },
-        include: { owner: true, figmaImages: true },
-      });
-      if (!project) throw new Error("Project not found");
-      let fileData = null;
-      try {
-        const headers = { "X-Figma-Token": project.token };
-        const fileRes = await fetch(
-          `https://api.figma.com/v1/files/${project.fileKey}`,
-          { headers }
-        );
-        if (!fileRes.ok) {
-          throw new Error(`Failed to fetch Figma file: ${fileRes.statusText}`);
-        }
-        fileData = await fileRes.json();
-      } catch (err) {
-        console.error("❌ Failed to fetch Figma file data", project.id, err);
-      }
-      return { ...project, file: fileData };
-    },
+
     figmaProjectsByUser: async (_, { userId }) => {
       return prisma.figmaProject.findMany({
         where: { ownerId: Number(userId) },
@@ -65,6 +52,7 @@ export const resolvers = {
       prisma.colorVariable.findMany({ where: { fileKey } }),
     getFontsByFileKey: async (_, { fileKey }) =>
       prisma.font.findMany({ where: { fileKey } }),
+    getFigmaProjectData,
   },
   Mutation: {
     createUser: async (_, { name, email, password }) => {
@@ -172,50 +160,14 @@ export const resolvers = {
       });
       return project.id;
     },
-    createFigmaProject: async (
-      _,
-      { ownerId, name, fileKey, nodeId, token }
-    ) => {
-      try {
-        const headers = { "X-Figma-Token": token };
-        const response = await fetch(
-          `https://api.figma.com/v1/images/${fileKey}?ids=${nodeId}&scale=1`,
-          { headers }
-        );
-        const data = await response.json();
-        const previewUrl = data?.images?.[nodeId] || null;
-        const project = await prisma.figmaProject.create({
-          data: {
-            name,
-            fileKey,
-            nodeId,
-            token,
-            previewUrl,
-            owner: { connect: { id: Number(ownerId) } },
-          },
-        });
-        return {
-          id: project.id,
-          name: project.name,
-          fileKey: project.fileKey,
-          nodeId: project.nodeId,
-          previewUrl: project.previewUrl,
-        };
-      } catch (error) {
-        if (error.code === "P2002") {
-          throw new Error("Figma project with this name already exists.");
-        }
-        throw error;
-      }
-    },
     uploadFigmaImagesToCloudinary,
     uploadFigmaSvgsToCloudinary,
     transformRasterToSvg,
     removeFigmaImage,
     removeFigmaProject,
     extractAndSaveColors,
-    extractAndSaveFonts, 
-    
+    extractAndSaveFonts,
+    uploadFigmaJsonProject,
   },
   User: {
     projects: (parent) =>

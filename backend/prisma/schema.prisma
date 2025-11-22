@@ -47,12 +47,13 @@ model FigmaProject {
   name          String
   fileKey       String
   nodeId        String
-  token         String
   createdAt     DateTime     @default(now())
   owner         User         @relation("UserFigmaProjects", fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId       Int
   previewUrl    String?
   figmaImages   FigmaImage[] @relation("ProjectImages")
+  fileCache          Json?
+  fileCacheUpdatedAt DateTime?
   @@unique([ownerId, name])
 }
 

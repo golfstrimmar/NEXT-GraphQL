@@ -1,15 +1,17 @@
-import { ApolloClient, InMemoryCache, split, HttpLink } from "@apollo/client";
+import { ApolloClient, InMemoryCache, split } from "@apollo/client";
 import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
 import { createClient } from "graphql-ws";
 import { getMainDefinition } from "@apollo/client/utilities";
 import { setContext } from "@apollo/client/link/context";
+import { createUploadLink } from "apollo-upload-client";
 
-// HTTP-соединение
-const httpLink = new HttpLink({
+// UploadLink вместо HttpLink для поддержки файлов
+const uploadLink = createUploadLink({
   uri: process.env.NEXT_PUBLIC_GRAPHQL_URL,
+  credentials: "include", // для кук и авторизации
 });
 
-// Динамическое добавление токена
+// Динамическое добавление токена и специальных заголовков для CSRF-защиты
 const authLink = setContext((_, { headers }) => {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("token") : "";
@@ -17,11 +19,12 @@ const authLink = setContext((_, { headers }) => {
     headers: {
       ...headers,
       Authorization: token ? `Bearer ${token}` : "",
+      "x-apollo-operation-name": "general", // чтобы предотвратить CSRF блокировки
     },
   };
 });
 
-// WebSocket-соединение
+// WebSocket-соединение для подписок
 const wsLink =
   typeof window !== "undefined"
     ? new GraphQLWsLink(
@@ -37,7 +40,7 @@ const wsLink =
       )
     : null;
 
-// Разделяем HTTP и WS
+// Разделяем HTTP(S)/Upload и WS ссылки
 const splitLink = wsLink
   ? split(
       ({ query }) => {
@@ -48,9 +51,9 @@ const splitLink = wsLink
         );
       },
       wsLink,
-      authLink.concat(httpLink)
+      authLink.concat(uploadLink)
     )
-  : authLink.concat(httpLink);
+  : authLink.concat(uploadLink);
 
 const client = new ApolloClient({
   link: splitLink,

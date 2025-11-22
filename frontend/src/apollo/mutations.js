@@ -108,27 +108,37 @@ export const REMOVE_PROJECT = gql`
   }
 `;
 
-// Создать Figma-проект
-export const CREATE_FIGMA_PROJECT = gql`
-  mutation createFigmaProject(
+// Мутация для загрузки Figma JSON (без избыточных аргументов)
+export const UPLOAD_FIGMA_JSON_PROJECT = gql`
+  mutation uploadFigmaJsonProject(
     $ownerId: ID!
     $name: String!
-    $fileKey: String!
-    $nodeId: String!
-    $token: String!
+    $jsonContent: JSON!
   ) {
-    createFigmaProject(
+    uploadFigmaJsonProject(
       ownerId: $ownerId
       name: $name
-      fileKey: $fileKey
-      nodeId: $nodeId
-      token: $token
+      jsonContent: $jsonContent
     ) {
-      id
-      name
-      previewUrl
-      fileKey
-      nodeId
+      project {
+        id
+        name
+        fileKey
+        nodeId
+        previewUrl
+        fileCache
+        figmaImages {
+          fileName
+          nodeId
+        }
+        owner {
+          id
+          name
+        }
+      }
+      colors
+      fonts
+      textNodes
     }
   }
 `;
@@ -229,6 +239,34 @@ export const EXTRACT_AND_SAVE_FONTS = gql`
       name
       scss
       texts
+    }
+  }
+`;
+
+export const UPLOAD_DESIGN_FILE = gql`
+  mutation UploadDesignFile($file: Upload!) {
+    uploadDesignFile(file: $file) {
+      filename
+      images {
+        filename
+        ext
+        mime
+        base64
+      }
+      vectorNodes {
+        id
+        name
+        type
+      }
+      imagesCount
+    }
+  }
+`;
+export const TRACE_IMAGE_MUTATION = gql`
+  mutation TraceImageFromFig($imageName: String!, $archiveBuffer: Upload!) {
+    traceImageFromFig(imageName: $imageName, archiveBuffer: $archiveBuffer) {
+      filename
+      svg
     }
   }
 `;

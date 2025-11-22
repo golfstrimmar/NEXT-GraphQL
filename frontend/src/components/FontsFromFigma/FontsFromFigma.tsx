@@ -181,7 +181,6 @@ const FontsFromFigma: React.FC<FontsFromFigmaProps> = ({
   return (
     <div className="fontsfromfigma mt-4">
       <button
-        onClick={handleExtractAndAddFonts}
         className="btn btn-primary w-full"
         disabled={loading}
         ref={ButtonFonts}

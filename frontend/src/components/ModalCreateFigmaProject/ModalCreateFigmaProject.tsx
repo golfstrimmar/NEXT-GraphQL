@@ -8,6 +8,7 @@ import { useStateContext } from "@/providers/StateProvider";
 import { CREATE_FIGMA_PROJECT } from "@/apollo/mutations";
 import { useMutation } from "@apollo/client";
 import Loading from "@/components/ui/Loading/Loading";
+import InputRadio from "@/components/ui/InputRadio/InputRadio";
 import FProject from "@/types/FProject";
 interface ModalCreateFigmaProjectProps {
   modalOpen: boolean;
@@ -27,20 +28,36 @@ const ModalCreateFigmaProject: React.FC<ModalCreateFigmaProjectProps> = ({
   const [nodeId, setNodeId] = useState("");
   const [token, setToken] = useState("");
   const [FigmaLink, setFigmaLink] = useState<string>("");
+  const [projectType, setProjectType] = useState<string>("figma");
+
   const [createFigmaProject, { loading }] = useMutation(CREATE_FIGMA_PROJECT);
   const fillForm = (link: string) => {
     if (!link) return;
 
-    // Определяет fileKey как первый сегмент после домена — протокол://домен/<fileKey>/
-    const fileKeyMatch = link.match(/figma\.com\/[^/]+\/([^/?]+)/);
-    const tfileKey = fileKeyMatch ? fileKeyMatch[1] : null;
+    // Парсим Figma ссылку
+    if (link.includes("figma.com")) {
+      const fileKeyMatch = link.match(/figma\.com\/[^/]+\/([^/?]+)/);
+      const tfileKey = fileKeyMatch ? fileKeyMatch[1] : null;
 
-    // node-id ищем как параметр, заменяем все дефисы на двоеточия
-    const nodeIdMatch = link.match(/node-id=([\w-]+)/);
-    const tnodeId = nodeIdMatch ? nodeIdMatch[1].replace(/-/g, ":") : null;
+      const nodeIdMatch = link.match(/node-id=([\w-]+)/);
+      const tnodeId = nodeIdMatch ? nodeIdMatch[1].replace(/-/g, ":") : null;
 
-    setFileKey(tfileKey);
-    setNodeId(tnodeId);
+      setFileKey(tfileKey);
+      setNodeId(tnodeId);
+    }
+
+    // Парсим Pixso ссылку
+    if (link.includes("pixso.net") || link.includes("pixso.io")) {
+      // https://pixso.net/app/design/00-hSPZmRH4oPOgHu9Q9Hg?item-id=986:2678
+      const fileKeyMatch = link.match(/design\/([^/?]+)/);
+      const tfileKey = fileKeyMatch ? fileKeyMatch[1] : null;
+
+      const nodeIdMatch = link.match(/item-id=([\w:]+)/);
+      const tnodeId = nodeIdMatch ? nodeIdMatch[1] : null;
+
+      setFileKey(tfileKey);
+      setNodeId(tnodeId);
+    }
   };
 
   useEffect(() => {
@@ -53,14 +70,27 @@ const ModalCreateFigmaProject: React.FC<ModalCreateFigmaProjectProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (name === "" || fileKey === "" || nodeId === "" || token === "") {
+    if (
+      name === "" ||
+      fileKey === "" ||
+      nodeId === ""
+      // token === "" ||
+      // !user
+    ) {
       setModalMessage("All fields are required.");
       return;
     }
-    console.log("<========>", user.id, name, fileKey, nodeId, token);
+
     try {
       const { data } = await createFigmaProject({
-        variables: { ownerId: user.id, name, fileKey, nodeId, token },
+        variables: {
+          ownerId: user.id,
+          name,
+          fileKey,
+          nodeId,
+          token,
+          type: projectType,
+        },
       });
 
       if (data.createFigmaProject) {
@@ -135,7 +165,7 @@ const ModalCreateFigmaProject: React.FC<ModalCreateFigmaProjectProps> = ({
               <Input
                 typeInput="text"
                 id="FigmaLink"
-                data="Figma Link"
+                data={projectType === "pixso" ? "Pixso Link" : "Figma Link"}
                 value={FigmaLink}
                 onChange={(e) => setFigmaLink(e.target.value)}
               />
@@ -155,12 +185,19 @@ const ModalCreateFigmaProject: React.FC<ModalCreateFigmaProjectProps> = ({
                   onChange={(e) => setNodeId(e.target.value)}
                 /> */}
 
-              <Input
+              {/* <Input
                 typeInput="text"
                 id="name"
-                data="Figma Token"
+                data={projectType === "pixso" ? "Pixso Token" : "Figma Token"}
                 value={token}
                 onChange={(e) => setToken(e.target.value)}
+              /> */}
+              <InputRadio
+                type="radio"
+                data="type"
+                value={projectType}
+                options={["figma", "pixso"]}
+                onChange={(value) => setProjectType(value)}
               />
 
               <div className="flex gap-2">

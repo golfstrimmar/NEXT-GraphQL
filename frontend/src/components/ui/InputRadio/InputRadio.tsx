@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-// import "./InputRadio.scss";
+import "./InputRadio.scss";
 
 // =================================
 
@@ -9,7 +9,7 @@ interface InputRadioProps {
   data: string;
   value: string;
   options: string[]; // Массив возможных значений для радиокнопок
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange: (value: string) => void;
 }
 
 // =================================
@@ -19,7 +19,7 @@ const InputRadio: React.FC<InputRadioProps> = ({
   data,
   value,
   options,
-  onChange: addClass,
+  onChange,
 }) => {
   return (
     <div className="fildset-radio">
@@ -31,9 +31,7 @@ const InputRadio: React.FC<InputRadioProps> = ({
             type={type}
             value={option}
             checked={value === option}
-            onChange={(e) => {
-              addClass(e.target.value);
-            }}
+            onChange={() => onChange(option)}
           />
           <label htmlFor={`${data}-${option}`}>{option}</label>
         </div>

@@ -479,6 +479,11 @@ export default function Plaza() {
           {/* {<pre>{createHtml()}</pre>} */}
         </div>
         {/* 🚀🚀🚀🚀🚀🚀🚀🚀 рендеринг проекта🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
+        {/* 🚀🚀🚀🚀🚀🚀🚀🚀 */}
+        {/* 🚀🚀🚀🚀🚀🚀🚀🚀 */}
+        {/* 🚀🚀🚀🚀🚀🚀🚀🚀 */}
+        {/* 🚀🚀🚀🚀🚀🚀🚀🚀 */}
+        {/* 🚀🚀🚀🚀🚀🚀🚀🚀 */}
         <div
           id="plaza-render-area"
           className="flex flex-col gap-2 mb-2 relative"
@@ -489,6 +494,11 @@ export default function Plaza() {
               : renderNode(project))}
         </div>
         {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
+        {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
+        {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
+        {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
+        {/* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 */}
+        {/* --- информация о проекте --- */}
         <motion.div
           id="plaza-container"
           className={`grid transition-all duration-300 py-2 gap-4 mt-2 ${editMode ? "bg-slate-400 rounded" : ""}
@@ -515,7 +525,7 @@ export default function Plaza() {
             )}
           </AnimatePresence>
         </motion.div>
-        {/* ------------- */}
+        {/* ------кнопки действий с проектом------- */}
         <hr className="bordered border-slate-200  " />
         <div className="">
           {projectName && (

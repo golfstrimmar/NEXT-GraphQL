@@ -41,7 +41,7 @@ const removeFigmaProject = async (_, { figmaProjectId }) => {
   }
   // 5️⃣ Если больше нет — чистим fontClass
   if (remaining === 0) {
-    await prisma.fontClass.deleteMany({
+    await prisma.font.deleteMany({
       where: { fileKey: project.fileKey },
     });
   }
